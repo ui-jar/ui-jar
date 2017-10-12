@@ -1,0 +1,40 @@
+{
+    "name": "ui-jar",
+    "version": "1.0.0-beta.3",
+    "description": "A drop in module to automatically create a living style guide based on the test you write for your components in Angular (4.x and above).",
+    "private": true,
+    "scripts": {
+        "development": "concurrently \"tsc -w\" \"sass --watch src/styles:dist/src/styles\" "
+    },
+    "author": "Kristoffer Nording",
+    "license": "MIT",
+    "bin": {
+        "ui-jar": "./dist/bin/cli.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ui-jar/ui-jar"
+    },
+    "devDependencies": {
+        "@types/node": "8.0.19",
+        "concurrently": "^3.5.0"
+    },
+    "main": "dist/index.js",
+    "typings": "dist/index.d.ts",
+    "dependencies": {
+        "typescript": ">=2.4.0"
+    },
+    "peerDependencies": {
+        "@angular/animations": ">=4.0.0",
+        "@angular/common": ">=4.0.0",
+        "@angular/compiler": ">=4.0.0",
+        "@angular/compiler-cli": ">=4.0.0",
+        "@angular/core": ">=4.0.0",
+        "@angular/forms": ">=4.0.0",
+        "@angular/http": ">=4.0.0",
+        "@angular/platform-browser": ">=4.0.0",
+        "@angular/platform-browser-dynamic": ">=4.0.0",
+        "@angular/router": ">=4.0.0",
+        "rxjs": ">=5.4.2"
+    }
+}

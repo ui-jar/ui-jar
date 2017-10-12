@@ -1,0 +1,313 @@
+import * as ts from 'typescript';
+import * as path from 'path';
+import { ComponentDocs } from './source-parser';
+
+interface VariableDeclaration {
+    type: string,
+    name: string
+}
+
+export class TestSourceParser {
+    private program: ts.Program;
+    private checker: ts.TypeChecker;
+
+    constructor(private config: any, tsOptions: ts.CompilerOptions) {
+        let files = config.files;
+
+        this.program = ts.createProgram([...files], tsOptions);
+        this.checker = this.program.getTypeChecker();
+    }
+
+    getProjectTestDocumentation(componentDocs: ComponentDocs[]): any[] {
+        const testDocs: any[] = this.getTestDocs(this.config.files);
+
+        testDocs.filter((component) => component.moduleSetup['imports']).forEach((component) => {
+            componentDocs.forEach((componentDocs) => {
+                if (component.moduleSetup['imports'].indexOf(componentDocs.moduleDetails.moduleRefName) > -1) {
+                    component.includesComponents = component.includesComponents || [];
+                    component.includesComponents.push(componentDocs.componentRefName);
+                }
+            });
+        });
+
+        this.verifyBootstrapComponentExist(testDocs);
+
+        return testDocs;
+    }
+
+    private verifyBootstrapComponentExist(docs: any[]) {
+        const result = docs.filter((component, index) => {
+            let containsBootstrapComponent = false;
+
+            if (component.includesComponents.indexOf(component.bootstrapComponent) > -1) {
+                containsBootstrapComponent = true;
+            }
+
+            if (component.moduleSetup.declarations &&
+                component.moduleSetup.declarations.indexOf(component.bootstrapComponent) > -1) {
+                containsBootstrapComponent = true;
+            }
+
+            return !containsBootstrapComponent;
+        });
+
+        result.forEach((testDocs) => {
+            console.error(`Could not find any reference to "${testDocs.bootstrapComponent}".`);
+            console.error(`Verify that "@uijar ${testDocs.bootstrapComponent}" or "@hostcomponent ${testDocs.bootstrapComponent}" is using correct component reference name.`);
+        });
+
+        if (result.length > 0) {
+            process.exit(1);
+        }
+    }
+
+    private getTestDocs(files: string[]) {
+        let docs = [];
+
+        for (let currentFile of files) {
+            let details: any = this.getTestSourceDetails(this.program.getSourceFile(currentFile));
+            details.fileName = (this.program.getSourceFile(currentFile) as ts.FileReference).fileName;
+
+            details.examples.forEach((example) => {
+                const expressions = this.getBinaryExpressionsFromTest(details.bootstrapComponent,
+                    details.variableDeclarations, example.binaryExpressions);
+
+                example.componentProperties = expressions;
+            });
+
+            details.inlineFunctions = this.getCalledFunctionFromTest(details.inlineFunctions, details.examples);
+
+            if (details.bootstrapComponent) {
+                docs.push(details);
+            }
+        }
+
+        return docs;
+    }
+
+    private getCalledFunctionFromTest(inlineFunctions: { name: string, func: string }[],
+        examples: any[]): string[] {
+
+        let calledInlineFunctions = inlineFunctions.reduce((result, inlineFunction) => {
+            const isCalledFunction = examples.filter((example) => {
+                return example.componentProperties.filter((componentProperty) => {
+                    const functionCall = inlineFunction.name + '(';
+                    return componentProperty.expression.indexOf(functionCall) > -1;
+                }).length > 0;
+            }).length > 0;
+
+            if (isCalledFunction) {
+                result = result.concat(inlineFunction.func);
+            }
+
+            return result;
+        }, []);
+
+        return calledInlineFunctions;
+    }
+
+    private getBinaryExpressionsFromTest(bootstrapComponent: string, variableDeclarations: VariableDeclaration[],
+        binaryExpressions: string[]) {
+
+        let componentVariable: VariableDeclaration = variableDeclarations.find((item: VariableDeclaration) => {
+            return item.type === bootstrapComponent;
+        });
+
+        let expressions = [];
+
+        if (componentVariable) {
+            expressions = binaryExpressions.filter((expression) => {
+                return expression.indexOf(componentVariable.name) === 0;
+            }).map((expression) => {
+                return {
+                    name: componentVariable.name,
+                    expression: expression
+                };
+            });
+        }
+
+        return expressions;
+    }
+
+    private getResolvedImportPath(importStatement: any, sourceFilePath): string {
+        const rootDir = __dirname;
+        const importStatementPath = importStatement.path.replace(/[\"']/gi, '');
+        const sourceFileDirectoryPath = path.resolve(sourceFilePath.substr(0, sourceFilePath.lastIndexOf('/')));
+        const testFilePath = path.relative(path.resolve(rootDir), sourceFileDirectoryPath);
+        const sourceFileAbsolutePath = path.resolve(path.resolve(rootDir), testFilePath, importStatementPath);
+        const importPath = path.relative(path.resolve(rootDir), sourceFileAbsolutePath);
+
+        const replacedImportStatement = importStatement.value.replace(importStatement.path, `'${importPath}'`).replace(/\\/gi, '/');
+
+        return replacedImportStatement;
+    }
+
+    private isImportPathRelative(importStatement: any) {
+        return importStatement.path.charAt(1) === '.';
+    }
+
+    private getTestSourceDetails(node: ts.Node) {
+        let details: any = {
+            importStatements: [],
+            moduleSetup: {},
+            bootstrapComponents: null,
+            includeTestForComponent: null,
+            includesComponents: [],
+            inlineComponents: [],
+            inlineFunctions: [],
+            variableDeclarations: [],
+            binaryExpressions: [],
+            examples: []
+        };
+
+        let traverseChild = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.ImportDeclaration) {
+                let importObj = {
+                    value: childNode.getText(),
+                    path: this.getImportStatementDetails(childNode)
+                };
+
+                details.importStatements.push(importObj);
+            } else if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
+                const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
+
+                if (nodeSymbol) {
+                    nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
+                        if (docs.name === 'uijar') {
+                            if (!details.bootstrapComponent) {
+                                details.bootstrapComponent = docs.text;
+                            }
+
+                            details.includeTestForComponent = docs.text;
+                            details.moduleSetup = this.getModuleDefinitionDetails(childNode);
+                        } else if (docs.name === 'hostcomponent') {
+                            details.bootstrapComponent = docs.text;
+                        }
+                    });
+
+                    let variableType = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration));
+
+                    details.variableDeclarations.push({
+                        name: nodeSymbol.name,
+                        type: variableType
+                    });
+                }
+            } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
+                const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration));
+
+                if (inlineComponent) {
+                    details.inlineComponents.push(inlineComponent);
+                }
+            } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
+                if (this.isExampleComment(childNode)) {
+                    details.examples.push({
+                        binaryExpressions: this.getExampleExpressionDetails(childNode)
+                    });
+                }
+            } else if (childNode.kind === ts.SyntaxKind.FunctionDeclaration) {
+                const inlineFunction = this.getInlineFunction((childNode as ts.FunctionDeclaration));
+                details.inlineFunctions.push(inlineFunction);
+            }
+
+            ts.forEachChild(childNode, traverseChild);
+        };
+
+        traverseChild(node);
+
+        return details;
+    }
+
+    private getInlineFunction(inlineFunctionDeclaration: ts.FunctionDeclaration) {
+        return {
+            name: inlineFunctionDeclaration.name.getText(),
+            func: inlineFunctionDeclaration.getText()
+        };
+    }
+
+    private isExampleComment(node: ts.Node) {
+        const comment = node.getFullText().replace(/[\s\t\n\r]/gi, '');
+        const regexp = /(\/\*{1,}@uijarexample\*{1,})\//;
+        const matches = comment.match(regexp);
+
+        if (matches) {
+            return comment.indexOf(matches[0]) === 0;
+        }
+
+        return false;
+    }
+
+    private getExampleExpressionDetails(node: ts.Node): string[] {
+        let expressions: string[] = [];
+
+        const traverseChild = (childNode) => {
+            if (childNode.kind === ts.SyntaxKind.BinaryExpression) {
+                expressions.push(childNode.getText());
+            }
+
+            ts.forEachChild(childNode, traverseChild);
+        };
+
+        traverseChild(node);
+
+        return expressions;
+    }
+
+    private getImportStatementDetails(node: ts.Node) {
+        if (node.kind === ts.SyntaxKind.StringLiteral) {
+            return node.getText();
+        }
+
+        return ts.forEachChild(node, (nextNode) => this.getImportStatementDetails(nextNode));
+    }
+
+    private getModuleDefinitionDetails(node: ts.Node) {
+        let moduleDefinition: any = {};
+
+        const traverseChild = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
+                const propertyName = (childNode as ts.PropertyAssignment).name.getText();
+                let propertyValue;
+
+                (childNode as ts.PropertyAssignment).getChildren().forEach((child) => {
+                    if (child.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+                        propertyValue = child.getText();
+                    }
+                });
+
+                if (propertyName && propertyValue) {
+                    moduleDefinition[propertyName] = propertyValue.replace(/[\n\t\r\s\[\]]+/gi, '').split(',');
+                }
+
+            }
+
+            ts.forEachChild(childNode, traverseChild);
+        };
+
+        traverseChild(node);
+
+        return moduleDefinition;
+    }
+
+    private getInlineComponent(node: ts.ClassDeclaration): string {
+        const isComponent = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'Component') {
+                return true;
+            }
+
+            return ts.forEachChild(childNode, isComponent);
+        }
+
+        let inlineComponent = null;
+
+        if (node.decorators) {
+            node.decorators.forEach((decorator: ts.Decorator) => {
+                if (isComponent(decorator)) {
+                    inlineComponent = node.getText();
+                }
+            });
+        }
+
+        return inlineComponent;
+    }
+
+}
