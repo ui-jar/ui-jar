@@ -1,5 +1,5 @@
 # UI-jar
- ## Test Driven Style Guide Development<br/><br/>
+### Test Driven Style Guide Development
 A drop in module to automatically create a living style guide based on the test you write for your components in Angular (4.x and above).<br/>
 Bundle with your favorite build tool and you will automatically get a web app where you can view examples of each component together with associated documentation.<br/><br/>
 
