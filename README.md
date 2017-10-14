@@ -41,13 +41,19 @@ platformBrowserDynamic().bootstrapModule(UIjarModule);
     <link rel="stylesheet" href="/node_modules/ui-jar/dist/src/styles/default.css" type="text/css">
 </head>
 <body>
-    <sl-app></sl-app>
+    <ui-jar-app></ui-jar-app>
     <script src="path/to/your/ui-jar/app/build/bundle.js"></script>
 </body>
 </html>
 ```
 
 ## Example usage (basic)
+
+In the source code, add a JSDoc-comment to your component containing "@group GROUP_NAME" and "@component COMPONENT_DISPLAY_NAME".
+**@group** is used to group your components in the UI-jar app navigation.
+**@component** is used as display name of the component in the UI-jar app.
+
+Description is not required, add if you like. It will be displayed together with your component in the UI-jar app.
 
 ### Source code
 
@@ -61,9 +67,9 @@ import { Component, Input } from '@angular/core';
  * <div>It's possible use <b>html</b> in the description</div>
  */
 @Component({
-  selector: 'x-checkbox',
-  templateUrl: './checkbox.component.html',
-  styleUrls: ['./checkbox.component.scss']
+    selector: 'x-checkbox',
+    templateUrl: './checkbox.component.html',
+    styleUrls: ['./checkbox.component.scss']
 })
 export class CheckboxComponent {
     @Input('isDisabled') isDisabled: boolean = false;
@@ -75,7 +81,11 @@ export class CheckboxComponent {
 
 ### Test code
 
-Create a JSDoc-comment with the "@uijar [COMPONENT_CLASS_NAME]" together with a variable that defines test module definition.
+Add a JSDoc-comment with "@uijar COMPONENT_CLASS_NAME" together with a variable that defines test module definition.
+In the example below it's defined in "beforeEach".
+
+Also add a JSDoc-comment containing "@uijarexample" to each test you would like to add as a example in UI-jar.
+It's possible to use multiple examples.
 
 ```js
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
@@ -85,51 +95,40 @@ describe('CheckboxComponent', () => {
   let component: CheckboxComponent;
   let fixture: ComponentFixture<CheckboxComponent>;
 
-  beforeEach(async(() => {
-    /** 
-     * @uijar CheckboxComponent
-     */
-    let moduleDefinition = {
-      declarations: [CheckboxComponent]
-    };
+    beforeEach(async(() => {
+        /** 
+         * @uijar CheckboxComponent
+         */
+        let moduleDefinition = {
+            declarations: [CheckboxComponent]
+        };
 
-    TestBed.configureTestingModule(moduleDefinition).compileComponents();
-  }));
+        TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+            fixture = TestBed.createComponent(CheckboxComponent);
+            component = fixture.componentInstance;
+            fixture.detectChanges();      
+        });
+    }));
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(CheckboxComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    /** @uijarexample */
+    it('should create component with "isDisabled" set to true', () => {
+        component.isDisabled = true;
+        component.label = 'Item A';
 
-  /**
-  * @uijarexample
-  */
-  it('should create component with "isDisabled" set to true', () => {
-    component.isDisabled = true;
-    component.label = 'Item A';
+        ...
+    });
 
-    assert.isTrue(component);
-    assert.isTrue(component.isDisabled);
-  });
+    /** @uijarexample */
+    it('should create component with "isDisabled" set to false', () => {
+        component.isDisabled = false;
+        component.label = 'Item A';
 
-  /**
-  * @uijarexample
-  */
-  it('should create component with "isDisabled" set to false', () => {
-    component.isDisabled = false;
-    component.label = 'Item A';
-    
-    assert.isTrue(component);
-    assert.isFalse(component.isDisabled);
-  });
+        ...
+    });
 });
 ```
 
 ## Example usage (with test host component)
-
-Sometimes you want to create a test host component for your tests.
-It's possible to load that kind of components in UI-jar, just add the "@hostcomponent [HOST_COMPONENT_CLASS_NAME]" to the JSDoc where you define your module definition. Se example below:
 
 ### Source code
 
@@ -141,9 +140,9 @@ import { Component } from '@angular/core';
  * @component Buttons
  */
 @Component({
-  selector: 'button[buttonA]',
-  template: '<ng-content></ng-content>',
-  styleUrls: ['./button.scss']
+    selector: 'button[buttonA]',
+    template: '<ng-content></ng-content>',
+    styleUrls: ['./button.scss']
 })
 export class ButtonComponent {
     ...
@@ -151,6 +150,10 @@ export class ButtonComponent {
 ```
 
 ### Test code
+
+Sometimes you want to create a test host component for your tests.
+It's possible to view test host components in UI-jar, just add the "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you define your module definition.
+In the example below it's defined in "beforeEach".
 
 ```js
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
@@ -167,35 +170,31 @@ describe('ButtonComponent', () => {
      * @hostcomponent ButtonComponentTestHost
      */
     let moduleDefinition = { 
-      imports: [ButtonsModule],
-      declarations: [ButtonComponentTestHost]
+        imports: [ButtonsModule],
+        declarations: [ButtonComponentTestHost]
     };
 
-    TestBed.configureTestingModule(moduleDefinition).compileComponents();
+    TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+        fixture = TestBed.createComponent(ButtonComponentTestHost);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
   }));
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ButtonComponentTestHost);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    /** @uijarexample */
+    it('should be created', () => {
+        component.buttonText = 'Standard button';
 
-  /**
-   * @uijarexample
-   */
-  it('should be created', () => {
-    component.buttonText = 'Standard button';
-
-    ...
-  });
+        ...
+    });
 });
 
 @Component({
-  selector: 'x-button-test-host',
-  template: `<button buttonA>{{buttonText}}</button>`
+    selector: 'x-button-test-host',
+    template: `<button buttonA>{{buttonText}}</button>`
 })
 class ButtonComponentTestHost {
-  buttonText: string;
+    buttonText: string;
 }
 ```
 
