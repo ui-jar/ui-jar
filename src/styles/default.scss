@@ -117,7 +117,7 @@ nav {
     clear: both;
 }
 
-sl-overview {
+ui-jar-overview {
     font-family: Arial;
     font-size: 14px;
 
@@ -126,7 +126,7 @@ sl-overview {
     }
 }
 
-sl-example {
+ui-jar-example {
     display: block;
     position: relative;
     padding-top: 35px;
@@ -157,7 +157,7 @@ sl-example {
     }
 }
 
-sl-container {
+ui-jar-container {
     display: block;
 
     .content-container {
@@ -221,7 +221,7 @@ sl-container {
 
 }
 
-sl-code-example {
+ui-jar-code-example {
     display: none;
     border-bottom: 1px #c1c1c1 solid;
     margin: -32px 0 20px 0;
@@ -255,7 +255,7 @@ sl-code-example {
 
 }
 
-sl-api {
+ui-jar-api {
     h2 {
         font-family: Arial;
         font-size: 16px;

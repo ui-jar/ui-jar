@@ -3,9 +3,9 @@ import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
-    selector: 'sl-overview',
+    selector: 'ui-jar-overview',
     template: `
-        <sl-example></sl-example>
+        <ui-jar-example></ui-jar-example>
         <div class="description-container">
             <div *ngIf="description; else notAvailable" [innerHTML]="description"></div>
             <ng-template #notAvailable>

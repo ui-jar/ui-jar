@@ -1,7 +1,7 @@
 import { Component, Inject, Input, HostBinding, Output, EventEmitter } from '@angular/core';
 
 @Component({
-    selector: 'sl-code-example',
+    selector: 'ui-jar-code-example',
     template: `
         <div>
             <h2>HTML</h2>

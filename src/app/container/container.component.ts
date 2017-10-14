@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
-    selector: 'sl-container',
+    selector: 'ui-jar-container',
     template: `
         <div class="top-header">
             <h2>{{title}}</h2>

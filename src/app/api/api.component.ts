@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiDetails } from '../../generator/source-parser';
 
 @Component({
-    selector: 'sl-api',
+    selector: 'ui-jar-api',
     template: `
         <div *ngIf="api.properties.length > 0" class="api-table-container">
             <h2>Properties</h2>

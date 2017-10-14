@@ -1,7 +1,7 @@
 import { Component, Inject } from '@angular/core';
 
 @Component({
-    selector: 'sl-introduction',
+    selector: 'ui-jar-introduction',
     template: ``,
 })
 export class IntroductionComponent {

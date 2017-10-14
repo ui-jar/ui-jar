@@ -3,11 +3,11 @@ import { Router, Route } from '@angular/router';
 import { NavigationLinks } from './app.model';
 
 @Component({
-    selector: 'sl-app',
+    selector: 'ui-jar-app',
     template: `
         <div class="top-nav-bar">
             <div class="app-title">UI-jar<span>@</span></div>
-            <div class="beta-banner">1.0.0-beta.3</div>
+            <div class="beta-banner">1.0.0-beta.4</div>
         </div>
         <section class="container">
             <nav>
