@@ -2,7 +2,6 @@
 ### Test Driven Style Guide Development - Angular (2.x and above)
 A drop in module to automatically create a living style guide based on the test you write for your components.<br/>
 Bundle with your favorite build tool and you will automatically get a web app where you can view examples of each component together with associated documentation.<br/><br/>
-
 UI-jar is in beta, breaking changes may occur.
 
 ## Installation
@@ -49,7 +48,8 @@ platformBrowserDynamic().bootstrapModule(UIjarModule);
 
 ## Example usage (basic)
 
-Add a JSDoc-comment to your component containing "@group GROUP_NAME" and "@component COMPONENT_DISPLAY_NAME".
+Add a JSDoc-comment to your component containing "@group GROUP_NAME" and 
+"@component COMPONENT_DISPLAY_NAME".
 
 **@group** is used to group your components in the UI-jar app navigation.<br/>
 **@component** is used as display name of the component in the UI-jar app.
