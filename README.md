@@ -1,9 +1,9 @@
 # UI-jar
-### Test Driven Style Guide Development
-A drop in module to automatically create a living style guide based on the test you write for your components in Angular (4.x and above).<br/>
+### Test Driven Style Guide Development - Angular (2.x and above)
+A drop in module to automatically create a living style guide based on the test you write for your components.<br/>
 Bundle with your favorite build tool and you will automatically get a web app where you can view examples of each component together with associated documentation.<br/><br/>
 
-UI-jar is in early beta, breaking changes may occur.
+UI-jar is in beta, breaking changes may occur.
 
 ## Installation
 ```bash
@@ -18,7 +18,7 @@ npm install ui-jar
 
 ## Configuration
 
-Add a entry point to your ui-jar app, e.g ui-jar.ts.
+Add a entry point to your ui-jar app, e.g ui-jar.ts.<br/>
 Bundle with your favorite build tool (use the same configuration as your regular app, but with ui-jar.ts as the entry point).
 AoT-build is not supported yet.
 
@@ -49,8 +49,9 @@ platformBrowserDynamic().bootstrapModule(UIjarModule);
 
 ## Example usage (basic)
 
-In the source code, add a JSDoc-comment to your component containing "@group GROUP_NAME" and "@component COMPONENT_DISPLAY_NAME".
-**@group** is used to group your components in the UI-jar app navigation.
+Add a JSDoc-comment to your component containing "@group GROUP_NAME" and "@component COMPONENT_DISPLAY_NAME".
+
+**@group** is used to group your components in the UI-jar app navigation.<br/>
 **@component** is used as display name of the component in the UI-jar app.
 
 Description is not required, add if you like. It will be displayed together with your component in the UI-jar app.
@@ -84,7 +85,7 @@ export class CheckboxComponent {
 Add a JSDoc-comment with "@uijar COMPONENT_CLASS_NAME" together with a variable that defines test module definition.
 In the example below it's defined in "beforeEach".
 
-Also add a JSDoc-comment containing "@uijarexample" to each test you would like to add as a example in UI-jar.
+Also add a JSDoc-comment containing "@uijarexample" to each test you would like to add as a example in UI-jar.<br/>
 It's possible to use multiple examples.
 
 ```js
@@ -151,8 +152,8 @@ export class ButtonComponent {
 
 ### Test code
 
-Sometimes you want to create a test host component for your tests.
-It's possible to view test host components in UI-jar, just add the "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you define your module definition.
+Sometimes you want to create a test host component for your tests.<br/>
+It's possible to view test host components in UI-jar, just add the "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you define your module definition.<br/>
 In the example below it's defined in "beforeEach".
 
 ```js
