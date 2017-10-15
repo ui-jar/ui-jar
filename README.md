@@ -48,7 +48,7 @@ platformBrowserDynamic().bootstrapModule(UIjarModule);
 
 ## Example usage (basic)
 
-Add a JSDoc-comment to your component containing "@group GROUP_NAME" and 
+Add a JSDoc-comment to your component containing "@group GROUP_NAME" and<br/>
 "@component COMPONENT_DISPLAY_NAME".
 
 **@group** is used to group your components in the UI-jar app navigation.<br/>
@@ -196,6 +196,35 @@ describe('ButtonComponent', () => {
 })
 class ButtonComponentTestHost {
     buttonText: string;
+}
+```
+
+## Example usage (add more details about your component)
+
+UI-jar also automatically create a API documentation for your component.
+The documentation view all public methods and properties on each component.
+It's possible to add more details by adding a JSDoc-comment together with associated method or property.
+In the example below, we are adding more details about "isDisabled" property.
+
+### Source code
+
+```js
+import { Component, Input } from '@angular/core';
+
+/**
+ * @group Forms
+ * @component Checkbox
+ */
+@Component({
+    selector: 'x-checkbox',
+    templateUrl: './checkbox.component.html',
+    styleUrls: ['./checkbox.component.scss']
+})
+export class CheckboxComponent {
+    /** Indicates whether checkbox is disabled or not */
+    @Input('isDisabled') isDisabled: boolean = false;
+
+    ...
 }
 ```
 
