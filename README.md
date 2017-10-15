@@ -4,6 +4,8 @@ A drop in module to automatically create a living style guide based on the test 
 Bundle with your favorite build tool and you will automatically get a web app where you can view examples of each component together with associated documentation.<br/><br/>
 UI-jar is in beta, breaking changes may occur.
 
+![screenshot](https://raw.githubusercontent.com/ui-jar/ui-jar/master/images/screenshot.png)
+
 ## Installation
 ```bash
 npm install ui-jar
