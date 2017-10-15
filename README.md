@@ -6,6 +6,8 @@ UI-jar is in beta, breaking changes may occur.
 
 ![screenshot](https://raw.githubusercontent.com/ui-jar/ui-jar/master/images/screenshot.png)
 
+---
+
 ## Installation
 ```bash
 npm install ui-jar
