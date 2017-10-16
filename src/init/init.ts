@@ -11,6 +11,7 @@ export interface GenerateOptionArgs {
     directory: string;
     includeFiles: RegExp[];
     excludeFiles?: RegExp[];
+    testFiles?: RegExp[];
     urlPrefix?: string;
 }
 

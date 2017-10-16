@@ -55,10 +55,10 @@ platformBrowserDynamic().bootstrapModule(UIjarModule);
 Add a JSDoc-comment to your component containing "@group GROUP_NAME" and<br/>
 "@component COMPONENT_DISPLAY_NAME".
 
-**@group** is used to group your components in the UI-jar app navigation.<br/>
-**@component** is used as display name of the component in the UI-jar app.
+**@group** is used to group your components in UI-jar navigation.<br/>
+**@component** is used as display name of the component in UI-jar.
 
-Description is not required, add if you like. It will be displayed together with your component in the UI-jar app.
+Description is not required, add if you like. It will be displayed together with your component in UI-jar.
 
 ### Source code
 
@@ -157,7 +157,7 @@ export class ButtonComponent {
 ### Test code
 
 Sometimes you want to create a test host component for your tests.<br/>
-It's possible to view test host components in UI-jar, just add the "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you define your module definition.<br/>
+It's possible to view test host components in UI-jar, just add "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you define your module definition.<br/>
 In the example below it's defined in "beforeEach".
 
 ```js

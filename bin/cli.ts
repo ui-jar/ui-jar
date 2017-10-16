@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { GenerateOptionArgs, generateRequiredFiles } from '../src/init/init';
+import { FileWatcher } from '../src/watcher/watcher';
 
 interface CliArgs {
-    generate?: string;
     directory?: string;
     includes?: RegExp[];
     excludes?: RegExp[];
-    outputPath?: string;
+    testFiles?: RegExp[];
     urlPrefix?: string;
 }
 
@@ -24,14 +24,23 @@ function runCliArguments(cliArgs: CliArgs) {
         throw new Error('"includes"-parameter is missing');
     }
 
+    if(!cliArgs.testFiles) {
+        throw new Error('"testFiles"-parameter is missing');
+    }
+
     const generateOptionArgs: GenerateOptionArgs = {
         directory: cliArgs.directory[0],
         includeFiles: cliArgs.includes,
         excludeFiles: cliArgs.excludes,
+        testFiles: cliArgs.testFiles,
         urlPrefix: cliArgs.urlPrefix ? cliArgs.urlPrefix[0] : ''
     }
 
     generateRequiredFiles(generateOptionArgs);
+
+    if(cliArgs['-watch']) {
+        startFileWatcher(generateOptionArgs);
+    }
 }
 
 function parseCliArguments(args: string[]): CliArgs {
@@ -56,4 +65,9 @@ function parseCliArguments(args: string[]): CliArgs {
 
 function pluckAdditionalCliArguments(args: string[]) {
     return args.slice(2);
+}
+
+function startFileWatcher(options: GenerateOptionArgs) {   
+    let fileWatcher = new FileWatcher(options);
+    fileWatcher.start();
 }
