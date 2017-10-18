@@ -19,7 +19,7 @@ npm install ui-jar
 ./node_modules/.bin/ui-jar directory=./app/root/dir includes=.ts$ excludes=.excludes.ts$ urlPrefix=prefix/url
 ```
 
-### CLI options
+#### CLI options
 
 * **directory** - path to app root dir e.g. "./src/app"
 * **includes** - comma separated list of files to include, should be of type RegExp e.g. "foo\\.ts$,bar\\.ts$"
