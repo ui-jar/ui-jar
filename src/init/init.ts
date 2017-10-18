@@ -11,12 +11,11 @@ export interface GenerateOptionArgs {
     directory: string;
     includeFiles: RegExp[];
     excludeFiles?: RegExp[];
-    testFiles?: RegExp[];
     urlPrefix?: string;
 }
 
 export function generateRequiredFiles(options: GenerateOptionArgs) {
-    console.log('Generating resources...');
+    console.info('Generating resources...');
 
     const fileSearch = new FileSearch(options.includeFiles, options.excludeFiles);
     const sourceFiles = fileSearch.getFiles(options.directory);
@@ -56,11 +55,11 @@ export function generateRequiredFiles(options: GenerateOptionArgs) {
     try {
         fileWriter.createBundleFile();
     } catch (error) {
-        console.log('Failed to generate resources:', error);
+        console.error('Failed to generate resources:', error);
         return;
     }
 
-    console.log('Generated resources successfully.');
+    console.info('Generated resources successfully.');
 }
 
 function getDocs(sourceFiles) {

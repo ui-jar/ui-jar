@@ -1,58 +1,63 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { GenerateOptionArgs, generateRequiredFiles } from '../init/init';
+import * as EventEmitter from 'events';
+
+export interface FileWatcherOptions {
+    directory: string,
+    files: string[]
+}
+
+export enum FileWatcherEvent {
+    REBUILD = 'REBUILD'
+}
 
 export class FileWatcher {
-    constructor(private config: GenerateOptionArgs) {}
+    private watchEvent: EventEmitter = new EventEmitter();
+
+    constructor(private config: FileWatcherOptions) { }
 
     start() {
-        console.log('Watching for file changes.');
-        
+        console.info('Watching for file changes.');
+
         let debounceTime = 500;
         let watchTimer = null;
         let watcher = fs.watch(path.resolve(this.config.directory), { encoding: 'utf8', recursive: true, persistent: true });
 
         watcher.addListener('change', (eventName: string, fileName: string) => {
             clearTimeout(watchTimer);
-            
-            watchTimer = setTimeout(() => {
-                if(this.shouldBeExcluded(fileName)) {
-                    return;
-                }
-                
-                if(this.shouldBeIncluded(fileName)) {
-                    this.rebuildAll();
-                }
-            }, debounceTime);
+
+            watchTimer = setTimeout(() => this.eventHandler(fileName), debounceTime);
         });
     }
 
-    private shouldBeExcluded(fileName): boolean {
-        if(this.config.excludeFiles === undefined || this.config.excludeFiles === null) {
-            return false;
+    addListener(eventType: FileWatcherEvent, callback: () => void) {
+        if (eventType) {
+            this.watchEvent.addListener(eventType, callback);
         }
-
-        let result = this.config.excludeFiles.find((excludeItem) => {
-            return new RegExp(excludeItem).test(fileName);
-        });
-
-        return result ? true : false;
     }
 
     private shouldBeIncluded(fileName: string): boolean {
-        if(this.config.testFiles === undefined || this.config.testFiles === null) {
-            return false;
-        }
+        fileName = this.escapeSpecialCharacters(fileName);
 
-        let result = this.config.testFiles.find((testItem) => {
-            return new RegExp(testItem).test(fileName);
+        let result = this.config.files.find((testFile) => {
+            return new RegExp(fileName + '$').test(testFile);
         });
 
         return result ? true : false;
     }
 
-    private rebuildAll() {
-        console.log('File change detected.');
-        generateRequiredFiles(this.config);
+    private escapeSpecialCharacters(fileName: string): string {
+        fileName = fileName.replace('\\', '\\\\');
+
+        return fileName;
+    }
+
+    private eventHandler(fileName: string): void {
+        if (this.shouldBeIncluded(fileName)) {
+            console.info('File change detected.');
+            this.watchEvent.emit(FileWatcherEvent.REBUILD);
+            console.info('Watching for file changes.');
+        }
     }
 }

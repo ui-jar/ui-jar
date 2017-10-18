@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ts from 'typescript';
 
 export class FileSearch {
     constructor(private includes = [], private excludes = []) { }
@@ -34,5 +35,47 @@ export class FileSearch {
         });
 
         return results;
+    }
+
+    getTestFiles(directory: string, tsOptions: ts.CompilerOptions): string[] {
+        let result = [];
+
+        let files = this.getFiles(directory);
+        let program: ts.Program = ts.createProgram([...files], tsOptions);
+        let checker: ts.TypeChecker = program.getTypeChecker();
+
+        for(let currentFile of files) {
+            const isTestFile: boolean = this.getTestSourceDetails(program.getSourceFile(currentFile), checker);
+
+            if(isTestFile) {
+                result.push(currentFile);
+            }
+        }
+
+        return result;
+    }
+
+    private getTestSourceDetails(node: ts.Node, checker: ts.TypeChecker): boolean {
+        let isTestFile = false;
+
+        let traverseChild = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
+                const nodeSymbol = checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
+
+                if (nodeSymbol) {
+                    nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
+                        if (docs.name === 'uijar' || docs.name === 'hostcomponent') {
+                            isTestFile = true;
+                        }
+                    });
+                }
+            }
+
+            ts.forEachChild(childNode, traverseChild);
+        };
+
+        traverseChild(node);
+
+        return isTestFile;
     }
 }
