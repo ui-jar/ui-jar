@@ -1,7 +1,7 @@
 {
     "name": "ui-jar",
-    "version": "1.0.0-beta.3",
-    "description": "A drop in module to automatically create a living style guide based on the test you write for your components in Angular (4.x and above).",
+    "version": "1.0.0-beta.6",
+    "description": "A drop in module to automatically create a living style guide based on the test you write for your components in Angular (2.x and above).",
     "private": true,
     "scripts": {
         "development": "concurrently \"tsc -w\" \"sass --watch src/styles:dist/src/styles\" "
