@@ -141,9 +141,7 @@ export class BundleTemplateWriter {
     private getComponentExampleProperties() {
         let expressions = {};
         this.documentation.forEach((componentDocs: ComponentDocs) => {
-            componentDocs.examples.forEach((example) => {
-                expressions[`${componentDocs.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${componentDocs.moduleDetails.moduleRefName}()`;
-            });
+            expressions[`${componentDocs.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${componentDocs.moduleDetails.moduleRefName}()`;
         });
 
         let template = Object.keys(expressions).reduce((result, exp, index) => {
