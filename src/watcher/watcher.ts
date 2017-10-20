@@ -48,7 +48,7 @@ export class FileWatcher {
     }
 
     private escapeSpecialCharacters(fileName: string): string {
-        fileName = fileName.replace('\\', '\\\\');
+        fileName = fileName.replace(/\\/gi, '\\\\');
 
         return fileName;
     }
