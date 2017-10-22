@@ -110,6 +110,24 @@ nav {
         font-size: 14px;
         font-weight: bold;
     }
+
+    .project-link {
+        position: absolute;
+        display: block;
+        top: 8px;
+        right: 120px;
+        padding: 3px 3px 3px 40px;
+        line-height: 30px;
+        text-decoration: none;
+        color: #fff;
+        font-family: Arial;
+        width: 100px;
+        background: url('../images/GitHub-Mark-Light-32px.png') top 3px left 3px no-repeat;
+
+        &:hover {
+            background-color: #4893bd;
+        }
+    }
 }
 
 .u-clearfix:after {
@@ -269,6 +287,28 @@ ui-jar-api {
         margin-bottom: 30px;
     }
 
+    .api-methods-container {
+        dt, dd {
+            padding: 10px;
+            margin: 0;
+            text-align: left;
+            line-height: 1.2em;
+        }
+        
+        dt {    
+            border: 1px #efefef solid;
+            background-color: #f7f7f7;
+        }
+
+        dd {
+            font-family: Arial;
+            font-size: 14px;
+            box-shadow: 0 1px 0 #bdbdbd;
+            margin-bottom: 20px;
+            border: 1px #e4e4e4 solid;
+        }
+    }
+
     table {
         width: 100%;
         border: 1px #e4e4e4 solid;
@@ -286,8 +326,7 @@ ui-jar-api {
             text-align: left;
             line-height: 1.2em;
             border-color: #efefef;
-            border-left-width: 1px;
-            border-bottom-width: 1px;
+            border-width: 0 0 1px 1px;
             border-style: solid;
         }
 

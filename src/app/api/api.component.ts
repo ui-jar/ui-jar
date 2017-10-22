@@ -33,29 +33,21 @@ import { ApiDetails } from '../../generator/source-parser';
                 </tbody>
             </table>
         </div>
-        <div *ngIf="api.methods.length > 0" class="api-table-container">
+        <div *ngIf="api.methods.length > 0" class="api-methods-container">
             <h2>Methods</h2>
-            <table cellspacing="0">
-                <thead>
-                    <tr>
-                        <th class="name-header">Name</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let method of api.methods">
-                        <td class="code-font">
-                            <ng-container *ngFor="let decoratorName of method.decoratorNames">
-                                <span class="decorator-highlight">{{decoratorName}}</span><br/>
-                            </ng-container>
-                            {{method.methodName}}
-                        </td>
-                        <td>
-                            <p *ngIf="method.description">{{method.description}}</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <dl>
+                <ng-container *ngFor="let method of api.methods"> 
+                    <dt class="code-font">
+                        <ng-container *ngFor="let decoratorName of method.decoratorNames">
+                        <span class="decorator-highlight">{{decoratorName}}</span><br/>
+                        </ng-container>
+                        {{method.methodName}}
+                    </dt>
+                    <dd>
+                        <ng-container *ngIf="method.description">{{method.description}}</ng-container>
+                    </dd>
+                </ng-container>
+            </dl>
         </div>
     `
 })

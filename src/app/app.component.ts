@@ -7,7 +7,8 @@ import { NavigationLinks } from './app.model';
     template: `
         <div class="top-nav-bar">
             <div class="app-title">UI-jar<span>@</span></div>
-            <div class="beta-banner">1.0.0-beta.6</div>
+            <div class="beta-banner">1.0.0-beta.7</div>
+            <a href="//github.com/ui-jar/ui-jar" target="_blank" class="project-link">GitHub</a>
         </div>
         <section class="container">
             <nav>
