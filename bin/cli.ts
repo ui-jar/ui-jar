@@ -36,7 +36,7 @@ function runCliArguments(cliArgs: CliArgs) {
 
     generateRequiredFiles(generateOptionArgs);
 
-    if (cliArgs['-watch']) {
+    if (cliArgs['--watch']) {
         startFileWatcher(generateOptionArgs);
     }
 }

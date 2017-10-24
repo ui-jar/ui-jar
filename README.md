@@ -25,7 +25,7 @@ npm install ui-jar
 * **includes** - comma separated list of files to include, should be of type RegExp e.g. "foo\\.ts$,bar\\.ts$"
 * **excludes** - comma separated list of files to exclude, should be of type RegExp e.g. "a\\.component\\.ts$,b\\.component\\.ts$"
 * **urlPrefix** - add prefix to all urls in UI-jar, e.g. "project-a/styleguide".
-* **-watch** - enable watch-mode, UI-jar will watch on file changes in your test files.
+* **--watch** - enable watch-mode, UI-jar will watch on file changes in your test files.
 
 ## Configuration
 
