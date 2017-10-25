@@ -16,7 +16,7 @@ npm install ui-jar
 ## CLI
 
 ```bash
-node node_modules/ui-jar/dist/bin/cli.js directory=./app/root/dir includes=\\.ts$ excludes=\\.excludes\\.ts$ urlPrefix=prefix/url
+node node_modules/ui-jar/dist/bin/cli.js directory=./app/root/dir includes=\.ts$ excludes=\.excludes\.ts$ urlPrefix=prefix/url
 ```
 
 #### CLI options
