@@ -9,7 +9,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "ui-jar": "./node_modules/.bin/ui-jar directory=./src/app/ includes=.ts$"
+    "ui-jar": "node node_modules/ui-jar/dist/bin/cli.js directory=./src/app/ includes=\\.ts$",
+    "start-ui-jar-example": "npm run ui-jar && ng serve --app ui-jar"
   },
   "private": true,
   "dependencies": {
