@@ -260,15 +260,12 @@ ui-jar-code-example {
     pre {
         margin: 0;
         overflow-x: auto;
+        white-space: pre-wrap;
         padding: 20px 10px;
         background-color: #f9f9f9;
         box-shadow: 1px 1px 3px #4e4e4e;
         font-size: 14px;
-
-        &:focus {
-            outline: none;
-            box-shadow: inset 1px 1px 3px #4e4e4e, 1px 1px 3px #4e4e4e;
-        }
+        font-family: monospace;
     }
 
 

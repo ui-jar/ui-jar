@@ -16,25 +16,27 @@
         "url": "https://github.com/ui-jar/ui-jar"
     },
     "devDependencies": {
+        "@angular/animations": "^4.4.6",
+        "@angular/common": "^4.4.6",
+        "@angular/compiler": "^4.4.6",
+        "@angular/compiler-cli": "^4.4.6",
+        "@angular/core": "^4.4.6",
+        "@angular/forms": "^4.4.6",
+        "@angular/http": "^4.4.6",
+        "@angular/platform-browser": "^4.4.6",
+        "@angular/platform-browser-dynamic": "^4.4.6",
+        "@angular/router": "^4.4.6",
+        "@types/mocha": "^2.2.43",
         "@types/node": "8.0.19",
-        "concurrently": "^3.5.0"
+        "@types/sinon": "^2.3.6",
+        "concurrently": "^3.5.0",
+        "mocha": "^4.0.1",
+        "sinon": "^4.0.1",
+        "rxjs": "^5.5.2"
     },
     "main": "dist/index.js",
     "typings": "dist/index.d.ts",
     "dependencies": {
-        "typescript": ">=2.4.0"
-    },
-    "peerDependencies": {
-        "@angular/animations": ">=4.0.0",
-        "@angular/common": ">=4.0.0",
-        "@angular/compiler": ">=4.0.0",
-        "@angular/compiler-cli": ">=4.0.0",
-        "@angular/core": ">=4.0.0",
-        "@angular/forms": ">=4.0.0",
-        "@angular/http": ">=4.0.0",
-        "@angular/platform-browser": ">=4.0.0",
-        "@angular/platform-browser-dynamic": ">=4.0.0",
-        "@angular/router": ">=4.0.0",
-        "rxjs": ">=5.4.2"
+        "typescript": "^2.5.3"
     }
 }

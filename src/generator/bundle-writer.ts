@@ -131,7 +131,8 @@ export class BundleTemplateWriter {
                     properties: componentDocs.apiDetails.properties,
                     methods: componentDocs.apiDetails.methods
                 },
-                moduleDependencies: [componentDocs.moduleDetails.moduleRefName]
+                moduleDependencies: [componentDocs.moduleDetails.moduleRefName],
+                exampleTemplate: componentDocs.exampleTemplate
             };
         });
 

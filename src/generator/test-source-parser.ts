@@ -1,10 +1,16 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import { ComponentDocs } from './source-parser';
+import { ComponentDocs, ApiComponentProperties } from './source-parser';
 
 interface VariableDeclaration {
     type: string,
     name: string
+}
+
+export interface InlineComponent {
+    source: string;
+    template: string;
+    name: string;
 }
 
 export class TestSourceParser {
@@ -19,7 +25,7 @@ export class TestSourceParser {
     }
 
     getProjectTestDocumentation(componentDocs: ComponentDocs[]): any[] {
-        const testDocs: any[] = this.getTestDocs(this.config.files);
+        const testDocs: any[] = this.getTestDocs(this.config.files, componentDocs);
 
         testDocs.filter((component) => component.moduleSetup['imports']).forEach((component) => {
             componentDocs.forEach((componentDocs) => {
@@ -61,7 +67,7 @@ export class TestSourceParser {
         }
     }
 
-    private getTestDocs(files: string[]) {
+    private getTestDocs(files: string[], sourceDocs: ComponentDocs[]) {
         let docs = [];
 
         for (let currentFile of files) {
@@ -78,11 +84,74 @@ export class TestSourceParser {
             details.inlineFunctions = this.getCalledFunctionFromTest(details.inlineFunctions, details.examples);
 
             if (details.bootstrapComponent) {
+                details.exampleTemplate = this.getExampleTemplate(details.inlineComponents,
+                    details.bootstrapComponent, sourceDocs, details);
+            }
+
+            if (details.bootstrapComponent) {
                 docs.push(details);
             }
         }
 
         return docs;
+    }
+
+    private getExampleTemplate(inlineComponents: InlineComponent[],
+        bootstrapComponent: string, sourceDocs: ComponentDocs[], details: any) {
+
+        let exampleTemplate = inlineComponents
+            .filter((inlineComponent) => inlineComponent.name === bootstrapComponent)
+            .map((inlineComponent) => inlineComponent.template);
+
+        if (exampleTemplate.length > 0) {
+            return exampleTemplate[0];
+        }
+
+        return this.getComponentTemplate(details, sourceDocs);
+    }
+
+    private getComponentTemplate(details: any, sourceDocs: ComponentDocs[]) {
+        const currentComponentSourceDocs = sourceDocs.find((componentDocs: ComponentDocs) => {
+            return componentDocs.componentRefName === details.includeTestForComponent;
+        });
+
+        const inputProperties = currentComponentSourceDocs.apiDetails.properties.filter((prop) => {
+            const isInput = prop.decoratorNames.filter((decoratorName) => {
+                return decoratorName.indexOf('@Input(') > -1;
+            }).length > 0;
+
+            return isInput;
+        });
+
+        let template = '';
+
+        details.examples.forEach((example) => {
+            let inputPropertiesTemplates = '';
+            let exampleComponentProperties = example.componentProperties.map((prop) => {
+                const firstIndexOfEquals = prop.expression.indexOf('=');
+                let propertyName = prop.expression.substr(0, firstIndexOfEquals);
+                propertyName = propertyName.replace(/[\s\.\[\]"']+/gi, '').replace(prop.name, '');
+                const expression = prop.expression.substr(firstIndexOfEquals + 1).trim();
+
+                return {
+                    propertyName: propertyName,
+                    propertyValue: expression
+                }
+            });
+
+            inputProperties.forEach((inputProperty: ApiComponentProperties) => {
+                const isExamplePropertyInput: any = exampleComponentProperties.find((componentProperty: any) =>
+                    componentProperty.propertyName === inputProperty.propertyName);
+
+                if (isExamplePropertyInput) {
+                    inputPropertiesTemplates += ` [${inputProperty.propertyName}]="${isExamplePropertyInput.propertyValue}"`;
+                }
+            });
+
+            template += `<${currentComponentSourceDocs.selector}${inputPropertiesTemplates}></${currentComponentSourceDocs.selector}>\n`;
+        });
+
+        return template;
     }
 
     private getCalledFunctionFromTest(inlineFunctions: { name: string, func: string }[],
@@ -150,7 +219,6 @@ export class TestSourceParser {
         let details: any = {
             importStatements: [],
             moduleSetup: {},
-            bootstrapComponents: null,
             includeTestForComponent: null,
             includesComponents: [],
             inlineComponents: [],
@@ -288,7 +356,20 @@ export class TestSourceParser {
         return moduleDefinition;
     }
 
-    private getInlineComponent(node: ts.ClassDeclaration): string {
+    private getInlineComponent(node: ts.ClassDeclaration): InlineComponent {
+        let inlineComponentTemplate = null;
+
+        const traverseDecorator = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.PropertyAssignment
+                && ((childNode as ts.PropertyAssignment).name.getText() === 'template'
+                    || (childNode as ts.PropertyAssignment).name.getText() === 'templateUrl')) {
+                inlineComponentTemplate = (childNode as ts.PropertyAssignment).initializer.getText();
+                inlineComponentTemplate = inlineComponentTemplate.substring(1, inlineComponentTemplate.length - 1);
+            }
+
+            ts.forEachChild(childNode, traverseDecorator);
+        }
+
         const isComponent = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'Component') {
                 return true;
@@ -297,12 +378,17 @@ export class TestSourceParser {
             return ts.forEachChild(childNode, isComponent);
         }
 
-        let inlineComponent = null;
+        let inlineComponent: InlineComponent = null;
 
         if (node.decorators) {
             node.decorators.forEach((decorator: ts.Decorator) => {
                 if (isComponent(decorator)) {
-                    inlineComponent = node.getText();
+                    traverseDecorator(node);
+                    inlineComponent = {
+                        source: node.getText(),
+                        template: inlineComponentTemplate,
+                        name: (node as ts.ClassDeclaration).name.getText()
+                    };
                 }
             });
         }

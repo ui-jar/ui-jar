@@ -1,18 +1,20 @@
 import * as ts from 'typescript';
 
 export interface ComponentDocs {
-    componentRefName?: string;
-    componentDocName?: string;
-    groupDocName?: string;
+    componentRefName: string;
+    componentDocName: string;
+    groupDocName: string;
     examples?: { componentProperties: any[] }[];
-    description?: string;
-    fileName?: string;
-    moduleDetails?: ModuleDetails;
-    apiDetails?: ApiDetails;
+    description: string;
+    fileName: string;
+    moduleDetails: ModuleDetails;
+    apiDetails: ApiDetails;
+    exampleTemplate?: string;
+    selector: string;
 }
 
 export interface ApiDetails {
-    properties: any[];
+    properties: ApiComponentProperties[];
     methods: any[];
 }
 
@@ -25,6 +27,13 @@ export interface ModuleDocs {
 export interface ModuleDetails {
     moduleRefName: string;
     fileName: string;
+}
+
+export interface ApiComponentProperties {
+    decoratorNames: string[]; 
+    propertyName: string;
+    type: string;
+    description: string;
 }
 
 export class SourceParser {
@@ -45,7 +54,7 @@ export class SourceParser {
         } = this.getComponentAndModuleFiles(this.config.files);
 
         const moduleDocs: ModuleDocs[] = this.getModuleDocs(moduleFiles);
-        const componentDocs: ModuleDocs[] = this.getComponentDocs(componentFiles, moduleDocs);
+        const componentDocs: ComponentDocs[] = this.getComponentDocs(componentFiles, moduleDocs);
 
         return componentDocs;
     }
@@ -143,19 +152,21 @@ export class SourceParser {
         let componentDocs: ComponentDocs[] = [];
 
         for (let currentFile of componentFiles) {
-            let doc: ComponentDocs = {};
             let details: any = this.getComponentSourceData(this.program.getSourceFile(currentFile));
 
-            doc.componentRefName = details.classRefName;
-            doc.componentDocName = details.componentDocName;
-            doc.groupDocName = details.groupDocName;
-            doc.description = details.description;
-            doc.apiDetails = {
-                properties: details.properties,
-                methods: details.methods
-            };
-            doc.fileName = (this.program.getSourceFile(currentFile) as ts.FileReference).fileName;
-            doc.moduleDetails = this.getModuleDetailsToComponent(doc.componentRefName, moduleDocs);
+            let doc: ComponentDocs = {            
+                componentRefName: details.classRefName,
+                componentDocName: details.componentDocName,
+                groupDocName: details.groupDocName,
+                description: details.description,
+                apiDetails: {
+                    properties: details.properties,
+                    methods: details.methods
+                },
+                fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName,
+                moduleDetails: this.getModuleDetailsToComponent(details.classRefName, moduleDocs),
+                selector: details.selector
+            }
 
             if (doc.componentDocName) {
                 componentDocs.push(doc);
@@ -217,14 +228,16 @@ export class SourceParser {
 
     private getComponentSourceData(node: ts.Node) {
         let details: any = {
-            examples: [],
             properties: [],
-            methods: []
+            methods: [],
+            selector: ''
         };
 
         const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
                 details.classRefName = (childNode as ts.ClassDeclaration).name.text;
+                details.selector = this.getComponentSelector((childNode as ts.ClassDeclaration));
+
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.ClassDeclaration).name);
 
                 nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
@@ -241,8 +254,8 @@ export class SourceParser {
                     }
                 });
 
-                nodeSymbol.members.forEach((currentMemberSymbol: ts.Symbol, key: string) => {
-                    let memberDetails = this.getClassMemberDetails(currentMemberSymbol, key);
+                nodeSymbol.members.forEach((currentMemberSymbol: ts.Symbol) => {
+                    let memberDetails = this.getClassMemberDetails(currentMemberSymbol);
 
                     if (memberDetails) {
                         details.properties = details.properties.concat(memberDetails.properties);
@@ -260,6 +273,38 @@ export class SourceParser {
         return details;
     }
 
+    private getComponentSelector(node: ts.ClassDeclaration): string {
+        let selector = '';
+
+        const traverseDecorator = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.PropertyAssignment
+                && (childNode as ts.PropertyAssignment).name.getText() === 'selector') {
+                selector = (childNode as ts.PropertyAssignment).initializer.getText();
+                selector = selector.substring(1, selector.length - 1);
+            }
+
+            ts.forEachChild(childNode, traverseDecorator);
+        }
+
+        const isComponent = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'Component') {
+                return true;
+            }
+
+            return ts.forEachChild(childNode, isComponent);
+        }
+
+        if (node.decorators) {
+            node.decorators.forEach((decorator: ts.Decorator) => {
+                if (isComponent(decorator)) {
+                    traverseDecorator(node);
+                }
+            });
+        }
+
+        return selector;
+    }
+
     private checkIfSymbolHasPrivateModifier(nodeSymbol: ts.Symbol): boolean {
         if (!nodeSymbol.valueDeclaration.modifiers) {
             // default is public, if modifiers is undefined, its public
@@ -274,7 +319,7 @@ export class SourceParser {
         return hasPrivateModifier;
     }
 
-    private getClassMemberDetails(currentMemberSymbol: ts.Symbol, key: string) {
+    private getClassMemberDetails(currentMemberSymbol: ts.Symbol) {
         let details: any = {
             properties: [],
             methods: []
@@ -301,7 +346,7 @@ export class SourceParser {
     }
 
     private getPropertyToDetails(symbol: ts.Symbol) {
-        let properties = [];
+        let properties: ApiComponentProperties[] = [];
         const decorators = symbol.valueDeclaration.decorators;
         const nodeComment = this.getNodeComment(symbol);
         let decoratorNames: string[] = [];
@@ -371,7 +416,7 @@ export class SourceParser {
         return methods;
     }
 
-    private getMethodParametersAsString(parameters: ts.ParameterDeclaration[]): string {
+    private getMethodParametersAsString(parameters: ts.NodeArray<ts.ParameterDeclaration>): string {
         const parametersAsString = parameters.reduce((result: string[], parameter: ts.ParameterDeclaration) => {
             result.push(parameter.getText());
             return result;

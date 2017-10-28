@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as ts from 'typescript';
 import * as path from 'path';
 import { ComponentDocs } from './source-parser';
+import { InlineComponent } from './test-source-parser';
 
 export class TestModuleTemplateWriter {
     static outputFilename: string = '__ui-jar-temp-module';
@@ -24,12 +25,16 @@ export class TestModuleTemplateWriter {
         let template = `/**::ui-jar_source_module::${component.includeTestForComponent}*/${defaultImports}`;
 
         template += this.getResolvedImportStatements(component);
-        template += `${component.inlineComponents}`;
+        template += this.getInlineComponentSourceCode(component.inlineComponents);
         template += `${component.inlineFunctions}`;
         template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {}`;
-        template += this.getTemplateForExamplePropertiesFunction(component); //exampleProperties;
+        template += this.getTemplateForExamplePropertiesFunction(component);
 
         return template;
+    }
+
+    private getInlineComponentSourceCode(inlineComponents: InlineComponent[]) {
+        return inlineComponents.map((inlineComponent) => inlineComponent.source);
     }
 
     private getModuleSetupTemplate(component: any): string {
@@ -84,7 +89,7 @@ export class TestModuleTemplateWriter {
                 componentPropertyName = prop.name;
                 const firstIndexOfEquals = prop.expression.indexOf('=');
                 let propertyName = prop.expression.substr(0, firstIndexOfEquals);
-                propertyName = '"' + propertyName.replace(/\s+/, '') + '"';
+                propertyName = '"' + propertyName.replace(/\s+/gi, '').replace(/"/gi, '\'') + '"';
                 const expression = prop.expression.substr(firstIndexOfEquals + 1);
                 const objectSyntax = propertyName + ':' + expression;
 

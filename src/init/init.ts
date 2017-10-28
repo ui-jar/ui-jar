@@ -46,6 +46,7 @@ export function generateRequiredFiles(options: GenerateOptionArgs) {
         testDocs.forEach((testDoc) => {
             if (testDoc.includeTestForComponent === componentDoc.componentRefName) {
                 componentDoc.examples = testDoc.examples;
+                componentDoc.exampleTemplate = testDoc.exampleTemplate;
             }
         });
     });

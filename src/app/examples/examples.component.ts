@@ -1,11 +1,14 @@
-import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inject, OnDestroy, ComponentRef } from '@angular/core';
+import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inject, OnDestroy, ComponentRef, ComponentFactory } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs/Subscription';
+import { CodeExampleComponent } from '../code-example/code-example.component';
 
 @Component({
     selector: 'ui-jar-example',
     template: `
+        <button class="view-source-btn" (click)="toggleViewSource()" title="View source">&#60;&nbsp;&#62;</button>
+        <ui-jar-code-example [example]="currentExampleTemplate"></ui-jar-code-example>
         <div class="example-container">
             <div #example></div>
         </div>
@@ -13,6 +16,8 @@ import { Subscription } from 'rxjs/Subscription';
 })
 export class ExamplesComponent implements OnDestroy {
     @ViewChild('example', { read: ViewContainerRef }) content: ViewContainerRef;
+    @ViewChild(CodeExampleComponent) codeExampleComponent: CodeExampleComponent;
+    currentExampleTemplate: string = null;
     private modules: any = [];
     private routerSub: Subscription;
 
@@ -49,6 +54,10 @@ export class ExamplesComponent implements OnDestroy {
         return this.appData.examples[moduleDependencyName];
     }
 
+    private getExampleTemplate(componentKey: string) {
+        return this.appData.components[decodeURI(componentKey)].exampleTemplate;
+    }
+
     private getComponentModuleImports(componentKey: string) {
         const dependencies = this.appData.components[decodeURI(componentKey)].moduleDependencies;
         let imports = [];
@@ -65,14 +74,19 @@ export class ExamplesComponent implements OnDestroy {
     }
 
     private createView() {
-        this.createComponent(null);
+        this.codeExampleComponent.hide();
+        this.createComponent();
     }
 
-    refreshComponent(template: string) {
-        this.createComponent(template);
+    toggleViewSource() {
+        if(this.codeExampleComponent.isComponentVisible()) {
+            this.codeExampleComponent.hide();
+        } else {
+            this.codeExampleComponent.show();
+        }
     }
 
-    private createComponent(overrideTemplate: string) {
+    private createComponent() {
         const importModule = this.getComponentModuleImports(this.getCurrentComponentName())[0];
         const examples = this.getComponentExamples(this.getCurrentComponentName());
 
@@ -82,9 +96,11 @@ export class ExamplesComponent implements OnDestroy {
         let moduleFactory = this.compiler.compileModuleSync(importModule);
         let moduleRef: any = moduleFactory.create(this.parentInjector);
 
-        moduleRef.componentFactoryResolver._factories.forEach((component) => {
+        moduleRef.componentFactoryResolver._factories.forEach((component: ComponentFactory<any>) => {
             let componentReference = component.componentType;
             let componentFactory = moduleRef.componentFactoryResolver.resolveComponentFactory(componentReference);
+
+            this.currentExampleTemplate = this.getExampleTemplate(this.getCurrentComponentName());
 
             examples.forEach((example: any) => {
                 let componentRef = this.content.createComponent(componentFactory);
