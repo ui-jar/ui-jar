@@ -131,7 +131,7 @@ export class TestSourceParser {
                 const firstIndexOfEquals = prop.expression.indexOf('=');
                 let propertyName = prop.expression.substr(0, firstIndexOfEquals);
                 propertyName = propertyName.replace(/[\s\.\[\]"']+/gi, '').replace(prop.name, '');
-                const expression = prop.expression.substr(firstIndexOfEquals + 1).trim();
+                const expression = prop.expression.substr(firstIndexOfEquals + 1).replace(/"/gi, '\'').trim();
 
                 return {
                     propertyName: propertyName,

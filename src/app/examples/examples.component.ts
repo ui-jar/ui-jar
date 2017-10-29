@@ -7,7 +7,7 @@ import { CodeExampleComponent } from '../code-example/code-example.component';
 @Component({
     selector: 'ui-jar-example',
     template: `
-        <button class="view-source-btn" (click)="toggleViewSource()" title="View source">&#60;&nbsp;&#62;</button>
+        <button class="view-source-btn" (click)="toggleViewSource()" title="View source"></button>
         <ui-jar-code-example [example]="currentExampleTemplate"></ui-jar-code-example>
         <div class="example-container">
             <div #example></div>

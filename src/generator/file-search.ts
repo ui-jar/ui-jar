@@ -37,15 +37,11 @@ export class FileSearch {
         return results;
     }
 
-    getTestFiles(directory: string, tsOptions: ts.CompilerOptions): string[] {
+    getTestFiles(files: string[], program: ts.Program): string[] {
         let result = [];
 
-        let files = this.getFiles(directory);
-        let program: ts.Program = ts.createProgram([...files], tsOptions);
-        let checker: ts.TypeChecker = program.getTypeChecker();
-
         for(let currentFile of files) {
-            const isTestFile: boolean = this.getTestSourceDetails(program.getSourceFile(currentFile), checker);
+            const isTestFile: boolean = this.getTestSourceDetails(program, currentFile);
 
             if(isTestFile) {
                 result.push(currentFile);
@@ -55,8 +51,9 @@ export class FileSearch {
         return result;
     }
 
-    private getTestSourceDetails(node: ts.Node, checker: ts.TypeChecker): boolean {
+    private getTestSourceDetails(program: ts.Program, currentFile: string): boolean {
         let isTestFile = false;
+        let checker: ts.TypeChecker = program.getTypeChecker();
 
         let traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
@@ -64,7 +61,7 @@ export class FileSearch {
 
                 if (nodeSymbol) {
                     nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
-                        if (docs.name === 'uijar' || docs.name === 'hostcomponent') {
+                        if (docs.name === 'uijar') {
                             isTestFile = true;
                         }
                     });
@@ -74,7 +71,7 @@ export class FileSearch {
             ts.forEachChild(childNode, traverseChild);
         };
 
-        traverseChild(node);
+        traverseChild(program.getSourceFile(currentFile));
 
         return isTestFile;
     }

@@ -67,8 +67,10 @@ function pluckAdditionalCliArguments(args: string[]) {
 
 function startFileWatcher(generateOptionArgs: GenerateOptionArgs) {
     const fileSearch = new FileSearch(generateOptionArgs.includeFiles, generateOptionArgs.excludeFiles);
-    const testFiles = fileSearch.getTestFiles(generateOptionArgs.directory,
+    const allFilesInDirectory = fileSearch.getFiles(generateOptionArgs.directory);
+    const program: ts.Program = ts.createProgram([...allFilesInDirectory],
         { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
+    const testFiles = fileSearch.getTestFiles(allFilesInDirectory, program);
 
     const fileWatcherOptions: FileWatcherOptions = {
         directory: generateOptionArgs.directory,

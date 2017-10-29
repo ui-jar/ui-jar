@@ -155,7 +155,9 @@ ui-jar-example {
         z-index: 1000;
         top: 0;
         right: 0;
-        background-color: #fff;
+        background: #fff url('../images/view-source.png') center center no-repeat;
+        height: 20px;
+        width: 30px;
         border: 0;
         outline: 0;
         color: #000;
@@ -164,6 +166,7 @@ ui-jar-example {
         font-weight: bold;
         letter-spacing: -4px;
         padding: 1px 8px 2px 4px;
+        cursor: pointer;
 
         &:hover {
             color: #0c5279;
