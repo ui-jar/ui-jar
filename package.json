@@ -3,8 +3,10 @@
     "version": "1.0.0-beta.6",
     "description": "A drop in module to automatically create a living style guide based on the test you write for your components in Angular (2.x and above).",
     "private": true,
+    "homepage": "https://github.com/ui-jar/ui-jar",
     "scripts": {
-        "development": "concurrently \"tsc -w\" \"sass --watch src/styles:dist/src/styles\" "
+        "development": "concurrently \"tsc -w\" \"sass --watch src/styles:dist/src/styles\" ",
+        "test": "tsc && mocha \"dist/test/**/*.js\" "
     },
     "author": "Kristoffer Nording",
     "license": "MIT",
