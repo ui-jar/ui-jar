@@ -8,7 +8,7 @@ import { CodeExampleComponent } from '../code-example/code-example.component';
     selector: 'ui-jar-example',
     template: `
         <button class="view-source-btn" (click)="toggleViewSource()" title="View source">
-            <svg width="23" height="11">
+            <svg width="23" height="11" xmlns="http://www.w3.org/2000/svg">
                 <g>
                     <path d="M 7.6115221,10.08469 1.9751419,5.5563165 7.6115221,0.8834201 2.0233161,5.5563165 z" 
                         style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
