@@ -153,19 +153,12 @@ ui-jar-example {
     .view-source-btn {
         position: absolute;
         z-index: 1000;
-        top: 0;
+        top: 6px;
         right: 0;
-        background: #fff url('../images/view-source.png') center center no-repeat;
-        height: 20px;
-        width: 30px;
+        background-color: #fff;
         border: 0;
         outline: 0;
-        color: #000;
-        font-family: monospace;
-        font-size: 20px;
-        font-weight: bold;
-        letter-spacing: -4px;
-        padding: 1px 8px 2px 4px;
+        padding: 5px 10px;
         cursor: pointer;
 
         &:hover {

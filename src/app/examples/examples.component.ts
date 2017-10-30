@@ -7,7 +7,16 @@ import { CodeExampleComponent } from '../code-example/code-example.component';
 @Component({
     selector: 'ui-jar-example',
     template: `
-        <button class="view-source-btn" (click)="toggleViewSource()" title="View source"></button>
+        <button class="view-source-btn" (click)="toggleViewSource()" title="View source">
+            <svg width="23" height="11">
+                <g>
+                    <path d="M 7.6115221,10.08469 1.9751419,5.5563165 7.6115221,0.8834201 2.0233161,5.5563165 z" 
+                        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+                    <path d="m 15.397052,10.08469 5.63638,-4.5283735 -5.63638,-4.6728964 5.588205,4.6728964 z" 
+                        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+                </g>
+            </svg>
+        </button>
         <ui-jar-code-example [example]="currentExampleTemplate"></ui-jar-code-example>
         <div class="example-container">
             <div #example></div>
