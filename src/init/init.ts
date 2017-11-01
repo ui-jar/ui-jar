@@ -6,18 +6,12 @@ import { FileSearch } from '../generator/file-search';
 import { TestModuleTemplateWriter } from '../generator/test-module-writer';
 import { GeneratedSourceParser } from '../generator/generated-source-parser';
 import { TestSourceParser } from '../generator/test-source-parser';
+import { CliArgs } from '../cli/cli-utils';
 
-export interface GenerateOptionArgs {
-    directory: string;
-    includeFiles: RegExp[];
-    excludeFiles?: RegExp[];
-    urlPrefix?: string;
-}
-
-export function generateRequiredFiles(options: GenerateOptionArgs) {
+export function generateRequiredFiles(options: CliArgs) {
     console.info('Generating resources...');
 
-    const fileSearch = new FileSearch(options.includeFiles, options.excludeFiles);
+    const fileSearch = new FileSearch(options.includes, options.excludes);
     const sourceFiles = fileSearch.getFiles(options.directory);
     let docs = getDocs(sourceFiles);
     let testDocs = getTestDocs(sourceFiles, docs);

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { GenerateOptionArgs, generateRequiredFiles } from '../init/init';
+import { generateRequiredFiles } from '../init/init';
 import * as EventEmitter from 'events';
 
 export interface FileWatcherOptions {

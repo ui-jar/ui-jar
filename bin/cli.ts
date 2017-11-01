@@ -1,85 +1,51 @@
 #!/usr/bin/env node
-import { GenerateOptionArgs, generateRequiredFiles } from '../src/init/init';
+import { generateRequiredFiles } from '../src/init/init';
 import { FileWatcher, FileWatcherEvent, FileWatcherOptions } from '../src/watcher/watcher';
 import { FileSearch } from '../src/generator/file-search';
 import * as ts from 'typescript';
+import { parseCliArguments, CliArgs } from '../src/cli/cli-utils';
 
-interface CliArgs {
-    directory?: string;
-    includes?: RegExp[];
-    excludes?: RegExp[];
-    urlPrefix?: string;
+process.title = 'UI-jar';
+
+try {
+    const cliArgs = parseCliArguments(process.argv);
+    runCliArguments(cliArgs);
+} catch (error) {
+    console.error(error.message);
+    process.exit();
 }
-
-process.title = 'UI jar';
-const cliArgs = parseCliArguments(process.argv);
-
-runCliArguments(cliArgs);
 
 function runCliArguments(cliArgs: CliArgs) {
     if (!cliArgs.directory) {
-        console.error('Missing required "directory"-parameter, "directory" should be a path to your app root directory e.g. "directory=./src/app".');
-        process.exit(1);
+        throw new Error('Missing required --directory argument, --directory should be a path to your app root directory e.g. "--directory ./src/app".');
     }
 
     if (!cliArgs.includes) {
-        console.error('Missing required "includes"-parameter, "includes" should be a comma separated list of type RegExp e.g. "includes=foo\\.ts$,bar\\.ts$".');
-        process.exit(1);
+        throw new Error('Missing required --includes argument, --includes should be a space separated list of type RegExp e.g. "--includes foo\\.ts$ bar\\.ts$".');
     }
 
-    const generateOptionArgs: GenerateOptionArgs = {
-        directory: cliArgs.directory[0],
-        includeFiles: cliArgs.includes,
-        excludeFiles: cliArgs.excludes,
-        urlPrefix: cliArgs.urlPrefix ? cliArgs.urlPrefix[0] : ''
-    }
+    generateRequiredFiles(cliArgs);
 
-    generateRequiredFiles(generateOptionArgs);
-
-    if (cliArgs['--watch']) {
-        startFileWatcher(generateOptionArgs);
+    if (cliArgs.watch) {
+        startFileWatcher(cliArgs);
     }
 }
 
-function parseCliArguments(args: string[]): CliArgs {
-    args = pluckAdditionalCliArguments(args);
-
-    let formattedArgs: CliArgs = {};
-
-    args.forEach((argument) => {
-        const splitArgument = argument.split('=');
-        const argName = splitArgument[0];
-        const argParams = splitArgument.length > 1 ? splitArgument[1].split(',') : [];
-
-        if (!formattedArgs[argName]) {
-            formattedArgs[argName] = argParams;
-        } else {
-            formattedArgs[argName] = formattedArgs[argName].concat(argParams);
-        }
-    });
-
-    return formattedArgs;
-}
-
-function pluckAdditionalCliArguments(args: string[]) {
-    return args.slice(2);
-}
-
-function startFileWatcher(generateOptionArgs: GenerateOptionArgs) {
-    const fileSearch = new FileSearch(generateOptionArgs.includeFiles, generateOptionArgs.excludeFiles);
-    const allFilesInDirectory = fileSearch.getFiles(generateOptionArgs.directory);
+function startFileWatcher(cliArgs: CliArgs) {
+    const fileSearch = new FileSearch(cliArgs.includes, cliArgs.excludes);
+    const allFilesInDirectory = fileSearch.getFiles(cliArgs.directory);
     const program: ts.Program = ts.createProgram([...allFilesInDirectory],
         { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
     const testFiles = fileSearch.getTestFiles(allFilesInDirectory, program);
 
     const fileWatcherOptions: FileWatcherOptions = {
-        directory: generateOptionArgs.directory,
+        directory: cliArgs.directory,
         files: testFiles
     };
 
     const fileWatcher = new FileWatcher(fileWatcherOptions);
     fileWatcher.start();
     fileWatcher.addListener(FileWatcherEvent.REBUILD, () => {
-        generateRequiredFiles(generateOptionArgs);
+        generateRequiredFiles(cliArgs);
     });
 }
