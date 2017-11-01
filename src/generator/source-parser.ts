@@ -338,7 +338,7 @@ export class SourceParser {
                 details.methods = details.methods.concat(this.getMethodToDetails(currentMemberSymbol));
             } else if (currentDeclaration.kind === ts.SyntaxKind.GetAccessor
                 || currentDeclaration.kind === ts.SyntaxKind.SetAccessor) {
-                details.methods = details.methods.concat(this.getAccessorDeclarationToDetails(currentMemberSymbol));
+                details.properties = details.properties.concat(this.getAccessorDeclarationToDetails(currentMemberSymbol));
             }
         }
 
@@ -382,38 +382,43 @@ export class SourceParser {
     }
 
     private getAccessorDeclarationToDetails(symbol: ts.Symbol) {
-        let methods = [];
+        let properties = [];
+
+        const findIndexForPropertyName = (propertyName): number => {
+            return properties.findIndex((item) => {
+                return item.propertyName === propertyName;
+            });
+        };
 
         symbol.getDeclarations().forEach((declaration: ts.AccessorDeclaration) => {
             const signature = this.checker.getSignatureFromDeclaration(declaration);
             const nodeComment = this.getNodeComment(signature);
-            const parametersAsString = this.getMethodParametersAsString(declaration.parameters);
             const decorators = declaration.decorators;
             let decoratorNames: string[] = [];
-
-            const kindToString = (kind: ts.SyntaxKind) => {
-                const kindMap = {
-                    153: 'get',
-                    154: 'set'
-                }
-
-                return kindMap[kind];
-            };
 
             if (decorators) {
                 decorators.forEach((decorator: ts.Decorator) => {
                     decoratorNames.push(decorator.getText());
                 });
             }
+            
+            const propertyItemIndexPosition = findIndexForPropertyName(symbol.getName());
 
-            methods.push({
-                decoratorNames,
-                methodName: `${kindToString(declaration.kind)} ${declaration.name.getText()}(${parametersAsString})`,
-                description: nodeComment
-            });
+            if(propertyItemIndexPosition > -1) {
+                let propertyItem = properties[propertyItemIndexPosition];
+                propertyItem.decoratorNames = propertyItem.decoratorNames.concat(decoratorNames);
+                propertyItem.description = propertyItem.description += nodeComment;
+            } else {
+                properties.push({
+                    decoratorNames,
+                    propertyName: symbol.getName(),
+                    type: this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration)),
+                    description: nodeComment
+                });
+            }
         });
 
-        return methods;
+        return properties;
     }
 
     private getMethodParametersAsString(parameters: ts.NodeArray<ts.ParameterDeclaration>): string {
