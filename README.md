@@ -24,8 +24,8 @@ node node_modules/ui-jar/dist/bin/cli.js --directory ./app/root/dir --includes \
 #### CLI options
 
 * **--directory** (string) - path to app root dir e.g. "./src/app"
-* **--includes** RegExp[] - comma separated list of files to include, should be of type RegExp e.g. "foo\\.ts$,bar\\.ts$"
-* **--excludes** RegExp[] - comma separated list of files to exclude, should be of type RegExp e.g. "a\\.component\\.ts$,b\\.component\\.ts$"
+* **--includes** (RegExp) - comma separated list of files to include, should be of type RegExp e.g. "foo\\.ts$,bar\\.ts$"
+* **--excludes** (RegExp) - comma separated list of files to exclude, should be of type RegExp e.g. "a\\.component\\.ts$,b\\.component\\.ts$"
 * **--url-prefix** (string) - add prefix to all urls in UI-jar, e.g. "project-a/styleguide".
 * **--watch** - enable watch-mode, UI-jar will watch on file changes in your test files.
 
