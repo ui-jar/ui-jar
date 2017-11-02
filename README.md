@@ -18,16 +18,16 @@ npm install ui-jar
 ## CLI
 
 ```bash
-node node_modules/ui-jar/dist/bin/cli.js directory=./app/root/dir includes=\.ts$ excludes=\.excludes\.ts$ urlPrefix=prefix/url
+node node_modules/ui-jar/dist/bin/cli.js --directory ./app/root/dir --includes \.ts$ --excludes \.excludes\.ts$ --url-prefix prefix/url
 ```
 
 #### CLI options
 
-* **directory** - path to app root dir e.g. "./src/app"
-* **includes** - comma separated list of files to include, should be of type RegExp e.g. "foo\\.ts$,bar\\.ts$"
-* **excludes** - comma separated list of files to exclude, should be of type RegExp e.g. "a\\.component\\.ts$,b\\.component\\.ts$"
-* **urlPrefix** - add prefix to all urls in UI-jar, e.g. "project-a/styleguide".
-* **-watch** - enable watch-mode, UI-jar will watch on file changes in your test files.
+* **--directory** (string) - path to app root dir e.g. "./src/app"
+* **--includes** RegExp[] - comma separated list of files to include, should be of type RegExp e.g. "foo\\.ts$,bar\\.ts$"
+* **--excludes** RegExp[] - comma separated list of files to exclude, should be of type RegExp e.g. "a\\.component\\.ts$,b\\.component\\.ts$"
+* **--url-prefix** (string) - add prefix to all urls in UI-jar, e.g. "project-a/styleguide".
+* **--watch** - enable watch-mode, UI-jar will watch on file changes in your test files.
 
 ## Configuration
 
