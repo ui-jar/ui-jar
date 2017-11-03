@@ -8,7 +8,7 @@
         "development": "concurrently \"tsc -w\" \"sass --watch src/styles:dist/src/styles\" ",
         "test": "tsc && mocha \"dist/test/**/*.js\" ",
         "test:watch": "tsc && mocha \"dist/test/**/*.js\" --watch ",
-        "tslint": "tslint --config tslint.json src/**/*.ts"
+        "tslint": "tslint --config tslint.json src/**/*.ts test/**/*.ts"
     },
     "author": "Kristoffer Nording",
     "license": "MIT",

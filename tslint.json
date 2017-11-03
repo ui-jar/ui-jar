@@ -1,6 +1,5 @@
 {
     "defaultSeverity": "error",
-    "jsRules": {},
     "rules": {
         "quotemark": [true, "single"],
         "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
@@ -13,6 +12,5 @@
         "no-console": [true, "log"],
         "semicolon": [true],
         "variable-name": [true, "ban-keywords"]
-    },
-    "rulesDirectory": []
+    }
 }
