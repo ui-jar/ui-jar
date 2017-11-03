@@ -1,0 +1,18 @@
+{
+    "defaultSeverity": "error",
+    "jsRules": {},
+    "rules": {
+        "quotemark": [true, "single"],
+        "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
+        "ordered-imports": false,
+        "interface-name": [true, "never-prefix"],
+        "no-eval": false,
+        "member-access": false,
+        "no-var-keyword": true,
+        "no-duplicate-variable": true,
+        "no-console": [true, "log"],
+        "semicolon": [true],
+        "variable-name": [true, "ban-keywords"]
+    },
+    "rulesDirectory": []
+}

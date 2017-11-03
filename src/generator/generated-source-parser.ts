@@ -4,8 +4,8 @@ import * as path from 'path';
 import { TestModuleTemplateWriter } from './test-module-writer';
 
 export interface GeneratedSourceParserConfig {
-    files?: string[]
-    testSourceFiles?: ts.SourceFile[]
+    files?: string[];
+    testSourceFiles?: ts.SourceFile[];
 }
 
 export interface GeneratedModuleDocs {
@@ -85,7 +85,7 @@ export class GeneratedSourceParser {
                     }
 
                     ts.forEachChild(decoratorChildNode, traverseDecorator);
-                }
+                };
 
                 const currentNode = (childNode as ts.ClassDeclaration);
 

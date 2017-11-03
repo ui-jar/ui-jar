@@ -87,7 +87,7 @@ export class SourceParser {
             }
 
             ts.forEachChild(childNode, traverseDecorator);
-        }
+        };
 
         const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind == ts.SyntaxKind.Decorator) {
@@ -113,7 +113,7 @@ export class SourceParser {
             }
 
             ts.forEachChild(childNode, traverseDecorator);
-        }
+        };
 
         const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind == ts.SyntaxKind.Decorator) {
@@ -166,7 +166,7 @@ export class SourceParser {
                 fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName,
                 moduleDetails: this.getModuleDetailsToComponent(details.classRefName, moduleDocs),
                 selector: details.selector
-            }
+            };
 
             if (doc.componentDocName) {
                 componentDocs.push(doc);
@@ -284,7 +284,7 @@ export class SourceParser {
             }
 
             ts.forEachChild(childNode, traverseDecorator);
-        }
+        };
 
         const isComponent = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'Component') {
@@ -292,7 +292,7 @@ export class SourceParser {
             }
 
             return ts.forEachChild(childNode, isComponent);
-        }
+        };
 
         if (node.decorators) {
             node.decorators.forEach((decorator: ts.Decorator) => {
@@ -313,7 +313,7 @@ export class SourceParser {
 
         const hasPrivateModifier = nodeSymbol.valueDeclaration.modifiers.filter(
             (modifier: ts.Modifier) => {
-                return modifier.kind === ts.SyntaxKind.PrivateKeyword
+                return modifier.kind === ts.SyntaxKind.PrivateKeyword;
             }).length > 0;
 
         return hasPrivateModifier;

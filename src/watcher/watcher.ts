@@ -4,8 +4,8 @@ import { generateRequiredFiles } from '../init/init';
 import * as EventEmitter from 'events';
 
 export interface FileWatcherOptions {
-    directory: string,
-    files: string[]
+    directory: string;
+    files: string[];
 }
 
 export enum FileWatcherEvent {

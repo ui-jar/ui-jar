@@ -52,7 +52,7 @@ export function parseCliArguments(args: string[]): CliArgs {
                     addArgumentParameter(currentArgument, true);
                 break;
                 default:
-                throw new Error(`The specified argument ${value} is invalid.`)
+                throw new Error(`The specified argument ${value} is invalid.`);
             }
         } else {
             addArgumentParameter(currentArgument, value);

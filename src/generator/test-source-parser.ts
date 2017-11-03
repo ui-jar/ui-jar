@@ -3,8 +3,8 @@ import * as path from 'path';
 import { ComponentDocs, ApiComponentProperties } from './source-parser';
 
 interface VariableDeclaration {
-    type: string,
-    name: string
+    type: string;
+    name: string;
 }
 
 export interface InlineComponent {
@@ -136,7 +136,7 @@ export class TestSourceParser {
                 return {
                     propertyName: propertyName,
                     propertyValue: expression
-                }
+                };
             });
 
             inputProperties.forEach((inputProperty: ApiComponentProperties) => {
@@ -368,7 +368,7 @@ export class TestSourceParser {
             }
 
             ts.forEachChild(childNode, traverseDecorator);
-        }
+        };
 
         const isComponent = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'Component') {
@@ -376,7 +376,7 @@ export class TestSourceParser {
             }
 
             return ts.forEachChild(childNode, isComponent);
-        }
+        };
 
         let inlineComponent: InlineComponent = null;
 
