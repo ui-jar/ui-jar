@@ -89,9 +89,13 @@ nav {
         font-weight: bold;
         text-transform: uppercase;
 
-        > span {
+        > a {
+            text-decoration: none;
+            color: #e8f7ff;
+        }
+
+        span {
             font-size: 10px;
-            color: #fff;
         }
     }
 
@@ -341,6 +345,33 @@ ui-jar-api {
         font-size: 12px;
     }
 
+}
+
+ui-jar-introduction {
+    font-family: Arial;
+
+    .title-container {
+        height: 130px;
+        background-color: #4893bd;
+        padding: 20px;
+        color: #e8f7ff;
+        text-align: center;
+
+        .title {
+            padding: 15px 0 5px 0;
+            font-size: 40px;
+            font-family: Verdana;
+            font-weight: bold;
+    
+            > span {
+                font-size: 20px;
+            }
+        }
+        
+        > p {
+            font-size: 14px;
+        }
+    }
 }
 
 @media (max-width: 767px) {

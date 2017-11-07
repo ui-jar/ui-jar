@@ -1,6 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ApiDetails } from '../../generator/source-parser';
 
 @Component({
     selector: 'ui-jar-api',
@@ -52,7 +51,7 @@ import { ApiDetails } from '../../generator/source-parser';
     `
 })
 export class ApiComponent implements OnInit {
-    api: ApiDetails;
+    api: any;
 
     constructor(private activatedRoute: ActivatedRoute,
                 @Inject('AppData') private appData: any) {}
