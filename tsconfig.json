@@ -9,7 +9,6 @@
         "noLib": false,
         "emitDecoratorMetadata": true,
         "outDir": "dist",
-        "rootDir": ".",
         "typeRoots": [
             "node_modules/@types"
         ],
