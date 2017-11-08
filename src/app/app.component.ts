@@ -1,17 +1,25 @@
-import { Component, Inject } from '@angular/core';
-import { Router, Route } from '@angular/router';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
+import { Router, Route, NavigationEnd } from '@angular/router';
 import { NavigationLinks } from './app.model';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
     selector: 'ui-jar-app',
     template: `
         <div class="top-nav-bar">
-            <div class="app-title"><a routerLink="/">UI-jar<span>@</span></a></div>
+            <div class="app-title">
+                <a routerLink="/">UI-jar<span>@</span></a>
+            </div>
+            <button class="nav-burger-btn" (click)="toggleNavigation()">
+                <span>-</span>
+                <span>-</span>
+                <span>-</span>
+            </button>
             <div class="beta-banner">1.0.0-beta.8</div>
             <a href="//github.com/ui-jar/ui-jar" target="_blank" class="project-link">GitHub</a>
         </div>
         <section class="container">
-            <nav>
+            <nav [class.is-visible]="showNavigation">
                 <ul>
                     <ng-container *ngFor="let link of navigationLinks; let index = index;">
                         <li class="groupName" *ngIf="link.group !== navigationLinks[index-1]?.group">{{link.group}}</li>
@@ -27,13 +35,27 @@ import { NavigationLinks } from './app.model';
         </section>
     `
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
     navigationLinks: NavigationLinks[];
+    showNavigation: boolean = false;
+    routerEventSubscription: Subscription;
 
     constructor(@Inject('AppData') private appData: any,
                 private router: Router) {
         this.navigationLinks = appData.navigationLinks;
         this.resetRouteConfigWithPrefixedUrls();
+    }
+
+    ngOnInit(): void {
+        this.routerEventSubscription = this.router.events.subscribe((event) => {
+            if(event instanceof NavigationEnd) {
+                this.showNavigation = false;
+            }
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.routerEventSubscription.unsubscribe();
     }
 
     get currentRouteConfig() {
@@ -59,5 +81,9 @@ export class AppComponent {
         });
 
         return currentRouteConfig;
+    }
+
+    toggleNavigation() {
+        this.showNavigation = !this.showNavigation;
     }
 }
