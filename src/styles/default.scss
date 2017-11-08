@@ -10,8 +10,9 @@ body {
     margin: 0;
 }
 
-body,
-pre {
+pre,
+nav,
+main {
     &::-webkit-scrollbar {
         height: 6px;
         width: 6px;
@@ -26,19 +27,21 @@ pre {
     }
 }
 
-.container {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
-}
-
 main {
+    position: absolute;
+    top: 50px;
+    bottom: 0;
+    left: 300px;
     width: calc(100% - 300px);
+    overflow-y: scroll;
 }
 
 nav {
-    position: relative;
+    position: absolute;
+    top: 50px;
+    bottom: 0;
     width: 300px;
+    overflow-y: scroll;
     background-color: #fff;
     box-shadow: 0 0 8px #505050;
     font-family: Arial;
@@ -192,7 +195,7 @@ ui-jar-example {
 
     .view-source-btn {
         position: absolute;
-        z-index: 1000;
+        z-index: 500;
         top: 6px;
         right: 0;
         background-color: #fff;
@@ -232,6 +235,7 @@ ui-jar-container {
             font-size: 40px;
             font-family: Arial;
             font-weight: bold;
+            word-break: break-word;
         }
     }
 
@@ -413,6 +417,7 @@ ui-jar-introduction {
 @media (max-width: 767px) {
     main {
         width: 100%;
+        left: auto;
     }
 
     .container > nav {
@@ -440,6 +445,12 @@ ui-jar-introduction {
     ui-jar-container {
         .content-container {
             padding: 20px 15px;
+        }
+
+        .top-header {
+            h2 {
+                font-size: 24px;
+            }
         }
     }
 }
