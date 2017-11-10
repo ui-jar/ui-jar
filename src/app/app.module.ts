@@ -53,6 +53,6 @@ let generatedOutput = require('../../../temp/__ui-jar-temp');
         { provide: 'AppData', useFactory: generatedOutput.getAppData }
     ]
 })
-export class UIjarModule {
+export class UIJarModule {
 
 }
