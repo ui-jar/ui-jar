@@ -6,7 +6,7 @@
     "homepage": "https://github.com/ui-jar/ui-jar",
     "scripts": {
         "start": "concurrently \"tsc -w\" \"sass --watch src/styles:dist/src/styles\" ",
-        "production": "tsc && sass --update src/styles/default.scss:dist/src/styles/default.css",
+        "production": "tsc && sass --update src/styles/default.scss:dist/src/styles/default.css && ngc -p tsconfig-aot.json",
         "test": "tsc && mocha \"dist/test/**/*.js\" ",
         "test:watch": "tsc && mocha \"dist/test/**/*.js\" --watch ",
         "tslint": "tslint --config tslint.json src/**/*.ts test/**/*.ts"
