@@ -1,13 +1,13 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ComponentDocs, ModuleDetails } from './source-parser';
+import { SourceDocs, ModuleDetails } from './source-parser';
 
 export class BundleTemplateWriter {
     private outputFilename: string = '__ui-jar-temp.js';
     private outputDirectoryPath: string = path.resolve(__dirname, '../../../temp'); // dist/src/app...
 
-    constructor(private documentation: ComponentDocs[],
+    constructor(private documentation: SourceDocs[],
         private urlPrefix: string) {
     }
 
@@ -61,7 +61,7 @@ export class BundleTemplateWriter {
 
     private updateImportPathsToMatchGeneratedTestModules(source: string): string {
         // fix path ./
-        return source.replace(/require\("[\.\/\\]+(__ui-jar-temp-module[0-9]+)"\)/gi, 'require("\.\/$1")');
+        return source.replace(/require\("[\.\/\\]+(__ui-jar-temp-module-[a-z0-9]+)"\)/gi, 'require("\.\/$1")');
     }
 
     private createOutputPathIfNotAlreadyExist(path) {
@@ -122,17 +122,17 @@ export class BundleTemplateWriter {
     private getComponentData() {
         let result = {};
 
-        this.documentation.forEach((componentDocs: ComponentDocs) => {
-            result[componentDocs.componentRefName] = {
-                title: componentDocs.componentDocName,
-                description: componentDocs.description,
-                sourceFilePath: componentDocs.fileName,
+        this.documentation.forEach((sourceDocs: SourceDocs) => {
+            result[sourceDocs.componentRefName] = {
+                title: sourceDocs.componentDocName,
+                description: sourceDocs.description,
+                sourceFilePath: sourceDocs.fileName,
                 api: {
-                    properties: componentDocs.apiDetails.properties,
-                    methods: componentDocs.apiDetails.methods
+                    properties: sourceDocs.apiDetails.properties,
+                    methods: sourceDocs.apiDetails.methods
                 },
-                moduleDependencies: [componentDocs.moduleDetails.moduleRefName],
-                exampleTemplate: componentDocs.exampleTemplate
+                moduleDependencies: [sourceDocs.moduleDetails.moduleRefName],
+                exampleTemplate: sourceDocs.exampleTemplate
             };
         });
 
@@ -141,8 +141,8 @@ export class BundleTemplateWriter {
 
     private getComponentExampleProperties() {
         let expressions = {};
-        this.documentation.forEach((componentDocs: ComponentDocs) => {
-            expressions[`${componentDocs.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${componentDocs.moduleDetails.moduleRefName}()`;
+        this.documentation.forEach((sourceDocs: SourceDocs) => {
+            expressions[`${sourceDocs.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${sourceDocs.moduleDetails.moduleRefName}()`;
         });
 
         let template = Object.keys(expressions).reduce((result, exp, index) => {
@@ -158,12 +158,12 @@ export class BundleTemplateWriter {
     private getNavigationLinks() {
         let links = [];
 
-        this.documentation.forEach((componentDocs: ComponentDocs) => {
-            if (componentDocs.groupDocName) {
+        this.documentation.forEach((sourceDocs: SourceDocs) => {
+            if (sourceDocs.groupDocName) {
                 links.push({
-                    group: componentDocs.groupDocName,
-                    title: componentDocs.componentDocName,
-                    path: this.urlPrefix ? this.urlPrefix + '/' + componentDocs.componentRefName : componentDocs.componentRefName
+                    group: sourceDocs.groupDocName,
+                    title: sourceDocs.componentDocName,
+                    path: this.urlPrefix ? this.urlPrefix + '/' + sourceDocs.componentRefName : sourceDocs.componentRefName
                 });
             }
         });
@@ -174,8 +174,8 @@ export class BundleTemplateWriter {
     }
 
     private getVisibleComponents() {
-        let components = this.documentation.map((componentDocs: ComponentDocs) => {
-            return componentDocs.componentRefName;
+        let components = this.documentation.map((sourceDocs: SourceDocs) => {
+            return sourceDocs.componentRefName;
         });
 
         return JSON.stringify(components);

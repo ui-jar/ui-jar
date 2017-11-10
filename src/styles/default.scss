@@ -398,6 +398,7 @@ ui-jar-introduction {
         text-align: center;
 
         .title {
+            margin: 0;
             padding: 15px 0 5px 0;
             font-size: 40px;
             font-family: Verdana;
@@ -409,6 +410,7 @@ ui-jar-introduction {
         }
         
         > p {
+            margin: 0;
             font-size: 14px;
         }
     }

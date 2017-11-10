@@ -1,16 +1,20 @@
 import * as fs from 'fs';
 import * as ts from 'typescript';
 import * as path from 'path';
-import { ComponentDocs } from './source-parser';
+import * as crypto from 'crypto';
+import { SourceDocs } from './source-parser';
 import { InlineComponent } from './test-source-parser';
+
+export interface TestModuleSourceFile {
+    sourceFile: ts.SourceFile; 
+    fileName: string;
+}
 
 export class TestModuleTemplateWriter {
     static outputFilename: string = '__ui-jar-temp-module';
     private outputDirectoryPath: string = path.resolve(__dirname, '../../../temp'); // dist/src/app...
 
-    constructor(private testDocumentation: any[]) { }
-
-    private getTempModuleTemplate(component: any, moduleId: number) {
+    private getTempModuleTemplate(component: any, moduleId: string) {
         const moduleName = `TempModule${moduleId}`;
         let defaultImports = `import { NgModule, Component } from "@angular/core";`;
 
@@ -123,15 +127,19 @@ export class TestModuleTemplateWriter {
         return exampleProperties;
     }
 
-    getTestModuleSourceFiles(): ts.SourceFile[] {
-        let sourceFiles: ts.SourceFile[] = [];
+    getTestModuleSourceFiles(testDocumentation: any[]): TestModuleSourceFile[] {
+        let sourceFiles: TestModuleSourceFile[] = [];
 
-        this.testDocumentation.forEach((component, index) => {
+        testDocumentation.forEach((component, index) => {
             if (component.bootstrapComponent) {
-                let sourceFile = ts.createSourceFile(TestModuleTemplateWriter.outputFilename + index + '.ts',
-                    this.getTempModuleTemplate(component, index), ts.ScriptTarget.ES5);
+                let sourceFileNameHash = crypto.createHash('md5').update(component.fileName).digest('hex');
+                let sourceFile = ts.createSourceFile(TestModuleTemplateWriter.outputFilename +'-'+ sourceFileNameHash + '.ts',
+                    this.getTempModuleTemplate(component, sourceFileNameHash), ts.ScriptTarget.ES5);
 
-                sourceFiles.push(sourceFile);
+                sourceFiles.push({ 
+                    sourceFile,
+                    fileName: component.fileName
+                });
             }
         });
 
@@ -152,7 +160,7 @@ export class TestModuleTemplateWriter {
                 }
             });
 
-            const outputFilePath = path.resolve(this.outputDirectoryPath, TestModuleTemplateWriter.outputFilename + index + '.js');
+            const outputFilePath = path.resolve(this.outputDirectoryPath, sourceFile.fileName.replace(/\.ts$/, '.js'));
 
             try {
                 fs.writeFileSync(outputFilePath, javascriptOutput.outputText, encoding);

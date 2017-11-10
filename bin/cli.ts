@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { generateRequiredFiles } from '../src/init/init';
+import { generateRequiredFiles, generateSingleFile } from '../src/init/init';
 import { FileWatcher, FileWatcherEvent, FileWatcherOptions } from '../src/watcher/watcher';
 import { FileSearch } from '../src/generator/file-search';
 import * as ts from 'typescript';
@@ -45,7 +45,11 @@ function startFileWatcher(cliArgs: CliArgs) {
 
     const fileWatcher = new FileWatcher(fileWatcherOptions);
     fileWatcher.start();
-    fileWatcher.addListener(FileWatcherEvent.REBUILD, () => {
-        generateRequiredFiles(cliArgs);
+    fileWatcher.addListener(FileWatcherEvent.REBUILD, (fileName: string) => {
+        generateSingleFile({
+            directory: cliArgs.directory,
+            includes: cliArgs.includes,
+            excludes: cliArgs.excludes
+        }, fileName);
     });
 }

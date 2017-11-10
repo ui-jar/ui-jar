@@ -31,7 +31,7 @@ export class FileWatcher {
         });
     }
 
-    addListener(eventType: FileWatcherEvent, callback: () => void) {
+    addListener(eventType: FileWatcherEvent, callback: (fileName: string) => void) {
         if (eventType) {
             this.watchEvent.addListener(eventType, callback);
         }
@@ -56,7 +56,7 @@ export class FileWatcher {
     private eventHandler(fileName: string): void {
         if (this.shouldBeIncluded(fileName)) {
             console.info('File change detected.');
-            this.watchEvent.emit(FileWatcherEvent.REBUILD);
+            this.watchEvent.emit(FileWatcherEvent.REBUILD, fileName);
             console.info('Watching for file changes.');
         }
     }

@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 
-export interface ComponentDocs {
+export interface SourceDocs {
     componentRefName: string;
     componentDocName: string;
     groupDocName: string;
@@ -47,16 +47,16 @@ export class SourceParser {
         this.checker = this.program.getTypeChecker();
     }
 
-    getProjectDocumentation(): ComponentDocs[] {
+    getProjectSourceDocumentation(): SourceDocs[] {
         const {
             componentFiles,
             moduleFiles
         } = this.getComponentAndModuleFiles(this.config.files);
 
         const moduleDocs: ModuleDocs[] = this.getModuleDocs(moduleFiles);
-        const componentDocs: ComponentDocs[] = this.getComponentDocs(componentFiles, moduleDocs);
+        const sourceDocs: SourceDocs[] = this.getSourceDocs(componentFiles, moduleDocs);
 
-        return componentDocs;
+        return sourceDocs;
     }
 
     private getComponentAndModuleFiles(files: string[]) {
@@ -148,13 +148,13 @@ export class SourceParser {
         return moduleDocs;
     }
 
-    private getComponentDocs(componentFiles: string[], moduleDocs: ModuleDocs[]): ComponentDocs[] {
-        let componentDocs: ComponentDocs[] = [];
+    private getSourceDocs(componentFiles: string[], moduleDocs: ModuleDocs[]): SourceDocs[] {
+        let sourceDocs: SourceDocs[] = [];
 
         for (let currentFile of componentFiles) {
             let details: any = this.getComponentSourceData(this.program.getSourceFile(currentFile));
 
-            let doc: ComponentDocs = {            
+            let doc: SourceDocs = {            
                 componentRefName: details.classRefName,
                 componentDocName: details.componentDocName,
                 groupDocName: details.groupDocName,
@@ -169,11 +169,11 @@ export class SourceParser {
             };
 
             if (doc.componentDocName) {
-                componentDocs.push(doc);
+                sourceDocs.push(doc);
             }
         }
 
-        return componentDocs;
+        return sourceDocs;
     }
 
     private getModuleDetailsToComponent(componentRefName: string, moduleDocs: ModuleDocs[]): ModuleDetails {

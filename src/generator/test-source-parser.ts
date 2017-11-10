@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import { ComponentDocs, ApiComponentProperties } from './source-parser';
+import { SourceDocs, ApiComponentProperties } from './source-parser';
 
 interface VariableDeclaration {
     type: string;
@@ -11,6 +11,20 @@ export interface InlineComponent {
     source: string;
     template: string;
     name: string;
+}
+
+export interface TestDocs {
+    importStatements: string[];
+    moduleSetup: any;
+    includeTestForComponent: string;
+    includesComponents?: string[];
+    inlineComponents: InlineComponent[];
+    variableDeclarations: { name: string, type: string }[];
+    binaryExpressions: string[];
+    fileName: string;
+    examples: { componentProperties: any[] }[];
+    inlineFunctions: string[];
+    bootstrapComponent: string;
 }
 
 export class TestSourceParser {
@@ -24,14 +38,14 @@ export class TestSourceParser {
         this.checker = this.program.getTypeChecker();
     }
 
-    getProjectTestDocumentation(componentDocs: ComponentDocs[]): any[] {
-        const testDocs: any[] = this.getTestDocs(this.config.files, componentDocs);
+    getProjectTestDocumentation(sourceDocs: SourceDocs[]): TestDocs[] {
+        const testDocs: any[] = this.getTestDocs(this.config.files, sourceDocs);
 
         testDocs.filter((component) => component.moduleSetup['imports']).forEach((component) => {
-            componentDocs.forEach((componentDocs) => {
-                if (component.moduleSetup['imports'].indexOf(componentDocs.moduleDetails.moduleRefName) > -1) {
+            sourceDocs.forEach((sourceDocs) => {
+                if (component.moduleSetup['imports'].indexOf(sourceDocs.moduleDetails.moduleRefName) > -1) {
                     component.includesComponents = component.includesComponents || [];
-                    component.includesComponents.push(componentDocs.componentRefName);
+                    component.includesComponents.push(sourceDocs.componentRefName);
                 }
             });
         });
@@ -45,7 +59,7 @@ export class TestSourceParser {
         const result = docs.filter((component, index) => {
             let containsBootstrapComponent = false;
 
-            if (component.includesComponents.indexOf(component.bootstrapComponent) > -1) {
+            if (component.includesComponents && component.includesComponents.indexOf(component.bootstrapComponent) > -1) {
                 containsBootstrapComponent = true;
             }
 
@@ -67,8 +81,8 @@ export class TestSourceParser {
         }
     }
 
-    private getTestDocs(files: string[], sourceDocs: ComponentDocs[]) {
-        let docs = [];
+    private getTestDocs(files: string[], sourceDocs: SourceDocs[]): TestDocs[] {
+        let docs: TestDocs[] = [];
 
         for (let currentFile of files) {
             let details: any = this.getTestSourceDetails(this.program.getSourceFile(currentFile));
@@ -97,7 +111,7 @@ export class TestSourceParser {
     }
 
     private getExampleTemplate(inlineComponents: InlineComponent[],
-        bootstrapComponent: string, sourceDocs: ComponentDocs[], details: any) {
+        bootstrapComponent: string, sourceDocs: SourceDocs[], details: any) {
 
         let exampleTemplate = inlineComponents
             .filter((inlineComponent) => inlineComponent.name === bootstrapComponent)
@@ -110,9 +124,9 @@ export class TestSourceParser {
         return this.getComponentTemplate(details, sourceDocs);
     }
 
-    private getComponentTemplate(details: any, sourceDocs: ComponentDocs[]) {
-        const currentComponentSourceDocs = sourceDocs.find((componentDocs: ComponentDocs) => {
-            return componentDocs.componentRefName === details.includeTestForComponent;
+    private getComponentTemplate(details: any, sourceDocs: SourceDocs[]) {
+        const currentComponentSourceDocs = sourceDocs.find((sourceDocs: SourceDocs) => {
+            return sourceDocs.componentRefName === details.includeTestForComponent;
         });
 
         const inputProperties = currentComponentSourceDocs.apiDetails.properties.filter((prop) => {
@@ -220,7 +234,6 @@ export class TestSourceParser {
             importStatements: [],
             moduleSetup: {},
             includeTestForComponent: null,
-            includesComponents: [],
             inlineComponents: [],
             inlineFunctions: [],
             variableDeclarations: [],
