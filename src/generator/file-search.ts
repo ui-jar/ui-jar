@@ -14,7 +14,7 @@ export class FileSearch {
             const filePath = directory + '/' + file;
 
             let shouldBeExcluded = this.excludes.find((excludeItem) => {
-                return new RegExp(excludeItem).test(file);
+                return new RegExp(excludeItem).test(filePath);
             });
 
             if (shouldBeExcluded) {
@@ -25,7 +25,7 @@ export class FileSearch {
                 results = results.concat(this.getFiles(filePath));
             } else if (fs.statSync(filePath).isFile()) {
                 let shouldBeIncluded = this.includes.find((includeItem) => {
-                    return new RegExp(includeItem).test(file);
+                    return new RegExp(includeItem).test(filePath);
                 });
 
                 if (shouldBeIncluded) {
