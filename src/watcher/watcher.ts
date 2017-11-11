@@ -55,7 +55,7 @@ export class FileWatcher {
 
     private eventHandler(fileName: string): void {
         if (this.shouldBeIncluded(fileName)) {
-            console.info('File change detected.');
+            console.info('File change detected. Starting incremental build...');
             this.watchEvent.emit(FileWatcherEvent.REBUILD, fileName);
             console.info('Watching for file changes.');
         }
