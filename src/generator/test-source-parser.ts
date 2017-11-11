@@ -43,7 +43,7 @@ export class TestSourceParser {
 
         testDocs.filter((component) => component.moduleSetup['imports']).forEach((component) => {
             sourceDocs.forEach((sourceDocs) => {
-                if (component.moduleSetup['imports'].indexOf(sourceDocs.moduleDetails.moduleRefName) > -1) {
+                if (sourceDocs.moduleDetails && component.moduleSetup['imports'].indexOf(sourceDocs.moduleDetails.moduleRefName) > -1) {
                     component.includesComponents = component.includesComponents || [];
                     component.includesComponents.push(sourceDocs.componentRefName);
                 }
