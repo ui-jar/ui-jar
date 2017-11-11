@@ -5,8 +5,9 @@
     "private": true,
     "homepage": "https://github.com/ui-jar/ui-jar",
     "scripts": {
-        "start": "concurrently \"tsc -w\" \"sass --watch src/styles:dist/src/styles\" ",
-        "production": "tsc && sass --update src/styles/default.scss:dist/src/styles/default.css && ngc -p tsconfig-aot.json",
+        "start": "concurrently \"npm run css\" \"tsc -w\" \"node scripts/compile-css.js\" ",
+        "css": "node-sass src/styles --output dist/src/styles --output-style compressed",
+        "release": "tsc && npm run css && ngc -p tsconfig-aot.json",
         "test": "tsc && mocha \"dist/test/**/*.js\" ",
         "test:watch": "tsc && mocha \"dist/test/**/*.js\" --watch ",
         "tslint": "tslint --config tslint.json src/**/*.ts test/**/*.ts"
@@ -36,6 +37,7 @@
         "@types/sinon": "^2.3.6",
         "concurrently": "^3.5.0",
         "mocha": "^4.0.1",
+        "node-sass": "^4.6.0",
         "rxjs": "^5.5.2",
         "sinon": "^4.0.1",
         "tslint": "^5.8.0"
