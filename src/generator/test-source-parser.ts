@@ -14,7 +14,7 @@ export interface InlineComponent {
 }
 
 export interface TestDocs {
-    importStatements: string[];
+    importStatements: { value: string, path: string}[];
     moduleSetup: any;
     includeTestForComponent: string;
     includesComponents?: string[];
@@ -25,16 +25,13 @@ export interface TestDocs {
     examples: { componentProperties: any[] }[];
     inlineFunctions: string[];
     bootstrapComponent: string;
+    exampleTemplate: string;
 }
 
 export class TestSourceParser {
-    private program: ts.Program;
     private checker: ts.TypeChecker;
 
-    constructor(private config: any, tsOptions: ts.CompilerOptions) {
-        let files = config.files;
-
-        this.program = ts.createProgram([...files], tsOptions);
+    constructor(private config: any, private program: ts.Program) {
         this.checker = this.program.getTypeChecker();
     }
 
@@ -125,9 +122,15 @@ export class TestSourceParser {
     }
 
     private getComponentTemplate(details: any, sourceDocs: SourceDocs[]) {
+        let template = '';
+
         const currentComponentSourceDocs = sourceDocs.find((sourceDocs: SourceDocs) => {
             return sourceDocs.componentRefName === details.includeTestForComponent;
         });
+
+        if(!currentComponentSourceDocs) {
+            return template;
+        }
 
         const inputProperties = currentComponentSourceDocs.apiDetails.properties.filter((prop) => {
             const isInput = prop.decoratorNames.filter((decoratorName) => {
@@ -136,8 +139,6 @@ export class TestSourceParser {
 
             return isInput;
         });
-
-        let template = '';
 
         details.examples.forEach((example) => {
             let inputPropertiesTemplates = '';

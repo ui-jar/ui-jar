@@ -94,15 +94,15 @@ export function generateRequiredFiles(options: CliArgs) {
 }
 
 function getProjectSourceDocumentation(sourceFiles) {
-    const sourceParser = new SourceParser({ files: sourceFiles },
-        { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
+    const program = ts.createProgram([...sourceFiles], { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
+    const sourceParser = new SourceParser({ files: sourceFiles }, program);
 
     return sourceParser.getProjectSourceDocumentation();
 }
 
 function getProjectTestDocumentation(sourceFiles, docs) {
-    const testSourceParser = new TestSourceParser({ files: sourceFiles },
-        { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
+    const program = ts.createProgram([...sourceFiles], { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
+    const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);
 
     return testSourceParser.getProjectTestDocumentation(docs);
 }

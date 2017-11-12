@@ -37,13 +37,9 @@ export interface ApiComponentProperties {
 }
 
 export class SourceParser {
-    private program: ts.Program;
     private checker: ts.TypeChecker;
 
-    constructor(private config: any, tsOptions: ts.CompilerOptions) {
-        let files = config.files;
-
-        this.program = ts.createProgram([...files], tsOptions);
+    constructor(private config: any, private program: ts.Program) {
         this.checker = this.program.getTypeChecker();
     }
 
