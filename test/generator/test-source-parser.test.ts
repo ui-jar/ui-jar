@@ -37,7 +37,7 @@ describe('TestSourceParser', () => {
             assert.equal(firstTestDoc.bootstrapComponent, 'FoobarComponent');
         });
 
-        it('should parse and verify that TestDocs.moduleSetup valid', () => {
+        it('should parse and verify that TestDocs.moduleSetup is valid', () => {
             let firstTestDoc = testDocs[0];
 
             assert.deepEqual(firstTestDoc.moduleSetup.imports, ['CommonModule']);
