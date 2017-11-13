@@ -1,10 +1,10 @@
 # 1.0.0-beta.9 (2017-11-13)
 ### Bug fixes
 * includes/excludes RegExp is tested against absolute path instead of filename
-* ERROR in UIjarModule is not an NgModule #3
+* ERROR in UIjarModule is not an NgModule
 
 ### Features
-* Incremental build when using --watch flag #4
+* Incremental build when using --watch flag
 * Updated UI
 
 ### Breaking changes
