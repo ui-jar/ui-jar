@@ -10,7 +10,7 @@ describe('TestSourceParser', () => {
 
         beforeEach(() => {
             const sourceFiles = ['foobar.component.ts', 'foobar.component.test.ts'];
-            const compilerHost = getTestCompilerHost();
+            const compilerHost = getTestCompilerHostWithMockComponent();
             const program: ts.Program = ts.createProgram([...sourceFiles],
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
@@ -55,19 +55,19 @@ describe('TestSourceParser', () => {
                 example.componentProperties.forEach((componentProperty, index) => {
                     assert.equal(componentProperty.name, componentVariableDeclaration.name);
 
-                    if(exampleIndex === 0) {
+                    if (exampleIndex === 0) {
                         if (index === 0) {
                             assert.equal(componentProperty.expression, 'component.title = "Test title"');
                         } else if (index === 1) {
                             assert.equal(componentProperty.expression, 'component.options = ["item-1", "item-2", "item-3"]');
                         }
-                    } else if(exampleIndex === 1) {
+                    } else if (exampleIndex === 1) {
                         if (index === 0) {
                             assert.equal(componentProperty.expression, 'component.title = \'Test title 2\'');
                         } else if (index === 1) {
                             assert.equal(componentProperty.expression, 'component.options = [\'item-1\', \'item-2\']');
                         }
-                    } else if(exampleIndex === 2) {
+                    } else if (exampleIndex === 2) {
                         if (index === 0) {
                             assert.equal(componentProperty.expression, 'component.title = getTitle()');
                         } else if (index === 1) {
@@ -90,7 +90,7 @@ describe('TestSourceParser', () => {
             let firstTestDoc = testDocs[0];
 
             firstTestDoc.importStatements.forEach((importStatement, index) => {
-                if(index === 0) {
+                if (index === 0) {
                     assert.equal(importStatement.value, 'import { Component } from \'@angular/core\';');
                     assert.equal(importStatement.path, '\'@angular/core\'');
                 } else if (index === 1) {
@@ -113,9 +113,9 @@ describe('TestSourceParser', () => {
             let firstTestDoc = testDocs[0];
 
             firstTestDoc.inlineFunctions.forEach((inlineFunction, index) => {
-                if(index === 0) {
+                if (index === 0) {
                     assert.equal(new RegExp(/function\sgetOptions\(\)\s\{/i).test(inlineFunction), true);
-                } else if(index === 1) {
+                } else if (index === 1) {
                     assert.equal(new RegExp(/function\sgetTitle\(\)\s\{/i).test(inlineFunction), true);
                 } else {
                     assert.equal(true, false, 'Should not be executed');
@@ -133,9 +133,55 @@ describe('TestSourceParser', () => {
             });
         });
     });
+
+    describe('getProjectTestDocumentation - with test host component', () => {
+        let testDocs;
+
+        beforeEach(() => {
+            const sourceFiles = ['foobar.component.ts', 'foobar.module.ts', 'foobar.component.test.ts'];
+            const compilerHost = getTestCompilerHostWithMockModuleAndTestHostComponent();
+            const program: ts.Program = ts.createProgram([...sourceFiles],
+                { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
+
+            const sourceParser = new SourceParser({ files: sourceFiles }, program);
+            const sourceDocs = sourceParser.getProjectSourceDocumentation();
+
+            const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);
+            testDocs = testSourceParser.getProjectTestDocumentation(sourceDocs);
+        });
+
+        it('should parse files and return list with TestDocs when using test host component', () => {
+            assert.equal(testDocs.length, 1);
+        });
+
+        it('should parse and verify that TestDocs.includeTestForComponent is valid when using test host component', () => {
+            let firstTestDoc = testDocs[0];
+
+            assert.equal(firstTestDoc.includeTestForComponent, 'FoobarComponent');
+        });
+
+        it('should parse and verify that TestDocs.bootstrapComponent is valid when using test host component', () => {
+            let firstTestDoc = testDocs[0];
+
+            assert.equal(firstTestDoc.bootstrapComponent, 'FoobarComponentTestHost');
+        });
+
+        it('should parse and verify that TestDocs.exampleTemplate is valid when using test host component', () => {
+            let firstTestDoc = testDocs[0];
+
+            assert.equal(firstTestDoc.exampleTemplate, '<x-foobar><p>{{content}}</p></x-foobar>');
+        });
+
+        it('should parse and verify that TestDocs.moduleSetup is valid when using test host component', () => {
+            let firstTestDoc = testDocs[0];
+
+            assert.deepEqual(firstTestDoc.moduleSetup.imports, ['FoobarModule', 'FormsModule']);
+            assert.deepEqual(firstTestDoc.moduleSetup.declarations, ['FoobarComponentTestHost']);
+        });
+    });
 });
 
-function getTestCompilerHost() {
+function getTestCompilerHostWithMockComponent() {
     const testSourceFileContent = `
     import { Component } from '@angular/core';
     import { async, ComponentFixture, TestBed, TestModuleMetadata } from '@angular/core/testing';
@@ -250,6 +296,108 @@ function getTestCompilerHost() {
 
     compilerHost.fileExists = (fileName: string): boolean => {
         if (fileName.indexOf('.component.ts') > -1) {
+            return true;
+        }
+    };
+
+    return compilerHost;
+}
+
+function getTestCompilerHostWithMockModuleAndTestHostComponent() {
+    const testSourceFileContent = `
+    import { Component } from '@angular/core';
+    import { FormsModule } from '@angular/forms';
+    import { async, ComponentFixture, TestBed, TestModuleMetadata } from '@angular/core/testing';
+    import { FoobarModule } from './foobar.module.ts';
+
+    describe('FoobarComponent', () => {
+        let hostComponent: FoobarComponentTestHost;
+        let fixture: ComponentFixture<FoobarComponentTestHost>;
+      
+        beforeEach(async(() => {
+          /** 
+           * @uijar FoobarComponent
+           * @hostcomponent FoobarComponentTestHost
+           */
+          let moduleDef: TestModuleMetadata = { imports: [FoobarModule, FormsModule], declarations: [FoobarComponentTestHost] };
+          TestBed.configureTestingModule(moduleDef).compileComponents();
+        }));
+      
+        beforeEach(() => {
+          fixture = TestBed.createComponent(FoobarComponentTestHost);
+          hostComponent = fixture.componentInstance;
+          fixture.detectChanges();
+        });
+        
+        /** @uijarexample */
+        it('should parse test correct when using test host', () => {
+            hostComponent.content = "Test content";
+
+            // ...
+        });
+
+      });
+
+      @Component({
+          selector: 'x-foobar-test-host',
+          template: '<x-foobar><p>{{content}}</p></x-foobar>'
+      })
+      export class FoobarComponentTestHost {
+          content: string;
+          // ...
+      }
+
+      function shouldBeIgnoredBecauseItIsNotUsed() {
+        // ...
+      }
+    `;
+
+    const sourceFileContent = `
+        import { Component, Input } from '@angular/core';
+
+        /**
+         * @group Layout
+         * @component Foobar
+         */
+        @Component({
+            selector: 'x-foobar',
+            template: '<ng-content></ng-content>'
+        })
+        export class FoobarComponent {
+            title: string;
+            @Input()
+            options: string[];
+        }
+    `;
+
+    const sourceFileModuleContent = `
+        import { NgModule } from '@angular/core';
+        import { CommonModule } from '@angular/common';
+
+        @NgModule({
+            imports: [CommonModule],
+            declarations: [FoobarComponent],
+            exports: [FoobarComponent]
+        })
+        export class FoobarModule {
+            // ...
+        }
+    `;
+
+    let compilerHost = ts.createCompilerHost({ target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
+
+    compilerHost.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
+        onError?: (message: string) => void): ts.SourceFile => {
+
+        if (fileName.indexOf('.test.ts') > -1) {
+            return ts.createSourceFile(fileName, testSourceFileContent, ts.ScriptTarget.ES5);
+        }
+
+        return ts.createSourceFile(fileName, sourceFileContent, ts.ScriptTarget.ES5);
+    };
+
+    compilerHost.fileExists = (fileName: string): boolean => {
+        if (fileName.indexOf('.module.ts') > -1) {
             return true;
         }
     };
