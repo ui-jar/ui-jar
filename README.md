@@ -37,10 +37,10 @@ AoT-build is not supported yet.
 ```js
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { UIjarModule } from 'ui-jar';
+import { UIJarModule } from 'ui-jar';
 
 enableProdMode();
-platformBrowserDynamic().bootstrapModule(UIjarModule);
+platformBrowserDynamic().bootstrapModule(UIJarModule);
 ```
 
 ```html
