@@ -9,7 +9,7 @@ describe('SourceParser', () => {
 
         beforeEach(() => {
             const sourceFiles = ['foobar.component.ts', 'foobar.module.ts', 'foobar.component.test.ts'];
-            const compilerHost = getTestCompilerHost();
+            const compilerHost = getTestCompilerHostWithMockModuleAndComponent();
             const program: ts.Program = ts.createProgram([...sourceFiles],
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
@@ -125,7 +125,7 @@ describe('SourceParser', () => {
     });
 });
 
-function getTestCompilerHost() {
+function getTestCompilerHostWithMockModuleAndComponent() {
     const sourceFileContent = `
         import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 
