@@ -8,9 +8,9 @@ export interface FileWatcherOptions {
     files: string[];
 }
 
-export enum FileWatcherEvent {
-    REBUILD = 'REBUILD'
-}
+export const FileWatcherEvent = {
+    REBUILD: 'REBUILD'
+};
 
 export class FileWatcher {
     private watchEvent: EventEmitter = new EventEmitter();
@@ -31,7 +31,7 @@ export class FileWatcher {
         });
     }
 
-    addListener(eventType: FileWatcherEvent, callback: (fileName: string) => void) {
+    addListener(eventType: string, callback: (fileName: string) => void) {
         if (eventType) {
             this.watchEvent.addListener(eventType, callback);
         }

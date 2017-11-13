@@ -15,7 +15,7 @@ import { Subscription } from 'rxjs/Subscription';
                 <span>-</span>
                 <span>-</span>
             </button>
-            <div class="beta-banner">1.0.0-beta.8</div>
+            <div class="beta-banner">1.0.0-beta.9</div>
             <a href="//github.com/ui-jar/ui-jar" target="_blank" class="project-link">GitHub</a>
         </div>
         <section class="container">

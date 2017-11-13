@@ -7,13 +7,13 @@ export interface CliArgs {
     watch?: boolean;
 }
 
-export enum CliCommandOptions {
-    DIRECTORY = '--directory',
-    INCLUDES = '--includes',
-    EXCLUDES = '--excludes',
-    URL_PREFIX = '--url-prefix',
-    WATCH = '--watch'
-}
+const CliCommandOptions = {
+    DIRECTORY: '--directory',
+    INCLUDES: '--includes',
+    EXCLUDES: '--excludes',
+    URL_PREFIX: '--url-prefix',
+    WATCH: '--watch'
+};
 
 export function parseCliArguments(args: string[]): CliArgs {
     args = pluckAdditionalCliArguments(args);
