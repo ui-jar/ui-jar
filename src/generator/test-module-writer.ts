@@ -100,7 +100,17 @@ export class TestModuleTemplateWriter {
                 exampleProperties += objectSyntax + `, `;
             });
 
+            let exampleHttpRequests = '{';
+            example.httpRequests.forEach((httpRequest) => {
+                const httRequestPropertyName = httpRequest.name;
+                const propertyName = '"' + httpRequest.name.replace(/\s+/gi, '').replace(/"/gi, '\'') + '"';
+                exampleHttpRequests += propertyName +': { expression: "'+ httpRequest.expression.replace(/"/gi, '\'') +'", url: "'+ httpRequest.url +'" }';
+                exampleHttpRequests += ', ';
+            });
+            exampleHttpRequests += '}';
+
             exampleProperties += `}, componentPropertyName: "${componentPropertyName}"`;
+            exampleProperties += `, httpRequests: ${exampleHttpRequests}`;
             exampleProperties += '}' + (index < component.examples.length - 1 ? ',' : '');
         });
         exampleProperties += ']';
@@ -111,7 +121,8 @@ export class TestModuleTemplateWriter {
 
             return examples.map((example) => {
                 let componentProperties = example.properties;
-                return Object.keys(componentProperties).map((propertyKey) => {
+                let result = {};
+                result.componentProperties = Object.keys(componentProperties).map((propertyKey) => {
                     
                     let expressionValue = JSON.stringify(componentProperties[propertyKey]);
                     expressionValue = propertyKey +'='+ expressionValue;
@@ -121,6 +132,16 @@ export class TestModuleTemplateWriter {
                         expression: expressionValue
                     }; 
                 });
+
+                result.httpRequests = Object.keys(example.httpRequests).map((propertyKey) => {
+                    return {
+                        name: propertyKey,
+                        url: example.httpRequests[propertyKey].url,
+                        expression: example.httpRequests[propertyKey].expression
+                    }
+                });
+
+                return result;
             });
         }`;
 

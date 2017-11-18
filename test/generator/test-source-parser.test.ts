@@ -40,14 +40,15 @@ describe('TestSourceParser', () => {
         it('should parse and verify that TestDocs.moduleSetup is valid', () => {
             let firstTestDoc = testDocs[0];
 
-            assert.deepEqual(firstTestDoc.moduleSetup.imports, ['CommonModule']);
+            assert.deepEqual(firstTestDoc.moduleSetup.imports, ['CommonModule', 'HttpClientTestingModule']);
             assert.deepEqual(firstTestDoc.moduleSetup.declarations, ['FoobarComponent']);
+            assert.deepEqual(firstTestDoc.moduleSetup.providers, [ 'AnotherService', '{ provide: CustomService, useValue: { foo: true, bar: [{ a: 1}, 2, \'foo bar\']}, _bar: true, \'foo-bar\': false, $foo: "foo", fooFn: (foo) => { /** jsdoc should be ok */ return foo += 123; }, query: \'?foobar=true!#hashbang\' }']);
         });
 
         it('should parse and verify that TestDocs.examples contains valid component properties', () => {
             let firstTestDoc = testDocs[0];
 
-            const componentVariableDeclaration = firstTestDoc.variableDeclarations
+            const componentVariableDeclaration = firstTestDoc.allVariableDeclarations
                 .filter((declaration) => declaration.type === 'FoobarComponent')
                 .pop();
 
@@ -73,6 +74,36 @@ describe('TestSourceParser', () => {
                         } else if (index === 1) {
                             assert.equal(componentProperty.expression, 'component.options = getOptions()');
                         }
+                    } else if(exampleIndex === 3) {
+                        if (index === 0) {
+                            assert.equal(componentProperty.expression, 'component.title = "Test with http request"');
+                        } else if (index === 1) {
+                            assert.equal(componentProperty.expression, 'component.options = ["item-1", "item-2", "item-3"]');
+                        }
+                    } else if(exampleIndex === 4) {
+                        if (index === 0) {
+                            assert.equal(componentProperty.expression, 'component.title = "Test with http request error"');
+                        } else if (index === 1) {
+                            assert.equal(componentProperty.expression, 'component.options = ["item-1", "item-2", "item-3"]');
+                        }
+                    } else {
+                        assert.equal(true, false, 'Should not be executed');
+                    }
+                });
+
+                example.httpRequests.forEach((httpRequest, index) => {
+                    if(exampleIndex === 3) {
+                        if(index === 0) {
+                            assert.equal(httpRequest.name, 'request');
+                            assert.equal(httpRequest.expression, 'request.flush(\'Should return this text\')');
+                            assert.equal(httpRequest.url, '/foobar');
+                        }
+                    } else if(exampleIndex === 4) {
+                        if(index === 0) {
+                            assert.equal(httpRequest.name, 'request');
+                            assert.equal(httpRequest.expression, 'request.error(new ErrorEvent(\'Server error\', { error: new Error(\'503\'), message: \'Server error\' }))');
+                            assert.equal(httpRequest.url, '/error-url');
+                        }
                     } else {
                         assert.equal(true, false, 'Should not be executed');
                     }
@@ -83,7 +114,7 @@ describe('TestSourceParser', () => {
         it('should parse and verify that TestDocs.exampleTemplate is valid', () => {
             let firstTestDoc = testDocs[0];
 
-            assert.equal(firstTestDoc.exampleTemplate, '<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>\n<x-foobar [options]="[\'item-1\', \'item-2\']"></x-foobar>\n<x-foobar [options]="getOptions()"></x-foobar>\n');
+            assert.equal(firstTestDoc.exampleTemplate, '<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>\n<x-foobar [options]="[\'item-1\', \'item-2\']"></x-foobar>\n<x-foobar [options]="getOptions()"></x-foobar>\n<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>\n<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>\n');
         });
 
         it('should parse and verify that TestDocs.importStatements contains test imports', () => {
@@ -186,16 +217,24 @@ function getTestCompilerHostWithMockComponent() {
     import { Component } from '@angular/core';
     import { async, ComponentFixture, TestBed, TestModuleMetadata } from '@angular/core/testing';
     import { FoobarComponent } from './foobar.component.ts';
+    import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing.ts';
+
+    interface TestRequest {}
 
     describe('FoobarComponent', () => {
         let component: FoobarComponent;
         let fixture: ComponentFixture<FoobarComponent>;
+        let httpMock: HttpTestingController;
       
         beforeEach(async(() => {
           /** 
            * @uijar FoobarComponent
            */
-          let moduleDef: TestModuleMetadata = { imports: [CommonModule], declarations: [FoobarComponent] };
+          let moduleDef: TestModuleMetadata = {
+              imports: [CommonModule, HttpClientTestingModule],
+              declarations: [FoobarComponent],
+              providers: [{ provide: CustomService, useValue: { foo: true, bar: [{ a: 1}, 2, 'foo bar']}, _bar: true, 'foo-bar': false, $foo: "foo", fooFn: (foo) => { /** jsdoc should be ok */ return foo += 123; }, query: '?foobar=true!#hashbang' }, AnotherService]
+            };
           TestBed.configureTestingModule(moduleDef).compileComponents();
         }));
       
@@ -248,6 +287,26 @@ function getTestCompilerHostWithMockComponent() {
 
             component.title = "Title should not be visible in parse";
             component.options = shouldNotBeVisibleInParse();
+        });
+
+        /** @uijarexample */
+        it('should parse http request in test (flush)', () => {
+            component.title = "Test with http request";
+            component.options = ["item-1", "item-2", "item-3"];
+            const request: TestRequest = httpMock.expectOne('/foobar');
+            request.flush('Should return this text');
+
+            // ...
+        });
+
+        /** @uijarexample */
+        it('should parse http request in test (error)', () => {
+            component.title = "Test with http request error";
+            component.options = ["item-1", "item-2", "item-3"];
+            const request: TestRequest = httpMock.expectOne('/error-url');
+            request.error(new ErrorEvent('Server error', { error: new Error('503'), message: 'Server error' }));
+
+            // ...
         });
       });
 

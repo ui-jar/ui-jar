@@ -3,6 +3,9 @@ import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs/Subscription';
 import { CodeExampleComponent } from '../code-example/code-example.component';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { setTimeout } from 'timers';
+import { request } from 'https';
 
 @Component({
     selector: 'ui-jar-example',
@@ -88,7 +91,7 @@ export class ExamplesComponent implements OnDestroy {
     }
 
     toggleViewSource() {
-        if(this.codeExampleComponent.isComponentVisible()) {
+        if (this.codeExampleComponent.isComponentVisible()) {
             this.codeExampleComponent.hide();
         } else {
             this.codeExampleComponent.show();
@@ -111,18 +114,48 @@ export class ExamplesComponent implements OnDestroy {
 
             this.currentExampleTemplate = this.getExampleTemplate(this.getCurrentComponentName());
 
+            let componentRefInjector: Injector;
+
             examples.forEach((example: any) => {
                 let componentRef = this.content.createComponent(componentFactory);
-                this.setComponentProperties(componentRef, example);
+                this.setComponentProperties(componentRef, example.componentProperties);
+                componentRefInjector = componentRef.injector;
             });
+
+            this.flushPendingRequests(componentRefInjector, examples);
         });
+    }
+
+    private flushPendingRequests(componentRefInjector: Injector, examples) {
+        const requestMatches = {};
+
+        setTimeout(() => {
+            examples.forEach((example) => {
+                try {
+                    const httpTestingController = componentRefInjector.get(HttpTestingController);
+                    example.httpRequests.forEach((httpRequest) => {
+                        let match = httpTestingController.match(httpRequest.url);
+
+                        if (match.length > 0) {
+                            requestMatches[httpRequest.url] = match;
+                        }
+
+                        const __uijar__testRequest = requestMatches[httpRequest.url].shift();
+                        const expr = httpRequest.expression.replace(httpRequest.name, '__uijar__testRequest');
+                        eval(expr);
+                    });
+                } catch (error) {
+                    //
+                }
+            });
+        }, 0);
     }
 
     private setComponentProperties(componentRef: ComponentRef<any>, componentProperties) {
         componentProperties.map((propItem) => {
-            return propItem.expression.replace(propItem.name, 'componentInstance');
+            return propItem.expression.replace(propItem.name, '__uijar__componentInstance');
         }).forEach((propertyExpression) => {
-            const componentInstance = componentRef.instance;
+            const __uijar__componentInstance = componentRef.instance;
             eval(propertyExpression);
         });
     }

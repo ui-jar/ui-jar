@@ -2,9 +2,10 @@ import * as ts from 'typescript';
 import * as path from 'path';
 import { SourceDocs, ApiComponentProperties } from './source-parser';
 
-interface VariableDeclaration {
+export interface VariableDeclaration {
     type: string;
     name: string;
+    value: string;
 }
 
 export interface InlineComponent {
@@ -14,15 +15,23 @@ export interface InlineComponent {
 }
 
 export interface TestDocs {
-    importStatements: { value: string, path: string}[];
+    importStatements: { value: string, path: string }[];
     moduleSetup: any;
     includeTestForComponent: string;
     includesComponents?: string[];
     inlineComponents: InlineComponent[];
-    variableDeclarations: { name: string, type: string }[];
+    allVariableDeclarations: VariableDeclaration[];
     binaryExpressions: string[];
     fileName: string;
-    examples: { componentProperties: any[] }[];
+    examples: {
+        componentProperties: any[],
+        variableDeclarations: VariableDeclaration[],
+        httpExpressions: {
+            name: string;
+            expression: string;
+            url: string;
+        }
+    }[];
     inlineFunctions: string[];
     bootstrapComponent: string;
     exampleTemplate: string;
@@ -86,10 +95,14 @@ export class TestSourceParser {
             details.fileName = (this.program.getSourceFile(currentFile) as ts.FileReference).fileName;
 
             details.examples.forEach((example) => {
-                const expressions = this.getBinaryExpressionsFromTest(details.bootstrapComponent,
-                    details.variableDeclarations, example.binaryExpressions);
+                const componentExpressions = this.getComponentExpressionsFromTest(details.bootstrapComponent,
+                    details.allVariableDeclarations, example.binaryExpressions);
 
-                example.componentProperties = expressions;
+                const httpExpressions = this.getHttpExpressionsFromTest(example.variableDeclarations,
+                    example.functionsCall);
+
+                example.componentProperties = componentExpressions;
+                example.httpRequests = httpExpressions;
             });
 
             details.inlineFunctions = this.getCalledFunctionFromTest(details.inlineFunctions, details.examples);
@@ -128,7 +141,7 @@ export class TestSourceParser {
             return sourceDocs.componentRefName === details.includeTestForComponent;
         });
 
-        if(!currentComponentSourceDocs) {
+        if (!currentComponentSourceDocs) {
             return template;
         }
 
@@ -190,17 +203,17 @@ export class TestSourceParser {
         return calledInlineFunctions;
     }
 
-    private getBinaryExpressionsFromTest(bootstrapComponent: string, variableDeclarations: VariableDeclaration[],
+    private getComponentExpressionsFromTest(bootstrapComponent: string, variableDeclarations: VariableDeclaration[],
         binaryExpressions: string[]) {
 
         let componentVariable: VariableDeclaration = variableDeclarations.find((item: VariableDeclaration) => {
             return item.type === bootstrapComponent;
         });
 
-        let expressions = [];
+        let componentExpressions = [];
 
         if (componentVariable) {
-            expressions = binaryExpressions.filter((expression) => {
+            componentExpressions = binaryExpressions.filter((expression) => {
                 return expression.indexOf(componentVariable.name) === 0;
             }).map((expression) => {
                 return {
@@ -210,7 +223,38 @@ export class TestSourceParser {
             });
         }
 
-        return expressions;
+        return componentExpressions;
+    }
+
+    private getHttpExpressionsFromTest(variableDeclarations: VariableDeclaration[],
+        functionsCall: string[]) {
+
+        let testRequests: VariableDeclaration[] = variableDeclarations.filter((item: VariableDeclaration) => {
+            return item.type === 'TestRequest';
+        });
+
+        let httpExpressions = [];
+
+        if (testRequests) {
+            testRequests.forEach((func) => {
+
+                httpExpressions = httpExpressions.concat(functionsCall.filter((expression) => {
+                    return expression.indexOf(func.name + '.flush(') === 0 || expression.indexOf(func.name + '.error(') === 0;
+                }).map((expression) => {
+                    const httpRequestMatch = new RegExp(/\.expectOne\((.+)\)/gi).exec(func.value) || [];
+
+                    if (httpRequestMatch.length > 1) {
+                        return {
+                            name: func.name,
+                            expression: expression,
+                            url: httpRequestMatch[1].replace(/[\'"]/gi, '')
+                        };
+                    }
+                }));
+            });
+        }
+
+        return httpExpressions;
     }
 
     private getResolvedImportPath(importStatement: any, sourceFilePath): string {
@@ -237,7 +281,7 @@ export class TestSourceParser {
             includeTestForComponent: null,
             inlineComponents: [],
             inlineFunctions: [],
-            variableDeclarations: [],
+            allVariableDeclarations: [],
             binaryExpressions: [],
             examples: []
         };
@@ -269,9 +313,10 @@ export class TestSourceParser {
 
                     let variableType = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration));
 
-                    details.variableDeclarations.push({
+                    details.allVariableDeclarations.push({
                         name: nodeSymbol.name,
-                        type: variableType
+                        type: variableType,
+                        value: nodeSymbol.valueDeclaration.getText()
                     });
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
@@ -283,7 +328,9 @@ export class TestSourceParser {
             } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
                 if (this.isExampleComment(childNode)) {
                     details.examples.push({
-                        binaryExpressions: this.getExampleExpressionDetails(childNode)
+                        binaryExpressions: this.getExampleExpressionDetails(childNode),
+                        functionsCall: this.getExampleFunctionCallsDetails(childNode),
+                        variableDeclarations: this.getVariableDeclarationsDetails(childNode)
                     });
                 }
             } else if (childNode.kind === ts.SyntaxKind.FunctionDeclaration) {
@@ -297,6 +344,32 @@ export class TestSourceParser {
         traverseChild(node);
 
         return details;
+    }
+
+    private getVariableDeclarationsDetails(node: ts.Node): VariableDeclaration[] {
+        let variableDeclarations: VariableDeclaration[] = [];
+
+        let traverseChild = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
+                const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
+
+                if (nodeSymbol) {
+                    let variableType = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration));
+
+                    variableDeclarations.push({
+                        name: nodeSymbol.name,
+                        type: variableType,
+                        value: nodeSymbol.valueDeclaration.getText()
+                    });
+                }
+            }
+
+            ts.forEachChild(childNode, traverseChild);
+        };
+
+        traverseChild(node);
+
+        return variableDeclarations;
     }
 
     private getInlineFunction(inlineFunctionDeclaration: ts.FunctionDeclaration) {
@@ -334,6 +407,22 @@ export class TestSourceParser {
         return expressions;
     }
 
+    private getExampleFunctionCallsDetails(node: ts.Node): string[] {
+        let functionCalls: string[] = [];
+
+        const traverseChild = (childNode) => {
+            if (childNode.kind === ts.SyntaxKind.CallExpression) {
+                functionCalls.push(childNode.getText().replace(/[\n\t\r]+/gi, ''));
+            }
+
+            ts.forEachChild(childNode, traverseChild);
+        };
+
+        traverseChild(node);
+
+        return functionCalls;
+    }
+
     private getImportStatementDetails(node: ts.Node) {
         if (node.kind === ts.SyntaxKind.StringLiteral) {
             return node.getText();
@@ -344,22 +433,43 @@ export class TestSourceParser {
 
     private getModuleDefinitionDetails(node: ts.Node) {
         let moduleDefinition: any = {};
+        let parentNode = null;
 
         const traverseChild = (childNode: ts.Node) => {
-            if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
-                const propertyName = (childNode as ts.PropertyAssignment).name.getText();
-                let propertyValue;
+            if (childNode.kind === ts.SyntaxKind.ObjectLiteralExpression && !parentNode) {
+                parentNode = childNode;
+            }
 
-                (childNode as ts.PropertyAssignment).getChildren().forEach((child) => {
-                    if (child.kind === ts.SyntaxKind.ArrayLiteralExpression) {
-                        propertyValue = child.getText();
+            if (parentNode && parentNode.getText() === childNode.parent.getText()) {
+                if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
+                    const propertyName = (childNode as ts.PropertyAssignment).name.getText();
+                    let propertyValue;
+
+                    (childNode as ts.PropertyAssignment).getChildren().forEach((child) => {
+                        if (child.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+                            propertyValue = child.getText();
+                        }
+                    });
+
+                    if (propertyName && propertyValue) {
+                        let propertyValueTrim = propertyValue.replace(/[\n\t\r]+/gi, '');
+                        let customProviders = propertyValueTrim.match(/(\{.+\})/gi);
+
+                        if (customProviders) {
+                            customProviders.forEach((provider) => {
+
+                                propertyValueTrim = propertyValueTrim.replace(provider, '');
+                            });
+                        } else {
+                            customProviders = [];
+                        }
+
+                        propertyValueTrim = propertyValueTrim.substring(1, propertyValueTrim.length - 1);
+
+                        moduleDefinition[propertyName] = propertyValueTrim.split(',').map((item) => item.trim())
+                            .concat(customProviders).filter((item) => item !== '');
                     }
-                });
-
-                if (propertyName && propertyValue) {
-                    moduleDefinition[propertyName] = propertyValue.replace(/[\n\t\r\s\[\]]+/gi, '').split(',');
                 }
-
             }
 
             ts.forEachChild(childNode, traverseChild);
