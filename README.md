@@ -214,8 +214,7 @@ class ButtonComponentTestHost {
 
 ## Example usage (test with HttpClientTestingModule) - AVAILABLE IN BETA-10
 
-You might want to view a component that is requesting resources using HttpClient in UI-jar.
-It's possible, below is a example on that.
+You might want to view a component that is requesting resources using HttpClient in UI-jar. Below is an example on that.
 
 ### Source code
 
@@ -262,9 +261,8 @@ export class IconComponent {
 
 ### Test code
 
-Notice the use of "HttpClientTestingModule" and "HttpTestingController".
-UI-jar will automatically detect each requests you would like to fake for a specified resource if you use "expectOne" on "HttpTestingController".<br/>
-Use "flush" and "error" on "TestRequest" to manage which result you would like to have on your request when visible in UI-jar.
+Notice the use of "HttpClientTestingModule" and "HttpTestingController".<br/>
+UI-jar will automatically detect each requests you would like to fake for a specified resource if you use "expectOne" on "HttpTestingController". Use "flush" and "error" on "TestRequest" to manage which result you would like to have on your requests when visible in UI-jar.
 
 ```js
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
