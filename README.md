@@ -212,6 +212,110 @@ class ButtonComponentTestHost {
 }
 ```
 
+## Example usage (test with HttpClientTestingModule) - AVAILABLE IN BETA-10
+
+You might want to view a component that is requesting resources using HttpClient in UI-jar.
+It's possible, below is a example on that.
+
+### Source code
+
+```js
+import { Component, Renderer2, ElementRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+/**
+ * @group Icons
+ * @component Icon
+ */
+@Component({
+    selector: 'x-icon',
+    template: '<ng-content></ng-content>',
+    styleUrls: ['./icon.scss']
+})
+export class IconComponent {
+    private _name: string;
+
+    @Input()
+    set name(value: string) {
+        this._name = value;
+        this.setSvgIcon(this._name);
+    }
+
+    constructor(private http: HttpClient, private renderer: Renderer2,
+                private elementRef: ElementRef) { }
+
+    private setSvgIcon(name: string): void {
+        this.getSvgIcon(name).subscribe((svgIcon) => {
+            this.renderer.appendChild(this.elementRef.nativeElement, svgIcon);
+        });
+
+        ...
+    }
+
+    private getSvgIcon(name: string): Observable<SVGElement> {
+        return this.http.get(`/cdn/url/${name}.svg`).pipe(map((response) => { ... }));
+    }
+
+    ...
+}
+```
+
+### Test code
+
+Notice the use of "HttpClientTestingModule" and "HttpTestingController".
+UI-jar will automatically detect each requests you would like to fake for a specified resource if you use "expectOne" on "HttpTestingController".<br/>
+Use "flush" and "error" on "TestRequest" to manage which result you would like to have on your request when visible in UI-jar.
+
+```js
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { HttpClientTestingModule, HttpTestingController, TestRequest } from '@angular/common/http/testing';
+import { IconComponent } from './icon.component';
+
+describe('IconComponent', () => {
+  let component: IconComponent;
+  let fixture: ComponentFixture<IconComponent>;
+  let httpMock: HttpTestingController;
+
+  beforeEach(async(() => {
+    /** 
+     * @uijar IconComponent
+     */
+    const moduleDefinition = {
+        imports: [HttpClientTestingModule],
+        declarations: [IconComponent],
+    };
+    TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+        fixture = TestBed.createComponent(IconComponent);
+        httpMock = fixture.componentRef.injector.get(HttpTestingController);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
+  }));
+
+    /** @uijarexample */
+    it('should load icon', () => {
+        component.name = 'icon-name';
+        const request: TestRequest = httpMock.expectOne('/cdn/url/icon-name.svg');
+        request.flush('<svg>...</svg>');
+
+        ...
+    });
+
+    /** @uijarexample */
+    it('should return error when trying to load invalid icon', () => {
+        component.name = 'icon-does-not-exist';
+        const request: TestRequest = httpMock.expectOne('/cdn/url/icon-does-not-exist.svg');
+        request.error(new ErrorEvent('404 - Not Found', {
+            error: new Error('Icon not found'),
+            message: 'Icon not found'
+        }));
+
+        ...
+    });
+});
+```
+
 ## Example usage (add more details about your component)
 
 UI-jar also automatically create a API documentation for your component.
