@@ -298,7 +298,12 @@ export class TestSourceParser {
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
 
                 if (nodeSymbol) {
-                    nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
+                    nodeSymbol.getJsDocTags().map((docs: { name: string, text: string }) => {
+                        return {
+                            name: docs.name,
+                            text: docs.text.trim()
+                        };
+                    }).forEach((docs: { name: string, text: string }) => {
                         if (docs.name === 'uijar') {
                             if (!details.bootstrapComponent) {
                                 details.bootstrapComponent = docs.text;

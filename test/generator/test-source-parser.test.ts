@@ -31,7 +31,7 @@ describe('TestSourceParser', () => {
             assert.equal(firstTestDoc.includeTestForComponent, 'FoobarComponent');
         });
 
-        it('should parse and verify that TestDocs.bootstrapComponent is valid', () => {
+        it('should parse and trim whitespaces from TestDocs.bootstrapComponent and verify that TestDocs.bootstrapComponent is valid', () => {
             let firstTestDoc = testDocs[0];
 
             assert.equal(firstTestDoc.bootstrapComponent, 'FoobarComponent');
@@ -228,7 +228,7 @@ function getTestCompilerHostWithMockComponent() {
       
         beforeEach(async(() => {
           /** 
-           * @uijar FoobarComponent
+           * @uijar  FoobarComponent  
            */
           let moduleDef: TestModuleMetadata = {
               imports: [CommonModule, HttpClientTestingModule],
