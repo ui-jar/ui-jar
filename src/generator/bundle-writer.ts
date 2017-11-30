@@ -3,6 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { SourceDocs, ModuleDetails } from './source-parser';
 
+interface UniqueModulesDetails {
+    moduleDetails: ModuleDetails;
+    bootstrapComponent: string;
+}
+
 export class BundleTemplateWriter {
     private outputFilename: string = '__ui-jar-temp.js';
     private outputDirectoryPath: string = path.resolve(__dirname, '../../../temp'); // dist/src/app...
@@ -12,24 +17,18 @@ export class BundleTemplateWriter {
     }
 
     getJavascriptFileTemplate() {
-        let moduleImportStatements = this.getModuleImportStatements();
-        let moduleImportNames = this.getModuleImportNames();
-        let navigationLinks = this.getNavigationLinks();
-        let visibleComponents = this.getVisibleComponents();
-        let componentData = this.getComponentData();
-        let examples = this.getComponentExampleProperties();
-
-        let template = `
-            ${moduleImportStatements}
+        const template = `
+            ${this.getModuleImportStatements()}
             
             export function getAppData() {
                 return {
-                    modules:  ${moduleImportNames},
-                    visibleComponents: ${visibleComponents},
-                    navigationLinks: ${navigationLinks},
-                    components: ${componentData},
+                    modules:  ${this.getModuleImportNames()},
+                    componentRefs: ${this.getComponentRefs()},
+                    visibleComponents: ${this.getVisibleComponents()},
+                    navigationLinks: ${this.getNavigationLinks()},
+                    components: ${this.getComponentData()},
                     urlPrefix: '${this.urlPrefix}',
-                    examples: ${examples}
+                    examples: ${this.getComponentExampleProperties()}
                 };
             }
         `;
@@ -80,8 +79,8 @@ export class BundleTemplateWriter {
         let uniqueModules = this.getUniqueModules();
         let moduleNames = [];
 
-        uniqueModules.forEach((moduleDetails: ModuleDetails) => {
-            moduleNames.push(moduleDetails.moduleRefName);
+        uniqueModules.forEach((item: UniqueModulesDetails) => {
+            moduleNames.push(item.moduleDetails.moduleRefName);
         });
 
         let template = `[${moduleNames}]`;
@@ -94,25 +93,28 @@ export class BundleTemplateWriter {
         let moduleImports = this.getUniqueModules();
 
         moduleImports.forEach((item) => {
-            let importPath = path.relative(path.resolve(this.outputDirectoryPath), path.resolve(item.fileName));
+            const componentExamplePropertiesFunction = `getComponentExampleProperties as getComponentExampleProperties_${item.moduleDetails.moduleRefName}`;
+            let importPath = path.relative(path.resolve(this.outputDirectoryPath), path.resolve(item.moduleDetails.fileName));
             importPath = importPath.replace('.ts', '').replace(/\\/g, '/');
-            template += `import {${item.moduleRefName}} from '${importPath}';\n`;
-            template += `import {getComponentExampleProperties as getComponentExampleProperties_${item.moduleRefName}} from '${importPath}';\n`;
+            template += `import {${item.moduleDetails.moduleRefName}, ${item.bootstrapComponent}, ${componentExamplePropertiesFunction}} from '${importPath}';\n`;
         });
 
         return template;
     }
 
-    private getUniqueModules(): ModuleDetails[] {
-        let uniqueModules = [];
+    private getUniqueModules(): UniqueModulesDetails[] {
+        let uniqueModules: UniqueModulesDetails[] = [];
 
         this.documentation.forEach((item) => {
             let isModuleUnique = uniqueModules.filter((importedModule) => {
-                return item.moduleDetails.moduleRefName === importedModule.moduleRefName; // TODO byta till filename istället?
+                return item.moduleDetails.moduleRefName === importedModule.moduleDetails.moduleRefName;
             }).length === 0;
 
             if (isModuleUnique) {
-                uniqueModules.push(item.moduleDetails);
+                uniqueModules.push({
+                    moduleDetails: item.moduleDetails,
+                    bootstrapComponent: item.bootstrapComponent
+                });
             }
         });
 
@@ -132,7 +134,8 @@ export class BundleTemplateWriter {
                     methods: sourceDocs.apiDetails.methods
                 },
                 moduleDependencies: [sourceDocs.moduleDetails.moduleRefName],
-                exampleTemplate: sourceDocs.exampleTemplate
+                exampleTemplate: sourceDocs.exampleTemplate,
+                bootstrapComponent: sourceDocs.bootstrapComponent
             };
         });
 
@@ -151,6 +154,18 @@ export class BundleTemplateWriter {
         }, '');
 
         template = `{${template}}`;
+
+        return template;
+    }
+
+    private getComponentRefs() {
+        let componentRefs = [];
+
+        this.documentation.forEach((sourceDocs: SourceDocs) => {
+            componentRefs.push(sourceDocs.bootstrapComponent);
+        });
+
+        let template = `[${componentRefs}]`;
 
         return template;
     }

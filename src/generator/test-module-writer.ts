@@ -33,6 +33,7 @@ export class TestModuleTemplateWriter {
         template += `${component.inlineFunctions}`;
         template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {}`;
         template += this.getTemplateForExamplePropertiesFunction(component);
+        template += `exports.${component.bootstrapComponent} = ${component.bootstrapComponent};`;
 
         return template;
     }

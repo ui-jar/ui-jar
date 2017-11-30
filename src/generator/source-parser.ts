@@ -11,6 +11,7 @@ export interface SourceDocs {
     apiDetails: ApiDetails;
     exampleTemplate?: string;
     selector: string;
+    bootstrapComponent?: string;
 }
 
 export interface ApiDetails {

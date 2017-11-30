@@ -85,6 +85,14 @@ export class ExamplesComponent implements OnDestroy {
         return imports;
     }
 
+    private getBootstrapComponentRef(componentKey: string) {
+        const bootstrapComponent = this.appData.components[decodeURI(componentKey)].bootstrapComponent;
+
+        return this.appData.componentRefs.find((componentRef) => {
+            return bootstrapComponent === componentRef.name;
+        });
+    }
+
     private createView() {
         this.codeExampleComponent.hide();
         this.createComponent();
@@ -99,31 +107,36 @@ export class ExamplesComponent implements OnDestroy {
     }
 
     private createComponent() {
-        const importModule = this.getComponentModuleImports(this.getCurrentComponentName())[0];
-        const examples = this.getComponentExamples(this.getCurrentComponentName());
+        this.cleanUp();
 
+        const componentName = this.getCurrentComponentName();
+        const examples = this.getComponentExamples(componentName);
+        const componentFactory = this.getBootstrapComponentFactory(componentName);
+        this.currentExampleTemplate = this.getExampleTemplate(componentName);
+
+        let componentRefInjector: Injector;
+
+        examples.forEach((example: any) => {
+            let componentRef = this.content.createComponent(componentFactory);
+            this.setComponentProperties(componentRef, example.componentProperties);
+            componentRefInjector = componentRef.injector;
+        });
+
+        this.flushPendingRequests(componentRefInjector, examples);
+    }
+
+    private getBootstrapComponentFactory(componentKey: string) {
+        const bootstrapComponentRef = this.getBootstrapComponentRef(componentKey);
+        const importModule = this.getComponentModuleImports(componentKey)[0];
+        const moduleFactory = this.compiler.compileModuleSync(importModule);
+        const moduleRef = moduleFactory.create(this.parentInjector);
+
+        return moduleRef.componentFactoryResolver.resolveComponentFactory(bootstrapComponentRef);
+    }
+
+    private cleanUp() {
         this.content.clear();
         this.compiler.clearCache();
-
-        let moduleFactory = this.compiler.compileModuleSync(importModule);
-        let moduleRef: any = moduleFactory.create(this.parentInjector);
-
-        moduleRef.componentFactoryResolver._factories.forEach((component: ComponentFactory<any>) => {
-            let componentReference = component.componentType;
-            let componentFactory = moduleRef.componentFactoryResolver.resolveComponentFactory(componentReference);
-
-            this.currentExampleTemplate = this.getExampleTemplate(this.getCurrentComponentName());
-
-            let componentRefInjector: Injector;
-
-            examples.forEach((example: any) => {
-                let componentRef = this.content.createComponent(componentFactory);
-                this.setComponentProperties(componentRef, example.componentProperties);
-                componentRefInjector = componentRef.injector;
-            });
-
-            this.flushPendingRequests(componentRefInjector, examples);
-        });
     }
 
     private flushPendingRequests(componentRefInjector: Injector, examples) {

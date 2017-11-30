@@ -77,6 +77,7 @@ export function generateRequiredFiles(options: CliArgs) {
             if (testDoc.includeTestForComponent === componentDoc.componentRefName) {
                 componentDoc.examples = testDoc.examples;
                 componentDoc.exampleTemplate = testDoc.exampleTemplate;
+                componentDoc.bootstrapComponent = testDoc.bootstrapComponent;
             }
         });
     });
