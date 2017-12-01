@@ -1,11 +1,13 @@
 import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inject, OnDestroy, ComponentRef, ComponentFactory } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpBackend, HttpRequest, HttpEvent } from '@angular/common/http';
+import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { Subscription } from 'rxjs/Subscription';
 import { CodeExampleComponent } from '../code-example/code-example.component';
-import { HttpTestingController } from '@angular/common/http/testing';
 import { setTimeout } from 'timers';
 import { request } from 'https';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
     selector: 'ui-jar-example',
@@ -111,18 +113,15 @@ export class ExamplesComponent implements OnDestroy {
 
         const componentName = this.getCurrentComponentName();
         const examples = this.getComponentExamples(componentName);
-        const componentFactory = this.getBootstrapComponentFactory(componentName);
         this.currentExampleTemplate = this.getExampleTemplate(componentName);
 
-        let componentRefInjector: Injector;
-
         examples.forEach((example: any) => {
-            let componentRef = this.content.createComponent(componentFactory);
-            this.setComponentProperties(componentRef, example.componentProperties);
-            componentRefInjector = componentRef.injector;
-        });
+            const componentFactory = this.getBootstrapComponentFactory(componentName);
+            const componentRef = this.content.createComponent(componentFactory);
 
-        this.flushPendingRequests(componentRefInjector, examples);
+            this.setComponentProperties(componentRef, example.componentProperties);
+            this.listenOnHttpRequests(componentRef.injector, example.httpRequests);
+        });
     }
 
     private getBootstrapComponentFactory(componentKey: string) {
@@ -139,29 +138,44 @@ export class ExamplesComponent implements OnDestroy {
         this.compiler.clearCache();
     }
 
-    private flushPendingRequests(componentRefInjector: Injector, examples) {
-        const requestMatches = {};
+    private listenOnHttpRequests(componentRefInjector: Injector, httpRequests: MockHttpRequest[]) {
+        if (httpRequests.length === 0) {
+            return;
+        }
 
-        setTimeout(() => {
-            examples.forEach((example) => {
-                try {
-                    const httpTestingController = componentRefInjector.get(HttpTestingController);
-                    example.httpRequests.forEach((httpRequest) => {
-                        let match = httpTestingController.match(httpRequest.url);
+        try {
+            const httpTestingController: HttpTestingController = componentRefInjector.get(HttpTestingController);
+            let httpBackend: HttpBackend = componentRefInjector.get(HttpBackend);
+            const originalHandle = httpBackend.handle;
 
-                        if (match.length > 0) {
-                            requestMatches[httpRequest.url] = match;
+            httpBackend.handle = (currentRequest: HttpRequest<any>): Observable<HttpEvent<any>> => {
+                setTimeout(() => {
+                    httpRequests.forEach((httpRequest) => {
+                        if (httpRequest.url === currentRequest.url) {
+                            this.flushPendingRequest(httpRequest, httpTestingController.match(currentRequest.url));
                         }
-
-                        const __uijar__testRequest = requestMatches[httpRequest.url].shift();
-                        const expr = httpRequest.expression.replace(httpRequest.name, '__uijar__testRequest');
-                        eval(expr);
                     });
-                } catch (error) {
-                    //
-                }
-            });
-        }, 0);
+
+                }, 0);
+
+                return originalHandle.call(httpBackend, currentRequest);
+            };
+        } catch (error) {
+            //
+        }
+    }
+
+    private flushPendingRequest(currentRequest: MockHttpRequest, mockRequests: TestRequest[]) {
+        if (mockRequests.length > 0) {
+            const __uijar__testRequest = mockRequests.shift();
+            const expr = currentRequest.expression.replace(currentRequest.name, '__uijar__testRequest');
+
+            try {
+                eval(expr);
+            } catch (error) {
+                //
+            }
+        }
     }
 
     private setComponentProperties(componentRef: ComponentRef<any>, componentProperties) {
@@ -172,4 +186,10 @@ export class ExamplesComponent implements OnDestroy {
             eval(propertyExpression);
         });
     }
+}
+
+interface MockHttpRequest {
+    expression: string;
+    url: string;
+    name: string;
 }
