@@ -128,7 +128,7 @@ export class TestSourceParser {
             .map((inlineComponent) => inlineComponent.template);
 
         if (exampleTemplate.length > 0) {
-            return exampleTemplate[0];
+            return exampleTemplate[0].trim();
         }
 
         return this.getComponentTemplate(details, sourceDocs);
