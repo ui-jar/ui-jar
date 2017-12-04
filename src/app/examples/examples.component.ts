@@ -119,8 +119,8 @@ export class ExamplesComponent implements OnDestroy {
             const componentFactory = this.getBootstrapComponentFactory(componentName);
             const componentRef = this.content.createComponent(componentFactory);
 
-            this.setComponentProperties(componentRef, example.componentProperties);
             this.listenOnHttpRequests(componentRef.injector, example.httpRequests);
+            this.setComponentProperties(componentRef, example.componentProperties);
         });
     }
 
