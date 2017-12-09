@@ -144,7 +144,7 @@ export class ExamplesComponent implements OnDestroy {
         }
 
         try {
-            const httpTestingController: HttpTestingController = componentRefInjector.get(HttpTestingController);
+            const httpTestingController: HttpTestingController = componentRefInjector.get<HttpTestingController>(HttpTestingController as any);
             let httpBackend: HttpBackend = componentRefInjector.get(HttpBackend);
             const originalHandle = httpBackend.handle;
 
