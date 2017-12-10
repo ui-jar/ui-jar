@@ -63,7 +63,7 @@ platformBrowserDynamic().bootstrapModule(UIJarModule);
 
 * [Basic usage](#example-usage-basic)
 * [Usage with a test host component](#example-usage-with-test-host-component)
-* [HttpClient example with mock requests](#example-usage-test-with-HttpClientTestingModule)
+* [HttpClient example with mock requests](#example-usage-test-with-httpclienttestingmodule)
 * [Add more details about your component](#example-usage-add-more-details-about-your-component)
 
 ## Example usage (basic)
