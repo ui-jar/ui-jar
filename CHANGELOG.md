@@ -1,3 +1,13 @@
+# 1.0.0-beta.10 (2017-12-04)
+### Bug fixes
+* Trim whitespaces in component reference name
+* Creating new context for each example
+* Removed usage of private properties
+
+### Features
+* Add possibility to use HttpClientTestingModule for tests
+
+
 # 1.0.0-beta.9 (2017-11-13)
 ### Bug fixes
 * includes/excludes RegExp is tested against absolute path instead of filename
