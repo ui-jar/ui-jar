@@ -59,6 +59,13 @@ platformBrowserDynamic().bootstrapModule(UIJarModule);
 </html>
 ```
 
+## Examples
+
+* [Basic usage](#Example-usage-(basic))
+* [Usage with a test host component](#Example-usage-(with-test-host-component))
+* [HttpClient example with mock requests](#Example-usage-(test-with-HttpClientTestingModule))
+* [Add more details about your component](#Example-usage-(add-more-details-about-your-component))
+
 ## Example usage (basic)
 
 Add a JSDoc-comment to your component containing "@group GROUP_NAME" and<br/>
