@@ -134,7 +134,6 @@ export class BundleTemplateWriter {
                     methods: sourceDocs.apiDetails.methods
                 },
                 moduleDependencies: [sourceDocs.moduleDetails.moduleRefName],
-                exampleTemplate: sourceDocs.exampleTemplate,
                 bootstrapComponent: sourceDocs.bootstrapComponent
             };
         });

@@ -30,11 +30,12 @@ export interface TestDocs {
             name: string;
             expression: string;
             url: string;
-        }
+        },
+        template: string;
+        title: string;
     }[];
     inlineFunctions: string[];
     bootstrapComponent: string;
-    exampleTemplate: string;
 }
 
 export class TestSourceParser {
@@ -103,14 +104,14 @@ export class TestSourceParser {
 
                 example.componentProperties = componentExpressions;
                 example.httpRequests = httpExpressions;
+
+                if (details.bootstrapComponent) {
+                    example.template = this.getExampleTemplate(details.inlineComponents,
+                        details.bootstrapComponent, sourceDocs, details, example);
+                }
             });
 
             details.inlineFunctions = this.getCalledFunctionFromTest(details.inlineFunctions, details.examples);
-
-            if (details.bootstrapComponent) {
-                details.exampleTemplate = this.getExampleTemplate(details.inlineComponents,
-                    details.bootstrapComponent, sourceDocs, details);
-            }
 
             if (details.bootstrapComponent) {
                 docs.push(details);
@@ -121,7 +122,7 @@ export class TestSourceParser {
     }
 
     private getExampleTemplate(inlineComponents: InlineComponent[],
-        bootstrapComponent: string, sourceDocs: SourceDocs[], details: any) {
+        bootstrapComponent: string, sourceDocs: SourceDocs[], details: any, example: any) {
 
         let exampleTemplate = inlineComponents
             .filter((inlineComponent) => inlineComponent.name === bootstrapComponent)
@@ -131,10 +132,10 @@ export class TestSourceParser {
             return exampleTemplate[0].trim();
         }
 
-        return this.getComponentTemplate(details, sourceDocs);
+        return this.getComponentTemplate(details, sourceDocs, example);
     }
 
-    private getComponentTemplate(details: any, sourceDocs: SourceDocs[]) {
+    private getComponentTemplate(details: any, sourceDocs: SourceDocs[], example: any) {
         let template = '';
 
         const currentComponentSourceDocs = sourceDocs.find((sourceDocs: SourceDocs) => {
@@ -153,31 +154,29 @@ export class TestSourceParser {
             return isInput;
         });
 
-        details.examples.forEach((example) => {
-            let inputPropertiesTemplates = '';
-            let exampleComponentProperties = example.componentProperties.map((prop) => {
-                const firstIndexOfEquals = prop.expression.indexOf('=');
-                let propertyName = prop.expression.substr(0, firstIndexOfEquals);
-                propertyName = propertyName.replace(/[\s\.\[\]"']+/gi, '').replace(prop.name, '');
-                const expression = prop.expression.substr(firstIndexOfEquals + 1).replace(/"/gi, '\'').trim();
+        let inputPropertiesTemplates = '';
+        let exampleComponentProperties = example.componentProperties.map((prop) => {
+            const firstIndexOfEquals = prop.expression.indexOf('=');
+            let propertyName = prop.expression.substr(0, firstIndexOfEquals);
+            propertyName = propertyName.replace(/[\s\.\[\]"']+/gi, '').replace(prop.name, '');
+            const expression = prop.expression.substr(firstIndexOfEquals + 1).replace(/"/gi, '\'').trim();
 
-                return {
-                    propertyName: propertyName,
-                    propertyValue: expression
-                };
-            });
-
-            inputProperties.forEach((inputProperty: ApiComponentProperties) => {
-                const isExamplePropertyInput: any = exampleComponentProperties.find((componentProperty: any) =>
-                    componentProperty.propertyName === inputProperty.propertyName);
-
-                if (isExamplePropertyInput) {
-                    inputPropertiesTemplates += ` [${inputProperty.propertyName}]="${isExamplePropertyInput.propertyValue}"`;
-                }
-            });
-
-            template += `<${currentComponentSourceDocs.selector}${inputPropertiesTemplates}></${currentComponentSourceDocs.selector}>\n`;
+            return {
+                propertyName: propertyName,
+                propertyValue: expression
+            };
         });
+
+        inputProperties.forEach((inputProperty: ApiComponentProperties) => {
+            const isExamplePropertyInput: any = exampleComponentProperties.find((componentProperty: any) =>
+                componentProperty.propertyName === inputProperty.propertyName);
+
+            if (isExamplePropertyInput) {
+                inputPropertiesTemplates += ` [${inputProperty.propertyName}]="${isExamplePropertyInput.propertyValue}"`;
+            }
+        });
+
+        template += `<${currentComponentSourceDocs.selector}${inputPropertiesTemplates}></${currentComponentSourceDocs.selector}>`;
 
         return template;
     }
@@ -335,7 +334,8 @@ export class TestSourceParser {
                     details.examples.push({
                         binaryExpressions: this.getExampleExpressionDetails(childNode),
                         functionsCall: this.getExampleFunctionCallsDetails(childNode),
-                        variableDeclarations: this.getVariableDeclarationsDetails(childNode)
+                        variableDeclarations: this.getVariableDeclarationsDetails(childNode),
+                        title: this.getExampleTitle(childNode)
                     });
                 }
             } else if (childNode.kind === ts.SyntaxKind.FunctionDeclaration) {
@@ -386,7 +386,7 @@ export class TestSourceParser {
 
     private isExampleComment(node: ts.Node) {
         const comment = node.getFullText().replace(/[\s\t\n\r]/gi, '');
-        const regexp = /(\/\*{1,}@uijarexample\*{1,})\//;
+        const regexp = /(\/\*{1,}@uijarexample).+\//;
         const matches = comment.match(regexp);
 
         if (matches) {
@@ -394,6 +394,18 @@ export class TestSourceParser {
         }
 
         return false;
+    }
+
+    private getExampleTitle(node: ts.Node) {
+        const comment = node.getFullText();
+        const regexp = /\/\*{1,}[\s\t\r\n\*]+@uijarexample\s([a-z0-9\t\r\n\s_-]+)[\t\r\n\s\*]+\//gi;
+        const matches = regexp.exec(comment);
+
+        if (matches) {
+            return matches[1].trim();
+        }
+
+        return '';
     }
 
     private getExampleExpressionDetails(node: ts.Node): string[] {

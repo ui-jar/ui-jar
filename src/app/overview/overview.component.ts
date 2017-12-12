@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 @Component({
     selector: 'ui-jar-overview',
     template: `
-        <ui-jar-example></ui-jar-example>
+        <ui-jar-examples></ui-jar-examples>
         <div class="description-container">
             <div *ngIf="description; else notAvailable" [innerHTML]="description"></div>
             <ng-template #notAvailable>
