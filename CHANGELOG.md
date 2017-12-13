@@ -1,3 +1,12 @@
+# 1.0.0-beta.11 (2017-12-13)
+### Bug fixes
+* Updated typescript version to supported by Angular 5.1
+
+### Features
+* Added possibility to add custom title to each example
+* Each example is now displayed separated in the overview tab
+
+
 # 1.0.0-beta.10 (2017-12-04)
 ### Bug fixes
 * Trim whitespaces in component reference name
