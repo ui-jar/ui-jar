@@ -5,6 +5,7 @@
 ### Features
 * Added possibility to add custom title to each example
 * Each example is now displayed separated in the overview tab
+* Minor updates in the UI
 
 
 # 1.0.0-beta.10 (2017-12-04)
