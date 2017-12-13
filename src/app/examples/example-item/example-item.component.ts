@@ -3,10 +3,7 @@ import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpBackend, HttpRequest, HttpEvent } from '@angular/common/http';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
-// import { Subscription } from 'rxjs/Subscription';
 import { CodeExampleComponent } from '../code-example/code-example.component';
-import { setTimeout } from 'timers';
-import { request } from 'https';
 import { Observable } from 'rxjs/Observable';
 
 @Component({
@@ -36,7 +33,6 @@ export class ExampleItemComponent implements OnDestroy {
     @ViewChild(CodeExampleComponent) codeExampleComponent: CodeExampleComponent;
     @Input('template') currentExampleTemplate: string = null;
     private modules: any = [];
-    // private routerSub: Subscription;
     exampleTitle: string = '';
 
     @Input() example: any;
@@ -117,20 +113,13 @@ export class ExampleItemComponent implements OnDestroy {
     private createComponent() {
         this.cleanUp();
 
+        this.exampleTitle = this.example.title;
         const componentName = this.getCurrentComponentName();
-        // const examples = this.getComponentExamples(componentName);
-        // this.currentExampleTemplate = this.getExampleTemplate(componentName);
+        const componentFactory = this.getBootstrapComponentFactory(componentName);
+        const componentRef = this.content.createComponent(componentFactory);
 
-        // examples.forEach((example: any) => {
-            const example = this.example;
-            this.exampleTitle = example.title;
-            //
-            const componentFactory = this.getBootstrapComponentFactory(componentName);
-            const componentRef = this.content.createComponent(componentFactory);
-
-            this.listenOnHttpRequests(componentRef.injector, example.httpRequests);
-            this.setComponentProperties(componentRef, example.componentProperties);
-        // });
+        this.listenOnHttpRequests(componentRef.injector, this.example.httpRequests);
+        this.setComponentProperties(componentRef, this.example.componentProperties);
     }
 
     private getBootstrapComponentFactory(componentKey: string) {

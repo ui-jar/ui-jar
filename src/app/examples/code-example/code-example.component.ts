@@ -3,12 +3,16 @@ import { Component, Input, HostBinding } from '@angular/core';
 @Component({
     selector: 'ui-jar-code-example',
     template: `
-        <div>
-            <h2>HTML</h2>
-            <code>
-                <pre>{{example}}</pre>
-            </code>
+        <div class="code-example-nav">
+            <ul class="u-clearfix">
+                <li>
+                    <a class="is-active">HTML</a>
+                </li>
+            </ul>
         </div>
+        <code>
+            <pre>{{example}}</pre>
+        </code>
     `
 })
 export class CodeExampleComponent {

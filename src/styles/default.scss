@@ -218,6 +218,7 @@ ui-jar-example-item {
         position: relative;
         background-color: #f3f3f3;
         height: 35px;
+        border-bottom: 1px #ddd solid;
 
         h2 {
             float: left;
@@ -324,7 +325,34 @@ ui-jar-code-example {
         font-family: monospace;
     }
 
+    .code-example-nav {
+        border-bottom: 1px #dcdcdc solid;
 
+        > ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            
+                > li {
+                    float: left;
+                    
+                    > a {
+                        display: block;
+                        padding: 10px 20px;
+                        background-color: #fff;
+                        text-decoration: none;
+                        color: #000;
+                        font-family: Arial;
+                        font-size: 12px;
+                        border-bottom: 2px transparent solid;
+                    
+                    &.is-active {
+                        border-color: #2a9fc5;
+                    }
+                }
+            }
+        }
+    }
 }
 
 ui-jar-api {
@@ -393,7 +421,7 @@ ui-jar-api {
     }
 
     .property-type {
-        color: #48bd8d;
+        color: #3f6479;
     }
 
     .decorator-highlight {
