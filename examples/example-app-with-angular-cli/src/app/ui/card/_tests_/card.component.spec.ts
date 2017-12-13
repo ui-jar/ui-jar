@@ -27,19 +27,19 @@ describe('CardComponent', () => {
     fixture.detectChanges();
   });
 
-  /** @uijarexample */
+  /** @uijarexample Card with padding */
   it('should be created and set padding to "true"', () => {
     component.padding = true;
-    component.text = 'Card with padding';
+    component.text = 'Lorem ipsum dolor sit amet...';
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.directive(CardComponent)).classes.padding).toBeTruthy();
   });
 
-  /** @uijarexample */
+  /** @uijarexample Card without padding */
   it('should be created and set padding to "false"', () => {
     component.padding = false;
-    component.text = 'Card without padding';
+    component.text = 'Lorem ipsum dolor sit amet...';
     fixture.detectChanges();
     
     expect(fixture.debugElement.query(By.directive(CardComponent)).classes.padding).toBeFalsy();

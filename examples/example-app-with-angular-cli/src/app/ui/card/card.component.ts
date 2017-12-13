@@ -3,6 +3,7 @@ import { Component, OnInit, HostBinding, Input } from '@angular/core';
 /**
  * @group Layout
  * @component Card
+ * @description Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  */
 @Component({
   selector: 'x-card',
@@ -22,6 +23,9 @@ export class CardComponent implements OnInit {
 
   constructor() { }
 
+  /**
+   * Init card
+   */
   ngOnInit() {
   }
 
