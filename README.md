@@ -131,7 +131,7 @@ describe('CheckboxComponent', () => {
         });
     }));
 
-    /** @uijarexample */
+    /** @uijarexample Add custom title to example here */
     it('should create component with "isDisabled" set to true', () => {
         component.isDisabled = true;
         component.label = 'Item A';
@@ -139,7 +139,7 @@ describe('CheckboxComponent', () => {
         ...
     });
 
-    /** @uijarexample */
+    /** @uijarexample Add custom title to example here */
     it('should create component with "isDisabled" set to false', () => {
         component.isDisabled = false;
         component.label = 'Item A';
@@ -202,8 +202,8 @@ describe('ButtonComponent', () => {
     });
   }));
 
-    /** @uijarexample */
-    it('should be created', () => {
+    /** @uijarexample Add custom title to example here */
+    it('should create standard button', () => {
         component.buttonText = 'Standard button';
 
         ...
@@ -298,7 +298,7 @@ describe('IconComponent', () => {
     });
   }));
 
-    /** @uijarexample */
+    /** @uijarexample Add custom title to example here */
     it('should load icon', () => {
         component.name = 'icon-name';
         const request: TestRequest = httpMock.expectOne('/cdn/url/icon-name.svg');
@@ -307,7 +307,7 @@ describe('IconComponent', () => {
         ...
     });
 
-    /** @uijarexample */
+    /** @uijarexample Add custom title to example here */
     it('should return error when trying to load invalid icon', () => {
         component.name = 'icon-does-not-exist';
         const request: TestRequest = httpMock.expectOne('/cdn/url/icon-does-not-exist.svg');
