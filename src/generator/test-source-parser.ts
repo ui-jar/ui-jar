@@ -398,7 +398,7 @@ export class TestSourceParser {
 
     private getExampleTitle(node: ts.Node) {
         const comment = node.getFullText();
-        const regexp = /\/\*{1,}[\s\t\r\n\*]+@uijarexample\s([a-z0-9\t\r\n\s_-]+)[\t\r\n\s\*]+\//gi;
+        const regexp = /\/\*{1,}[\s\t\r\n\*]+@uijarexample\s(.+)[\t\r\n\s\*]+\//gi;
         const matches = regexp.exec(comment);
 
         if (matches) {

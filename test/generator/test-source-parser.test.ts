@@ -119,7 +119,7 @@ describe('TestSourceParser', () => {
                     assert.equal(example.title, '', 'Should not have a title set');
                 } else if(exampleIndex === 2) {
                     assert.equal(example.template, '<x-foobar [options]="getOptions()"></x-foobar>');
-                    assert.equal(example.title, 'Title-with-dashes_and_other _0123456789 special chars');
+                    assert.equal(example.title, 'Title-with-dashes_and_"other" _\'01234$#%@\'56,()=/*789 special chars');
                 } else if(exampleIndex === 3) {
                     assert.equal(example.template, '<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>');
                     assert.equal(example.title, 'Another custom title');
@@ -332,7 +332,7 @@ function getTestCompilerHostWithMockComponent() {
         });
 
         /** 
-         * @uijarexample Title-with-dashes_and_other _0123456789 special chars            */
+         * @uijarexample Title-with-dashes_and_"other" _\'01234$#%@\'56,()=/*789 special chars            */
         it('should parse test correct when using inline function to set property value', () => {
             function getOptions() {
                 return ["item-1", "item-2", "item-3"];
