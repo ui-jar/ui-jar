@@ -57,12 +57,12 @@ export class TestSourceParser {
             });
         });
 
-        this.verifyBootstrapComponentExist(testDocs);
+        this.verifyBootstrapComponentIsAvailable(testDocs);
 
         return testDocs;
     }
 
-    private verifyBootstrapComponentExist(docs: any[]) {
+    private verifyBootstrapComponentIsAvailable(docs: any[]) {
         const result = docs.filter((component, index) => {
             let containsBootstrapComponent = false;
 
@@ -80,7 +80,8 @@ export class TestSourceParser {
 
         result.forEach((testDocs) => {
             console.error(`Could not find any reference to "${testDocs.bootstrapComponent}".`);
-            console.error(`Verify that "@uijar ${testDocs.bootstrapComponent}" or "@hostcomponent ${testDocs.bootstrapComponent}" is using correct component reference name.`);
+            console.error(`1. Verify that "@uijar ${testDocs.bootstrapComponent}" or "@hostcomponent ${testDocs.bootstrapComponent}" is using correct component reference name.`);
+            console.error(`2. If you have imported the module that has "${testDocs.bootstrapComponent}" in @NgModule({ declarations: [${testDocs.bootstrapComponent}] }) in the test setup, make sure that the imported module also has "${testDocs.bootstrapComponent}" in @NgModule({ exports: [${testDocs.bootstrapComponent}] })`);
         });
 
         if (result.length > 0) {

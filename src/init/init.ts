@@ -81,6 +81,8 @@ export function generateRequiredFiles(options: CliArgs) {
         });
     });
 
+    docs = getAllAddedComponentsThatHasTest(docs);
+
     let fileWriter = new BundleTemplateWriter(docs, options.urlPrefix);
 
     try {
@@ -120,4 +122,15 @@ function getGeneratedDocs(generatedSourceFileNames, generatedTestModuleSourceFil
     );
 
     return generatedDocumentation.getGeneratedDocumentation();
+}
+
+function getAllAddedComponentsThatHasTest(docs: SourceDocs[]) {
+    return docs.filter((docs) => {
+        if(docs.componentDocName && docs.groupDocName && !docs.bootstrapComponent) {
+            console.info(`Could not find any test for "${docs.componentRefName}", add a test to the component to make it visible in UI-jar.`);
+            return false;
+        }
+
+        return true;
+    });
 }
