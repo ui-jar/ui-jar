@@ -11,12 +11,12 @@ import { Component, Input, HostBinding } from '@angular/core';
             </ul>
         </div>
         <code>
-            <pre>{{example}}</pre>
+            <pre>{{template}}</pre>
         </code>
     `
 })
 export class CodeExampleComponent {
-    @Input() example: string;
+    @Input() template: string;
     @HostBinding('class.is-visible') private isVisible: boolean = false;
     
     hide() {

@@ -1,6 +1,5 @@
-import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inject, OnDestroy, ComponentRef, ComponentFactory, Input } from '@angular/core';
-import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inject, ComponentRef, Input } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { HttpBackend, HttpRequest, HttpEvent } from '@angular/common/http';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { CodeExampleComponent } from '../code-example/code-example.component';
@@ -10,7 +9,7 @@ import { Observable } from 'rxjs/Observable';
     selector: 'ui-jar-example-item',
     template: `
         <div class="example-top-bar">
-            <h2>{{exampleTitle}}</h2>
+            <h2>{{_example.title}}</h2>
             <button class="view-source-btn" (click)="toggleViewSource()" title="View source">
                 <svg width="23" height="11" xmlns="http://www.w3.org/2000/svg">
                     <g>
@@ -22,57 +21,37 @@ import { Observable } from 'rxjs/Observable';
                 </svg>
             </button>
         </div>
-        <ui-jar-code-example [example]="currentExampleTemplate"></ui-jar-code-example>
+        <ui-jar-code-example [template]="_example.template"></ui-jar-code-example>
         <div class="example-container">
             <div #example></div>
         </div>
     `
 })
-export class ExampleItemComponent implements OnDestroy {
+export class ExampleItemComponent implements OnInit {
     @ViewChild('example', { read: ViewContainerRef }) content: ViewContainerRef;
     @ViewChild(CodeExampleComponent) codeExampleComponent: CodeExampleComponent;
-    @Input('template') currentExampleTemplate: string = null;
     private modules: any = [];
-    exampleTitle: string = '';
+    _example: ExampleProperties;
 
-    @Input() example: any;
+    @Input()
+    set example(value: any) {
+        this._example = value;
+    }
 
     constructor(private compiler: Compiler,
                 private parentInjector: Injector,
                 private activatedRoute: ActivatedRoute,
-                // private router: Router,
                 @Inject('AppData') private appData: any) { }
 
     ngOnInit(): void {
-        // this.routerSub = this.router.events.subscribe((event) => {
-        //     if (event instanceof NavigationEnd) {
-        //         this.createView();
-        //     }
-        // });
-
         this.modules = this.appData.modules;
         this.createView();
-    }
-
-    ngOnDestroy(): void {
-        // if (this.routerSub) {
-        //     this.routerSub.unsubscribe();
-        // }
     }
 
     private getCurrentComponentName(): string {
         const lastUrlSegmentIndex = this.activatedRoute.snapshot.pathFromRoot[0].firstChild.url.length - 1;
         return this.activatedRoute.snapshot.pathFromRoot[0].firstChild.url[lastUrlSegmentIndex].path;
     }
-
-    // private getComponentExamples(componentKey: string): string[] {
-    //     let moduleDependencyName = this.appData.components[decodeURI(componentKey)].moduleDependencies[0];
-    //     return this.appData.examples[moduleDependencyName];
-    // }
-
-    // private getExampleTemplate(componentKey: string) {
-    //     return this.appData.components[decodeURI(componentKey)].exampleTemplate;
-    // }
 
     private getComponentModuleImports(componentKey: string) {
         const dependencies = this.appData.components[decodeURI(componentKey)].moduleDependencies;
@@ -113,13 +92,12 @@ export class ExampleItemComponent implements OnDestroy {
     private createComponent() {
         this.cleanUp();
 
-        this.exampleTitle = this.example.title;
         const componentName = this.getCurrentComponentName();
         const componentFactory = this.getBootstrapComponentFactory(componentName);
         const componentRef = this.content.createComponent(componentFactory);
 
-        this.listenOnHttpRequests(componentRef.injector, this.example.httpRequests);
-        this.setComponentProperties(componentRef, this.example.componentProperties);
+        this.listenOnHttpRequests(componentRef.injector, this._example.httpRequests);
+        this.setComponentProperties(componentRef, this._example.componentProperties);
     }
 
     private getBootstrapComponentFactory(componentKey: string) {
@@ -190,4 +168,11 @@ interface MockHttpRequest {
     expression: string;
     url: string;
     name: string;
+}
+
+export interface ExampleProperties {
+    title: string;
+    componentProperties: any;
+    httpRequests: any;
+    template: string;
 }

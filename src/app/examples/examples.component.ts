@@ -1,5 +1,4 @@
-import { Component, ViewContainerRef, ViewChild, Inject, OnInit } from '@angular/core';
-import { CodeExampleComponent } from './code-example/code-example.component';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 
@@ -7,11 +6,11 @@ import { Subscription } from 'rxjs/Subscription';
     selector: 'ui-jar-examples',
     template: `
         <ng-container *ngFor="let example of examples">
-            <ui-jar-example-item [example]="example" [template]="example.template"></ui-jar-example-item>
+            <ui-jar-example-item [example]="example"></ui-jar-example-item>
         </ng-container>
     `
 })
-export class ExamplesComponent implements OnInit {
+export class ExamplesComponent implements OnInit, OnDestroy {
     examples: any[] = [];
     private routerSub: Subscription;
 
@@ -27,6 +26,12 @@ export class ExamplesComponent implements OnInit {
         });
 
         this.createExamples();
+    }
+
+    ngOnDestroy(): void {
+        if (this.routerSub) {
+            this.routerSub.unsubscribe();
+        }
     }
 
     createExamples() {
