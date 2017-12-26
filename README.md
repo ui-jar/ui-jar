@@ -356,7 +356,7 @@ export class CheckboxComponent {
 
 <table>
     <tr>
-        <td style="text-align:center;">
+        <td align="center">
             <img src="https://avatars3.githubusercontent.com/u/2991298?s=150&v=4" />
             <br/>
             <a href="https://github.com/nording">Kristoffer Nording</a>
