@@ -315,11 +315,9 @@ ui-jar-code-example {
 
     pre {
         margin: 0;
-        overflow-x: auto;
-        white-space: pre-wrap;
+        overflow-x: scroll;
         padding: 20px 10px;
         background-color: #f9f9f9;
-        border-bottom: 2px #4e4e4e solid;
 
         font-size: 14px;
         font-family: monospace;
@@ -333,22 +331,22 @@ ui-jar-code-example {
             margin: 0;
             padding: 0;
             
-                > li {
-                    float: left;
-                    
-                    > a {
-                        display: block;
-                        padding: 10px 20px;
-                        background-color: #fff;
-                        text-decoration: none;
-                        color: #000;
-                        font-family: Arial;
-                        font-size: 12px;
-                        border-bottom: 2px transparent solid;
-                    
-                    &.is-active {
-                        border-color: #2a9fc5;
-                    }
+            > li {
+                float: left;
+                
+                > span {
+                    display: block;
+                    padding: 10px 20px;
+                    background-color: #fff;
+                    text-decoration: none;
+                    color: #000;
+                    font-family: Arial;
+                    font-size: 12px;
+                    border-bottom: 2px transparent solid;
+                    border-top-width: 0;
+                    border-right-width: 0;
+                    border-left-width: 0;
+                    border-color: #2a9fc5;
                 }
             }
         }

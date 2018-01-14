@@ -112,7 +112,7 @@ export class TestModuleTemplateWriter {
 
             exampleProperties += `}, componentPropertyName: "${componentPropertyName}"`;
             exampleProperties += `, httpRequests: ${exampleHttpRequests}`;
-            exampleProperties += `, template: ${JSON.stringify(example.template)}`;
+            exampleProperties += `, sourceCode: ${JSON.stringify(example.sourceCode)}`;
             exampleProperties += `, title: "${example.title}"`;
             exampleProperties += '}' + (index < component.examples.length - 1 ? ',' : '');
         });
@@ -144,7 +144,7 @@ export class TestModuleTemplateWriter {
                     }
                 });
 
-                result.template = example.template;
+                result.sourceCode = example.sourceCode;
                 result.title = example.title;
 
                 return result;

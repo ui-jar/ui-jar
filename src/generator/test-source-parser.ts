@@ -31,7 +31,7 @@ export interface TestDocs {
             expression: string;
             url: string;
         },
-        template: string;
+        sourceCode: string;
         title: string;
     }[];
     inlineFunctions: string[];
@@ -107,8 +107,11 @@ export class TestSourceParser {
                 example.httpRequests = httpExpressions;
 
                 if (details.bootstrapComponent) {
-                    example.template = this.getExampleTemplate(details.inlineComponents,
+                    const exampleTemplate = this.getExampleTemplate(details.inlineComponents,
                         details.bootstrapComponent, sourceDocs, details, example);
+
+                    example.sourceCode = this.getSourceCodeToExample(details.bootstrapComponent,
+                        details.inlineComponents, exampleTemplate);
                 }
             });
 
@@ -255,6 +258,19 @@ export class TestSourceParser {
         }
 
         return httpExpressions;
+    }
+
+    private getSourceCodeToExample(bootstrapComponent: string, inlineComponents: InlineComponent[],
+        exampleTemplate: string): string {
+        const exampleComponent = inlineComponents.find((inlineComponent) => {
+            return inlineComponent.name === bootstrapComponent;
+        });
+
+        if(exampleComponent) {
+            return exampleComponent.source;
+        }
+
+        return `@Component({\n  selector: 'example-host',\n  template: \`${exampleTemplate}\`\n})\nclass ExampleHostComponent {}`;
     }
 
     private getResolvedImportPath(importStatement: any, sourceFilePath): string {

@@ -2,7 +2,7 @@ import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inj
 import { ActivatedRoute } from '@angular/router';
 import { HttpBackend, HttpRequest, HttpEvent } from '@angular/common/http';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
-import { CodeExampleComponent } from '../code-example/code-example.component';
+import { CodeExampleComponent } from './code-example/code-example.component';
 import { Observable } from 'rxjs/Observable';
 
 @Component({
@@ -21,7 +21,7 @@ import { Observable } from 'rxjs/Observable';
                 </svg>
             </button>
         </div>
-        <ui-jar-code-example [template]="_example.template"></ui-jar-code-example>
+        <ui-jar-code-example [sourceCode]="_example.sourceCode"></ui-jar-code-example>
         <div class="example-container">
             <div #example></div>
         </div>
