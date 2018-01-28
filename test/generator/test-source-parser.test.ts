@@ -112,19 +112,19 @@ describe('TestSourceParser', () => {
                 });
 
                 if(exampleIndex === 0) {
-                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
+                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {\n  options: {};\n}`);
                     assert.equal(example.title, 'Custom title for example');
                 } else if(exampleIndex === 1) {
-                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="[\'item-1\', \'item-2\']"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
+                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options" [disabled]="disabled"></x-foobar>\`\n})\nclass ExampleHostComponent {\n  options: {};\n  disabled: boolean;\n}`);
                     assert.equal(example.title, '', 'Should not have a title set');
                 } else if(exampleIndex === 2) {
-                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="getOptions()"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
+                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {\n  options: {};\n}`);
                     assert.equal(example.title, 'Title-with-dashes_and_"other" _\'01234$#%@\'56,()=/*789 special chars');
                 } else if(exampleIndex === 3) {
-                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
+                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {\n  options: {};\n}`);
                     assert.equal(example.title, 'Another custom title');
                 } else if(exampleIndex === 4) {
-                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="[\'item-1\', \'item-2\', \'item-3\']"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
+                    assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {\n  options: {};\n}`);
                     assert.equal(example.title, 'Title with number  1234');
                 } else {
                     assert.equal(true, false, 'Should not be executed');
@@ -335,6 +335,7 @@ function getTestCompilerHostWithMockComponent() {
         it('should parse test correct when using single quotes to set property value', () => {
             component.title = \'Test title 2\';
             component.options = [\'item-1\', \'item-2\'];
+            component.disabled = true;
 
             // ...
         });
@@ -423,6 +424,8 @@ function getTestCompilerHostWithMockComponent() {
             title: string;
             @Input()
             options: string[];
+            @Input()
+            disabled: boolean;
         }
     `;
 

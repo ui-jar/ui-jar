@@ -107,11 +107,8 @@ export class TestSourceParser {
                 example.httpRequests = httpExpressions;
 
                 if (details.bootstrapComponent) {
-                    const exampleTemplate = this.getExampleTemplate(details.inlineComponents,
+                    example.sourceCode = this.getExampleSourceCode(details.inlineComponents,
                         details.bootstrapComponent, sourceDocs, details, example);
-
-                    example.sourceCode = this.getSourceCodeToExample(details.bootstrapComponent,
-                        details.inlineComponents, exampleTemplate);
                 }
             });
 
@@ -125,21 +122,21 @@ export class TestSourceParser {
         return docs;
     }
 
-    private getExampleTemplate(inlineComponents: InlineComponent[],
+    private getExampleSourceCode(inlineComponents: InlineComponent[],
         bootstrapComponent: string, sourceDocs: SourceDocs[], details: any, example: any) {
 
-        let exampleTemplate = inlineComponents
-            .filter((inlineComponent) => inlineComponent.name === bootstrapComponent)
-            .map((inlineComponent) => inlineComponent.template);
+        const exampleComponent = inlineComponents.find((inlineComponent) => {
+            return inlineComponent.name === bootstrapComponent;
+        });
 
-        if (exampleTemplate.length > 0) {
-            return exampleTemplate[0].trim();
+        if(exampleComponent) {
+            return exampleComponent.source;
         }
 
-        return this.getComponentTemplate(details, sourceDocs, example);
+        return this.getComponentSourceCode(details, sourceDocs, example);
     }
 
-    private getComponentTemplate(details: any, sourceDocs: SourceDocs[], example: any) {
+    private getComponentSourceCode(details: any, sourceDocs: SourceDocs[], example: any) {
         let template = '';
 
         const currentComponentSourceDocs = sourceDocs.find((sourceDocs: SourceDocs) => {
@@ -171,18 +168,21 @@ export class TestSourceParser {
             };
         });
 
+        let exampleProperties = '';
+
         inputProperties.forEach((inputProperty: ApiComponentProperties) => {
             const isExamplePropertyInput: any = exampleComponentProperties.find((componentProperty: any) =>
                 componentProperty.propertyName === inputProperty.propertyName);
 
             if (isExamplePropertyInput) {
-                inputPropertiesTemplates += ` [${inputProperty.propertyName}]="${isExamplePropertyInput.propertyValue}"`;
+                inputPropertiesTemplates += ` [${inputProperty.propertyName}]="${inputProperty.propertyName}"`;
+                exampleProperties += `  ${inputProperty.propertyName}: ${inputProperty.type};\n`;
             }
         });
 
         template += `<${currentComponentSourceDocs.selector}${inputPropertiesTemplates}></${currentComponentSourceDocs.selector}>`;
 
-        return template;
+        return `@Component({\n  selector: 'example-host',\n  template: \`${template}\`\n})\nclass ExampleHostComponent {\n${exampleProperties}}`;
     }
 
     private getCalledFunctionFromTest(inlineFunctions: { name: string, func: string }[],
@@ -258,19 +258,6 @@ export class TestSourceParser {
         }
 
         return httpExpressions;
-    }
-
-    private getSourceCodeToExample(bootstrapComponent: string, inlineComponents: InlineComponent[],
-        exampleTemplate: string): string {
-        const exampleComponent = inlineComponents.find((inlineComponent) => {
-            return inlineComponent.name === bootstrapComponent;
-        });
-
-        if(exampleComponent) {
-            return exampleComponent.source;
-        }
-
-        return `@Component({\n  selector: 'example-host',\n  template: \`${exampleTemplate}\`\n})\nclass ExampleHostComponent {}`;
     }
 
     private getResolvedImportPath(importStatement: any, sourceFilePath): string {

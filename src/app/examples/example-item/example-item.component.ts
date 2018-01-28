@@ -21,7 +21,7 @@ import { Observable } from 'rxjs/Observable';
                 </svg>
             </button>
         </div>
-        <ui-jar-code-example [sourceCode]="_example.sourceCode"></ui-jar-code-example>
+        <ui-jar-code-example [sourceCode]="exampleSourceCode"></ui-jar-code-example>
         <div class="example-container">
             <div #example></div>
         </div>
@@ -32,6 +32,7 @@ export class ExampleItemComponent implements OnInit {
     @ViewChild(CodeExampleComponent) codeExampleComponent: CodeExampleComponent;
     private modules: any = [];
     _example: ExampleProperties;
+    exampleSourceCode: string = '';
 
     @Input()
     set example(value: any) {
@@ -98,6 +99,30 @@ export class ExampleItemComponent implements OnInit {
 
         this.listenOnHttpRequests(componentRef.injector, this._example.httpRequests);
         this.setComponentProperties(componentRef, this._example.componentProperties);
+        this.setExampleSourceCode(componentRef, this._example.componentProperties, this._example.sourceCode);
+    }
+
+    private setExampleSourceCode(componentRef: ComponentRef<any>, componentProperties, sourceCode) {
+        let propertyNames = componentProperties.map((property) => {
+            const firstIndexOfEquals = property.expression.indexOf('=');
+            let propertyName = property.expression.substr(0, firstIndexOfEquals);
+            propertyName = propertyName.replace(/[\s\.\[\]"']+/gi, '').replace(property.name, '');
+
+            return propertyName;
+        });
+
+        let modifiedSourceCodeSplit = sourceCode.split(/\)[\n\s\t\r]+class/);
+
+        propertyNames.forEach((propertyName) => {
+            let propertyValue = componentRef.instance[propertyName];
+
+            if (propertyValue !== null && propertyValue !== undefined && modifiedSourceCodeSplit.length > 0) {
+                modifiedSourceCodeSplit[1] = modifiedSourceCodeSplit[1].replace(
+                    new RegExp('(' + propertyName + ').+', 'gi'), '$1 = ' + JSON.stringify(propertyValue) + ';');
+            }
+        });
+
+        this.exampleSourceCode = modifiedSourceCodeSplit.join(')\nclass');
     }
 
     private getBootstrapComponentFactory(componentKey: string) {
@@ -174,5 +199,5 @@ export interface ExampleProperties {
     title: string;
     componentProperties: any;
     httpRequests: any;
-    template: string;
+    sourceCode: string;
 }
