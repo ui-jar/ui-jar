@@ -118,7 +118,7 @@ export class ExampleItemComponent implements OnInit {
 
             if (propertyValue !== null && propertyValue !== undefined && modifiedSourceCodeSplit.length > 0) {
                 modifiedSourceCodeSplit[1] = modifiedSourceCodeSplit[1].replace(
-                    new RegExp('(' + propertyName + ').+', 'gi'), '$1 = ' + JSON.stringify(propertyValue) + ';');
+                    new RegExp('(' + propertyName + ')(:?[\\s]+)?[\:;](:?.+)?', 'gi'), '$1 = ' + JSON.stringify(propertyValue) + ';');
             }
         });
 
