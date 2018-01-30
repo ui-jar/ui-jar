@@ -14,7 +14,7 @@ describe('TestSourceParser', () => {
             const program: ts.Program = ts.createProgram([...sourceFiles],
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
-            const sourceParser = new SourceParser({ files: sourceFiles }, program);
+            const sourceParser = new SourceParser({ rootDir: './', files: sourceFiles }, program);
             const sourceDocs = sourceParser.getProjectSourceDocumentation();
 
             const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);
@@ -189,7 +189,7 @@ describe('TestSourceParser', () => {
             const program: ts.Program = ts.createProgram([...sourceFiles],
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
-            const sourceParser = new SourceParser({ files: sourceFiles }, program);
+            const sourceParser = new SourceParser({ rootDir: './', files: sourceFiles }, program);
             const sourceDocs = sourceParser.getProjectSourceDocumentation();
 
             const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);

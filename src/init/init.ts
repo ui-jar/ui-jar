@@ -16,9 +16,9 @@ interface ProjectDocumentation {
 function getProjectDocumentation(options: CliArgs): ProjectDocumentation {
     const fileSearch = new FileSearch(options.includes, options.excludes);
     const sourceFiles = fileSearch.getFiles(options.directory);
-
-    let docs = getProjectSourceDocumentation(sourceFiles);
-    let testDocs = getProjectTestDocumentation(sourceFiles, docs);
+    const rootDir = path.resolve(options.directory).replace(/\\/gi, '/');
+    const docs = getProjectSourceDocumentation(sourceFiles, rootDir);
+    const testDocs = getProjectTestDocumentation(sourceFiles, docs);
 
     return {
         docs,
@@ -95,9 +95,9 @@ export function generateRequiredFiles(options: CliArgs) {
     console.info('Generated resources successfully.');
 }
 
-function getProjectSourceDocumentation(sourceFiles) {
+function getProjectSourceDocumentation(sourceFiles: string[], rootDir: string) {
     const program = ts.createProgram([...sourceFiles], { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
-    const sourceParser = new SourceParser({ files: sourceFiles }, program);
+    const sourceParser = new SourceParser({ rootDir, files: sourceFiles }, program);
 
     return sourceParser.getProjectSourceDocumentation();
 }

@@ -40,7 +40,7 @@ export interface ApiComponentProperties {
 export class SourceParser {
     private checker: ts.TypeChecker;
 
-    constructor(private config: any, private program: ts.Program) {
+    constructor(private config: { rootDir: string, files: string[] }, private program: ts.Program) {
         this.checker = this.program.getTypeChecker();
     }
 
@@ -160,7 +160,7 @@ export class SourceParser {
                     properties: details.properties,
                     methods: details.methods
                 },
-                fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName,
+                fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName.replace(this.config.rootDir, ''),
                 moduleDetails: this.getModuleDetailsToComponent(details.classRefName, moduleDocs),
                 selector: details.selector
             };

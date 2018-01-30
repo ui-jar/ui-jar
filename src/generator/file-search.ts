@@ -5,7 +5,7 @@ import * as ts from 'typescript';
 export class FileSearch {
     constructor(private includes = [], private excludes = []) { }
 
-    getFiles(directory: string) {
+    getFiles(directory: string): string[] {
         let results = [];
 
         let files = fs.readdirSync(directory);
