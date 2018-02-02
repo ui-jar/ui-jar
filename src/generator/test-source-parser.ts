@@ -168,21 +168,18 @@ export class TestSourceParser {
             };
         });
 
-        let exampleProperties = '';
-
         inputProperties.forEach((inputProperty: ApiComponentProperties) => {
             const isExamplePropertyInput: any = exampleComponentProperties.find((componentProperty: any) =>
                 componentProperty.propertyName === inputProperty.propertyName);
 
             if (isExamplePropertyInput) {
                 inputPropertiesTemplates += ` [${inputProperty.propertyName}]="${inputProperty.propertyName}"`;
-                exampleProperties += `  ${inputProperty.propertyName}: ${inputProperty.type};\n`;
             }
         });
 
         template += `<${currentComponentSourceDocs.selector}${inputPropertiesTemplates}></${currentComponentSourceDocs.selector}>`;
 
-        return `@Component({\n  selector: 'example-host',\n  template: \`${template}\`\n})\nclass ExampleHostComponent {\n${exampleProperties}}`;
+        return `@Component({\n  selector: 'example-host',\n  template: \`${template}\`\n})\nclass ExampleHostComponent {}`;
     }
 
     private getCalledFunctionFromTest(inlineFunctions: { name: string, func: string }[],

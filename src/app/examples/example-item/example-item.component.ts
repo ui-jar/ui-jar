@@ -4,6 +4,7 @@ import { HttpBackend, HttpRequest, HttpEvent } from '@angular/common/http';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { CodeExampleComponent } from './code-example/code-example.component';
 import { Observable } from 'rxjs/Observable';
+import { updateProperty } from 'typescript';
 
 @Component({
     selector: 'ui-jar-example-item',
@@ -99,28 +100,26 @@ export class ExampleItemComponent implements OnInit {
 
         this.listenOnHttpRequests(componentRef.injector, this._example.httpRequests);
         this.setComponentProperties(componentRef, this._example.componentProperties);
-        this.setExampleSourceCode(componentRef, this._example.componentProperties, this._example.sourceCode);
+        this.setExampleSourceCode(componentRef, this._example.sourceCode);
     }
 
-    private setExampleSourceCode(componentRef: ComponentRef<any>, componentProperties, sourceCode) {
-        let propertyNames = componentProperties.map((property) => {
-            const firstIndexOfEquals = property.expression.indexOf('=');
-            let propertyName = property.expression.substr(0, firstIndexOfEquals);
-            propertyName = propertyName.replace(/[\s\.\[\]"']+/gi, '').replace(property.name, '');
-
-            return propertyName;
-        });
-
+    private setExampleSourceCode(componentRef: ComponentRef<any>, sourceCode: string) {
         let modifiedSourceCodeSplit = sourceCode.split(/\)[\n\s\t\r]+class/);
 
-        propertyNames.forEach((propertyName) => {
-            let propertyValue = componentRef.instance[propertyName];
+        if(modifiedSourceCodeSplit.length > 1) {
+            const propertyNamesInExample = Object.keys(componentRef.instance).filter((propertyName) => {
+                return new RegExp('="(?:[\\w\\s]+)?'+ propertyName +'(?:\.|\\[)?(?:.+)?"|\{\{(?:\.|\\[["\'])?'+ propertyName +'(?:\.|["\']\\])?(?:.+)?\}\}', 'i').test(modifiedSourceCodeSplit[0]);
+            });
 
-            if (propertyValue !== null && propertyValue !== undefined && modifiedSourceCodeSplit.length > 0) {
-                modifiedSourceCodeSplit[1] = modifiedSourceCodeSplit[1].replace(
-                    new RegExp('(' + propertyName + ')(:?[\\s]+)?[\:;](:?.+)?', 'gi'), '$1 = ' + JSON.stringify(propertyValue) + ';');
-            }
-        });
+            let classProperties = Object.keys(componentRef.instance).filter((key) => propertyNamesInExample.includes(key)).reduce((result, currentKey) => {
+                result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey])};\n`;
+                return result;
+            }, '');
+
+            classProperties = `{\n${classProperties}}`;
+
+            modifiedSourceCodeSplit[1] = modifiedSourceCodeSplit[1].slice(0, modifiedSourceCodeSplit[1].indexOf('{')) + classProperties;
+        }
 
         this.exampleSourceCode = modifiedSourceCodeSplit.join(')\nclass');
     }
@@ -197,7 +196,7 @@ interface MockHttpRequest {
 
 export interface ExampleProperties {
     title: string;
-    componentProperties: any;
+    componentProperties: { name: string, expression: string };
     httpRequests: any;
     sourceCode: string;
 }
