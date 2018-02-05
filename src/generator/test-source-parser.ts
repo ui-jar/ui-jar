@@ -316,13 +316,21 @@ export class TestSourceParser {
                         }
                     });
 
-                    let variableType = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration));
-
                     details.allVariableDeclarations.push({
                         name: nodeSymbol.name,
-                        type: variableType,
+                        type: this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration)),
                         value: nodeSymbol.valueDeclaration.getText()
                     });
+                }
+            } else if(childNode.kind === ts.SyntaxKind.BinaryExpression) {
+                const left = (childNode as ts.BinaryExpression).left.getText();
+                const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.BinaryExpression).right);
+                const variableDeclaration = details.allVariableDeclarations.find((declaration) => {
+                    return declaration.name === left;
+                });
+
+                if(nodeSymbol && variableDeclaration) {
+                    variableDeclaration.type = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration));
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
                 const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration));

@@ -461,7 +461,7 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
     interface TestRequest {}
 
     describe('FoobarComponent', () => {
-        let hostComponent: FoobarComponentTestHost;
+        let hostComponent;
         let fixture: ComponentFixture<FoobarComponentTestHost>;
         let httpMock: HttpTestingController;
       
