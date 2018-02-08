@@ -20,8 +20,7 @@ export interface TestDocs {
     includeTestForComponent: string;
     includesComponents?: string[];
     inlineComponents: InlineComponent[];
-    allVariableDeclarations: VariableDeclaration[];
-    binaryExpressions: string[];
+    binaryExpressions: BinaryExpression[];
     fileName: string;
     examples: {
         componentProperties: any[],
@@ -36,6 +35,11 @@ export interface TestDocs {
     }[];
     inlineFunctions: string[];
     bootstrapComponent: string;
+}
+
+export interface BinaryExpression {
+    asString: string;
+    expression: ts.BinaryExpression;
 }
 
 export class TestSourceParser {
@@ -97,9 +101,7 @@ export class TestSourceParser {
             details.fileName = (this.program.getSourceFile(currentFile) as ts.FileReference).fileName;
 
             details.examples.forEach((example) => {
-                const componentExpressions = this.getComponentExpressionsFromTest(details.bootstrapComponent,
-                    details.allVariableDeclarations, example.binaryExpressions);
-
+                const componentExpressions = this.getComponentExpressionsFromTest(details.bootstrapComponent, example.binaryExpressions);
                 const httpExpressions = this.getHttpExpressionsFromTest(example.variableDeclarations,
                     example.functionsCall);
 
@@ -203,34 +205,66 @@ export class TestSourceParser {
         return calledInlineFunctions;
     }
 
-    private getComponentExpressionsFromTest(bootstrapComponent: string, variableDeclarations: VariableDeclaration[],
-        binaryExpressions: string[]) {
+    private getComponentExpressionsFromTest(bootstrapComponent: string, binaryExpressions: BinaryExpression[]) {
 
-        let componentVariable: VariableDeclaration = variableDeclarations.find((item: VariableDeclaration) => {
+        const variables = this.convertBinaryExpressionToVariableDeclaration(bootstrapComponent, binaryExpressions);
+        const componentVariables: VariableDeclaration[] = variables.filter((item: VariableDeclaration) => {
             return item.type === bootstrapComponent;
         });
 
-        let componentExpressions = [];
-
-        if (componentVariable) {
-            componentExpressions = binaryExpressions.filter((expression) => {
-                return expression.indexOf(componentVariable.name) === 0;
+        const componentExpressions = componentVariables.reduce((result, componentVariable) => {
+            const expressions = binaryExpressions.filter((expression) => {
+                return expression.asString.indexOf(componentVariable.name) === 0;
             }).map((expression) => {
                 return {
                     name: componentVariable.name,
-                    expression: expression
+                    expression: expression.asString
                 };
             });
-        }
+
+            return result = result.concat(expressions);
+        }, []);
 
         return componentExpressions;
     }
 
-    private getHttpExpressionsFromTest(variableDeclarations: VariableDeclaration[],
-        functionsCall: string[]) {
+    private convertBinaryExpressionToVariableDeclaration(typeToSearchFor: string, binaryExpressions: BinaryExpression[]): VariableDeclaration[] {
+        const traverseToParent = (node: ts.Node) => {
+            const nodeSymbol = this.checker.getSymbolAtLocation(node);
+            let type = null;
 
-        let testRequests: VariableDeclaration[] = variableDeclarations.filter((item: VariableDeclaration) => {
-            return item.type === 'TestRequest';
+            if(nodeSymbol) {
+                type = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration));
+            }
+
+            if(type === typeToSearchFor) {
+                return node;
+            }
+
+            return ts.forEachChild(node, traverseToParent);
+        };
+
+        const result = binaryExpressions.reduce((current, expression) => {
+            const resultNode = traverseToParent(expression.expression.left);
+
+            if(resultNode) {
+                current.push({
+                    name: resultNode.getText(),
+                    type: typeToSearchFor,
+                    value: expression.asString
+                });
+            }
+
+            return current;
+        }, []);
+
+        return result;
+    }
+
+    private getHttpExpressionsFromTest(variableDeclarations: VariableDeclaration[], functionsCall: string[]) {
+        const testRequestTypeAsString = 'TestRequest';
+        const testRequests: VariableDeclaration[] = variableDeclarations.filter((item: VariableDeclaration) => {
+            return item.type === testRequestTypeAsString;
         });
 
         let httpExpressions = [];
@@ -281,7 +315,6 @@ export class TestSourceParser {
             includeTestForComponent: null,
             inlineComponents: [],
             inlineFunctions: [],
-            allVariableDeclarations: [],
             binaryExpressions: [],
             examples: []
         };
@@ -315,22 +348,6 @@ export class TestSourceParser {
                             details.bootstrapComponent = docs.text;
                         }
                     });
-
-                    details.allVariableDeclarations.push({
-                        name: nodeSymbol.name,
-                        type: this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration)),
-                        value: nodeSymbol.valueDeclaration.getText()
-                    });
-                }
-            } else if(childNode.kind === ts.SyntaxKind.BinaryExpression) {
-                const left = (childNode as ts.BinaryExpression).left.getText();
-                const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.BinaryExpression).right);
-                const variableDeclaration = details.allVariableDeclarations.find((declaration) => {
-                    return declaration.name === left;
-                });
-
-                if(nodeSymbol && variableDeclaration) {
-                    variableDeclaration.type = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(nodeSymbol, nodeSymbol.valueDeclaration));
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
                 const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration));
@@ -417,12 +434,15 @@ export class TestSourceParser {
         return '';
     }
 
-    private getExampleExpressionDetails(node: ts.Node): string[] {
-        let expressions: string[] = [];
+    private getExampleExpressionDetails(node: ts.Node): BinaryExpression[] {
+        let expressions: BinaryExpression[] = [];
 
         const traverseChild = (childNode) => {
             if (childNode.kind === ts.SyntaxKind.BinaryExpression) {
-                expressions.push(childNode.getText());
+                expressions.push({
+                    expression: (childNode as ts.BinaryExpression),
+                    asString: childNode.getText()
+                });
             }
 
             ts.forEachChild(childNode, traverseChild);

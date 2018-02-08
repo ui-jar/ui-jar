@@ -48,13 +48,9 @@ describe('TestSourceParser', () => {
         it('should parse and verify that TestDocs.examples contains valid component properties', () => {
             let firstTestDoc = testDocs[0];
 
-            const componentVariableDeclaration = firstTestDoc.allVariableDeclarations
-                .filter((declaration) => declaration.type === 'FoobarComponent')
-                .pop();
-
             firstTestDoc.examples.forEach((example, exampleIndex) => {
                 example.componentProperties.forEach((componentProperty, index) => {
-                    assert.equal(componentProperty.name, componentVariableDeclaration.name);
+                    assert.equal(componentProperty.name, 'component');
 
                     if (exampleIndex === 0) {
                         if (index === 0) {
@@ -215,13 +211,9 @@ describe('TestSourceParser', () => {
         it('should parse and verify that TestDocs.examples is valid when using test host component', () => {
             let firstTestDoc = testDocs[0];
 
-            const componentVariableDeclaration = firstTestDoc.allVariableDeclarations
-            .filter((declaration) => declaration.type === 'FoobarComponentTestHost')
-            .pop();
-
             firstTestDoc.examples.forEach((example, exampleIndex) => {
                 example.componentProperties.forEach((componentProperty, index) => {
-                    assert.equal(componentProperty.name, componentVariableDeclaration.name);
+                    assert.equal(componentProperty.name, 'hostComponent');
 
                     if (exampleIndex === 0) {
                         if (index === 0) {
@@ -461,7 +453,7 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
     interface TestRequest {}
 
     describe('FoobarComponent', () => {
-        let hostComponent;
+        let hostComponent: FoobarComponentTestHost;
         let fixture: ComponentFixture<FoobarComponentTestHost>;
         let httpMock: HttpTestingController;
       
