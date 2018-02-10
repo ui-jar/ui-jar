@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { generateRequiredFiles } from '../init/init';
 import * as EventEmitter from 'events';
 
 export interface FileWatcherOptions {

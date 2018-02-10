@@ -1,6 +1,5 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
-import * as path from 'path';
 import { TestModuleTemplateWriter } from './test-module-writer';
 
 export interface GeneratedSourceParserConfig {

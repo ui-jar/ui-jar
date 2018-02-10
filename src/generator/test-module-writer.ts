@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { SourceDocs } from './source-parser';
 import { InlineComponent } from './test-source-parser';
 
 export interface TestModuleSourceFile {

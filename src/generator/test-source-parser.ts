@@ -1,5 +1,4 @@
 import * as ts from 'typescript';
-import * as path from 'path';
 import { SourceDocs, ApiComponentProperties } from './source-parser';
 
 export interface VariableDeclaration {
