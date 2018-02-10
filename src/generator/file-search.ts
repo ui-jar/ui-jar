@@ -52,27 +52,25 @@ export class FileSearch {
     }
 
     private getTestSourceDetails(program: ts.Program, currentFile: string): boolean {
-        let isTestFile = false;
-        let checker: ts.TypeChecker = program.getTypeChecker();
-
-        let traverseChild = (childNode: ts.Node) => {
+        const checker: ts.TypeChecker = program.getTypeChecker();
+        const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
                 const nodeSymbol = checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
 
                 if (nodeSymbol) {
-                    nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
-                        if (docs.name === 'uijar') {
-                            isTestFile = true;
-                        }
+                    const isTestFile = nodeSymbol.getJsDocTags().find((docs: { name: string, text: string }) => {
+                        return docs.name === 'uijar';
                     });
+
+                    if(isTestFile) {
+                        return true;
+                    }
                 }
             }
 
-            ts.forEachChild(childNode, traverseChild);
+            return ts.forEachChild(childNode, traverseChild);
         };
 
-        traverseChild(program.getSourceFile(currentFile));
-
-        return isTestFile;
+        return traverseChild(program.getSourceFile(currentFile)) === true;
     }
 }
