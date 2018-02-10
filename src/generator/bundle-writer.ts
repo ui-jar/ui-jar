@@ -24,7 +24,6 @@ export class BundleTemplateWriter {
                 return {
                     modules:  ${this.getModuleImportNames()},
                     componentRefs: ${this.getComponentRefs()},
-                    visibleComponents: ${this.getVisibleComponents()},
                     navigationLinks: ${this.getNavigationLinks()},
                     components: ${this.getComponentData()},
                     urlPrefix: '${this.urlPrefix}',
@@ -185,13 +184,5 @@ export class BundleTemplateWriter {
         links.sort((itemA, itemB) => itemA.group.localeCompare(itemB.group));
 
         return JSON.stringify(links);
-    }
-
-    private getVisibleComponents() {
-        let components = this.documentation.map((sourceDocs: SourceDocs) => {
-            return sourceDocs.componentRefName;
-        });
-
-        return JSON.stringify(components);
     }
 }

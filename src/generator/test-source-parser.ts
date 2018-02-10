@@ -291,23 +291,6 @@ export class TestSourceParser {
         return httpExpressions;
     }
 
-    private getResolvedImportPath(importStatement: any, sourceFilePath): string {
-        const rootDir = __dirname;
-        const importStatementPath = importStatement.path.replace(/[\"']/gi, '');
-        const sourceFileDirectoryPath = path.resolve(sourceFilePath.substr(0, sourceFilePath.lastIndexOf('/')));
-        const testFilePath = path.relative(path.resolve(rootDir), sourceFileDirectoryPath);
-        const sourceFileAbsolutePath = path.resolve(path.resolve(rootDir), testFilePath, importStatementPath);
-        const importPath = path.relative(path.resolve(rootDir), sourceFileAbsolutePath);
-
-        const replacedImportStatement = importStatement.value.replace(importStatement.path, `'${importPath}'`).replace(/\\/gi, '/');
-
-        return replacedImportStatement;
-    }
-
-    private isImportPathRelative(importStatement: any) {
-        return importStatement.path.charAt(1) === '.';
-    }
-
     private getTestSourceDetails(node: ts.Node) {
         let details: any = {
             importStatements: [],
