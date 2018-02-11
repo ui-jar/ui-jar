@@ -1,4 +1,6 @@
 import * as ts from 'typescript';
+import * as path from 'path';
+import * as fs from 'fs';
 import { SourceDocs, ApiComponentProperties } from './source-parser';
 
 export interface VariableDeclaration {
@@ -96,7 +98,7 @@ export class TestSourceParser {
         let docs: TestDocs[] = [];
 
         for (let currentFile of files) {
-            let details: any = this.getTestSourceDetails(this.program.getSourceFile(currentFile));
+            let details: any = this.getTestSourceDetails(this.program.getSourceFile(currentFile), currentFile);
             details.fileName = (this.program.getSourceFile(currentFile) as ts.FileReference).fileName;
 
             details.examples.forEach((example) => {
@@ -290,7 +292,7 @@ export class TestSourceParser {
         return httpExpressions;
     }
 
-    private getTestSourceDetails(node: ts.Node) {
+    private getTestSourceDetails(node: ts.Node, fileName: string) {
         let details: any = {
             importStatements: [],
             moduleSetup: {},
@@ -332,7 +334,7 @@ export class TestSourceParser {
                     });
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
-                const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration));
+                const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration), fileName);
 
                 if (inlineComponent) {
                     details.inlineComponents.push(inlineComponent);
@@ -508,18 +510,35 @@ export class TestSourceParser {
         return moduleDefinition;
     }
 
-    private getInlineComponent(node: ts.ClassDeclaration): InlineComponent {
-        let inlineComponentTemplate = null;
+    private getInlineComponent(node: ts.ClassDeclaration, fileName: string): InlineComponent {
+        const getPathToTemplateFile = (propertyNode: ts.PropertyAssignment) => {
+            let templateUrl = propertyNode.initializer.getText();
+            templateUrl = templateUrl.substring(1, templateUrl.length - 1);
+            const pathToTemplateFile = path.resolve((this.program.getSourceFile(fileName) as ts.FileReference).fileName, '../'+ templateUrl);
 
-        const traverseDecorator = (childNode: ts.Node) => {
-            if (childNode.kind === ts.SyntaxKind.PropertyAssignment
-                && ((childNode as ts.PropertyAssignment).name.getText() === 'template'
-                    || (childNode as ts.PropertyAssignment).name.getText() === 'templateUrl')) {
-                inlineComponentTemplate = (childNode as ts.PropertyAssignment).initializer.getText();
-                inlineComponentTemplate = inlineComponentTemplate.substring(1, inlineComponentTemplate.length - 1);
+            return pathToTemplateFile;
+        };
+
+        const traverseDecorator = (childNode: ts.Node): { template: string, templateUrlNodeAsString?: string } => {
+            if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
+                if((childNode as ts.PropertyAssignment).name.getText() === 'template') {
+                    let inlineComponentTemplate = (childNode as ts.PropertyAssignment).initializer.getText();
+                    inlineComponentTemplate = inlineComponentTemplate.substring(1, inlineComponentTemplate.length - 1);
+
+                    return {
+                        template: inlineComponentTemplate
+                    };
+                } else if((childNode as ts.PropertyAssignment).name.getText() === 'templateUrl') {
+                    let templateUrlNodeAsString = childNode.getText();
+
+                    return {
+                        template: fs.readFileSync(getPathToTemplateFile((childNode as ts.PropertyAssignment)), 'UTF-8'),
+                        templateUrlNodeAsString
+                    };
+                }
             }
 
-            ts.forEachChild(childNode, traverseDecorator);
+            return ts.forEachChild(childNode, traverseDecorator);
         };
 
         const isComponent = (childNode: ts.Node) => {
@@ -530,22 +549,30 @@ export class TestSourceParser {
             return ts.forEachChild(childNode, isComponent);
         };
 
-        let inlineComponent: InlineComponent = null;
-
         if (node.decorators) {
-            node.decorators.forEach((decorator: ts.Decorator) => {
+            const inlineComponent = node.decorators.reduce((component: InlineComponent, decorator: ts.Decorator) => {
                 if (isComponent(decorator)) {
-                    traverseDecorator(node);
-                    inlineComponent = {
-                        source: node.getText(),
-                        template: inlineComponentTemplate,
+                    let result = traverseDecorator(node);
+                    let source = node.getText();
+
+                    if(result.templateUrlNodeAsString) {
+                        source = source.replace(result.templateUrlNodeAsString, 'template: `\n'+ result.template +'\n`');
+                    }
+
+                    component = {
+                        source: source,
+                        template: result.template,
                         name: (node as ts.ClassDeclaration).name.getText()
                     };
                 }
-            });
+
+                return component;
+            }, null);
+
+            return inlineComponent;
         }
 
-        return inlineComponent;
+        return null;
     }
 
 }

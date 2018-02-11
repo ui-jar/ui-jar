@@ -1,9 +1,21 @@
 import * as assert from 'assert';
 import * as ts from 'typescript';
+import * as sinon from 'sinon';
+import * as fs from 'fs';
 import { TestSourceParser } from '../../src/generator/test-source-parser';
 import { SourceParser } from '../../src/generator/source-parser';
 
 describe('TestSourceParser', () => {
+    let readFileSyncStub;
+
+    before(() => {
+        readFileSyncStub = sinon.stub(fs, 'readFileSync');
+        readFileSyncStub.returns('<p>inline-test-with-external-template-using-template-url</p>');
+    });
+
+    after(() => {
+        readFileSyncStub.restore();
+    });
 
     describe('getProjectTestDocumentation', () => {
         let testDocs;
@@ -168,10 +180,22 @@ describe('TestSourceParser', () => {
         it('should parse and verify that TestDocs.inlineComponents contains "InlineTestComponent"', () => {
             let firstTestDoc = testDocs[0];
 
-            firstTestDoc.inlineComponents.forEach((inlineComponent) => {
-                assert.equal(inlineComponent.template, '<p>inline-test</p>');
-                assert.equal(inlineComponent.name, 'InlineTestComponent');
-                assert.equal(inlineComponent.source.indexOf('@Component({') > -1, true);
+            firstTestDoc.inlineComponents.forEach((inlineComponent, index) => {
+                if(index === 0) {
+                    assert.equal(inlineComponent.template, '<p>inline-test</p>');
+                    assert.equal(inlineComponent.name, 'InlineTestComponent');
+                    assert.equal(inlineComponent.source.indexOf('@Component({') > -1, true);
+                    assert.equal(inlineComponent.source.indexOf('template:') > -1, true);
+                    assert.equal(inlineComponent.source.indexOf('templateUrl:') === -1, true);
+                } else if(index === 1) {
+                    assert.equal(inlineComponent.template, '<p>inline-test-with-external-template-using-template-url</p>');
+                    assert.equal(inlineComponent.name, 'InlineTestWithTemplateUrlComponent');
+                    assert.equal(inlineComponent.source.indexOf('@Component({') > -1, true);
+                    assert.equal(inlineComponent.source.indexOf('template:') > -1, true);
+                    assert.equal(inlineComponent.source.indexOf('templateUrl:') === -1, true);
+                } else {
+                    assert.equal(true, false, 'Should not be executed');
+                }
             });
         });
     });
@@ -393,6 +417,14 @@ function getTestCompilerHostWithMockComponent() {
           template: '<p>inline-test</p>'
       })
       export class InlineTestComponent {
+          // ...
+      }
+
+      @Component({
+          selector: 'x-inline-test-with-template-url',
+          templateUrl: './inline-test-with-template-url.html'
+      })
+      export class InlineTestWithTemplateUrlComponent {
           // ...
       }
 
