@@ -37,19 +37,11 @@ export class FileWatcher {
     }
 
     private shouldBeIncluded(fileName: string): boolean {
-        fileName = this.escapeSpecialCharacters(fileName);
-
-        let result = this.config.files.find((testFile) => {
-            return new RegExp(fileName + '$').test(testFile);
+        const result = this.config.files.find((testFile) => {
+            return testFile.includes(fileName);
         });
 
-        return result ? true : false;
-    }
-
-    private escapeSpecialCharacters(fileName: string): string {
-        fileName = fileName.replace(/\\/gi, '\\\\');
-
-        return fileName;
+        return result !== undefined;
     }
 
     private eventHandler(fileName: string): void {
