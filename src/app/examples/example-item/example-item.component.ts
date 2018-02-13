@@ -111,14 +111,18 @@ export class ExampleItemComponent implements OnInit {
                 return new RegExp('="(?:[\\w\\s]+)?'+ propertyName +'(?:\.|\\[)?(?:.+)?"|\{\{(?:\.|\\[["\'])?'+ propertyName +'(?:\.|["\']\\])?(?:.+)?\}\}', 'i').test(modifiedSourceCodeSplit[0]);
             });
 
-            let classProperties = Object.keys(componentRef.instance).filter((key) => propertyNamesInExample.includes(key)).reduce((result, currentKey) => {
-                result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey])};\n`;
-                return result;
-            }, '');
+            try {
+                let classProperties = Object.keys(componentRef.instance).filter((key) => propertyNamesInExample.includes(key)).reduce((result, currentKey) => {
+                    result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey])};\n`;
+                    return result;
+                }, '');
 
-            classProperties = `{\n${classProperties}}`;
+                classProperties = `{\n${classProperties}}`;
 
-            modifiedSourceCodeSplit[1] = modifiedSourceCodeSplit[1].slice(0, modifiedSourceCodeSplit[1].indexOf('{')) + classProperties;
+                modifiedSourceCodeSplit[1] = modifiedSourceCodeSplit[1].slice(0, modifiedSourceCodeSplit[1].indexOf('{')) + classProperties;
+            } catch(error) {
+                console.error(error);
+            }
         }
 
         this.exampleSourceCode = modifiedSourceCodeSplit.join(')\nclass');
