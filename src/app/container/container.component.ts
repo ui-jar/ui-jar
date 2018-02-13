@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs/Subscription';
     template: `
         <div class="top-header">
             <h2>{{title}}</h2>
+            <div class="source-ref">{{sourceFilePath}}</div>
         </div>
         <div class="content-container">
             <div class="sub-nav">
@@ -20,7 +21,6 @@ import { Subscription } from 'rxjs/Subscription';
                 </ul>
             </div>
             <router-outlet></router-outlet>
-            <div class="source-ref">Source: {{sourceFilePath}}</div>
         </div>
     `
 })
