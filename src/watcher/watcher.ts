@@ -24,8 +24,11 @@ export class FileWatcher {
         let watcher = fs.watch(path.resolve(this.config.directory), { encoding: 'utf8', recursive: true, persistent: true });
 
         watcher.addListener('change', (eventName: string, fileName: string) => {
-            clearTimeout(watchTimer);
+            if(!this.shouldBeIncluded(fileName)) {
+                return;
+            }
 
+            clearTimeout(watchTimer);
             watchTimer = setTimeout(() => this.eventHandler(fileName), debounceTime);
         });
     }
@@ -38,17 +41,15 @@ export class FileWatcher {
 
     private shouldBeIncluded(fileName: string): boolean {
         const result = this.config.files.find((testFile) => {
-            return testFile.includes(fileName);
+            return testFile.endsWith(fileName);
         });
 
         return result !== undefined;
     }
 
     private eventHandler(fileName: string): void {
-        if (this.shouldBeIncluded(fileName)) {
-            console.info('File change detected. Starting incremental build...');
-            this.watchEvent.emit(FileWatcherEvent.REBUILD, fileName);
-            console.info('Watching for file changes.');
-        }
+        console.info('File change detected. Starting incremental build...');
+        this.watchEvent.emit(FileWatcherEvent.REBUILD, fileName);
+        console.info('Watching for file changes.');
     }
 }
