@@ -8,7 +8,7 @@ describe('SourceParser', () => {
         let sourceDocs;
 
         beforeEach(() => {
-            const sourceFiles = ['foobar.component.ts', 'foobar.module.ts', 'foobar.component.test.ts'];
+            const sourceFiles = ['foobar.component.ts', 'foobar.module.ts', 'foobar.component.test.ts', 'child.component.ts', 'parent.component.ts'];
             const compilerHost = getTestCompilerHostWithMockModuleAndComponent();
             const program: ts.Program = ts.createProgram([...sourceFiles],
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
@@ -18,7 +18,7 @@ describe('SourceParser', () => {
         });
 
         it('should parse files and return list with SourceDocs', () => {
-            assert.equal(sourceDocs.length, 1);
+            assert.equal(sourceDocs.length, 2);
         });
 
         it('should parse and verify that SourceDocs.componentRefName is valid', () => {
@@ -122,6 +122,72 @@ describe('SourceParser', () => {
             });
         });
 
+        it('should parse and verify that SourceDocs.extendClasses is valid', () => {
+            let firstSourceDoc = sourceDocs[0];
+            let secondSourceDoc = sourceDocs[1];
+
+            assert.equal(firstSourceDoc.extendClasses.length, 0, 'Should not have any extended classes');
+            assert.equal(secondSourceDoc.extendClasses.length, 1, 'Should have one extended class');
+            assert.equal(secondSourceDoc.extendClasses[0], 'ParentComponent');
+        });
+
+        it('should parse and verify that SourceDocs.apiDetails.properties contains public component properties from extended component', () => {
+            let secondSourceDoc = sourceDocs[1];
+
+            assert.equal(secondSourceDoc.apiDetails.properties.length, 4, 'Should contain public properties from both child and parent component');
+            secondSourceDoc.apiDetails.properties.forEach((property, index) => {
+                if (index === 0) {
+                    assert.equal(property.propertyName, 'childTitle');
+                    assert.equal(property.type, 'string');
+                } else if (index === 1) {
+                    assert.equal(property.propertyName, 'childOptions');
+
+                    property.decoratorNames.forEach((decoratorName) => {
+                        assert.equal(decoratorName, '@Input()');
+                    });
+                } else if (index === 2) {
+                    assert.equal(property.propertyName, 'childIsSmall');
+
+                    property.decoratorNames.forEach((decoratorName, decoratorIndex) => {
+                        if (decoratorIndex === 0) {
+                            assert.equal(decoratorName, '@HostBinding(\'class.small\')');
+                        } else if (decoratorIndex === 1) {
+                            assert.equal(decoratorName, '@Input()');
+                        }
+                    });
+                } else if (index === 3) {
+                    assert.equal(property.propertyName, 'parentTitle');
+                    assert.equal(property.type, 'string');
+                    assert.equal(property.description, 'Parent property description');
+                } else {
+                    assert.equal(true, false, 'Should not be executed');
+                }
+            });
+        });
+
+        it('should parse and verify that SourceDocs.apiDetails.methods contains public component methods from extended component', () => {
+            let secondSourceDoc = sourceDocs[1];
+
+            assert.equal(secondSourceDoc.apiDetails.methods.length, 4, 'Should contain public methods from both child and parent component');
+            secondSourceDoc.apiDetails.methods.forEach((method, index) => {
+                if (index === 0) {
+                    assert.equal(method.methodName, 'publicChildMethod()');
+                    assert.equal(method.description, '');
+                } else if (index === 1) {
+                    assert.equal(method.methodName, 'childMethodWithPublicModifierShouldBeVisibleInParse()');
+                    assert.equal(method.description, 'Description to method should be parsed');
+                } else if (index === 2) {
+                    assert.equal(method.methodName, 'publicParentMethod()');
+                    assert.equal(method.description, '');
+                } else if (index === 3) {
+                    assert.equal(method.methodName, 'publicParentMethodWithDescription()');
+                    assert.equal(method.description, 'Parent method description');
+                } else {
+                    assert.equal(true, false, 'Should not be executed');
+                }
+            });
+        });
+
     });
 });
 
@@ -178,6 +244,72 @@ function getTestCompilerHostWithMockModuleAndComponent() {
         }
     `;
 
+    const childComponentSourceFileContent = `
+        import { Component, Input, HostBinding } from '@angular/core';
+
+        /**
+         * @group Layout
+         * @component ChildComponent
+         */
+        @Component({
+            selector: 'x-child',
+            template: 'test'
+        })
+        export class ChildComponent extends ParentComponent {
+            childTitle: string;
+            @Input() childOptions: string[];
+
+            @HostBinding('class.small')
+            @Input()
+            childIsSmall: boolean = false;
+
+            publicChildMethod(): number {
+                return 1;
+            }
+
+            /**
+             * Description to method should be parsed
+             */
+            public childMethodWithPublicModifierShouldBeVisibleInParse() {
+                return true;
+            }
+
+            private childMethodShouldNotBeVisibleInParse() {
+                return true;
+            }
+        }
+    `;
+
+    const parentComponentSourceFileContent = `
+        import { Component } from '@angular/core';
+
+        @Component({
+            selector: 'x-parent',
+            template: 'test'
+        })
+        export class ParentComponent {
+            /**
+             * Parent property description
+             */
+            parentTitle: string;
+
+            publicParentMethod(): number {
+                return 1;
+            }
+
+            /**
+             * Parent method description
+             */
+            publicParentMethodWithDescription(): number {
+                return 1;
+            }
+
+            private parentMethodShouldNotBeVisibleInParse() {
+                return true;
+            }
+        }
+    `;
+
     const sourceFileModuleContent = `
         import { NgModule } from '@angular/core';
         import { CommonModule } from '@angular/common';
@@ -203,6 +335,10 @@ function getTestCompilerHostWithMockModuleAndComponent() {
             return ts.createSourceFile(fileName, testSourceFileContent, ts.ScriptTarget.ES5);
         } else if (fileName.indexOf('.module.ts') > -1) {
             return ts.createSourceFile(fileName, sourceFileModuleContent, ts.ScriptTarget.ES5);
+        } else if (fileName.indexOf('child.component.ts') > -1) {
+            return ts.createSourceFile(fileName, childComponentSourceFileContent, ts.ScriptTarget.ES5);
+        } else if (fileName.indexOf('parent.component.ts') > -1) {
+            return ts.createSourceFile(fileName, parentComponentSourceFileContent, ts.ScriptTarget.ES5);
         }
 
         return ts.createSourceFile(fileName, sourceFileContent, ts.ScriptTarget.ES5);

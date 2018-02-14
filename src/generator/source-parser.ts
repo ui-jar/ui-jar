@@ -12,6 +12,7 @@ export interface SourceDocs {
     exampleTemplate?: string;
     selector: string;
     bootstrapComponent?: string;
+    extendClasses: string[];
 }
 
 export interface ApiDetails {
@@ -147,6 +148,7 @@ export class SourceParser {
 
     private getSourceDocs(componentFiles: string[], moduleDocs: ModuleDocs[]): SourceDocs[] {
         let sourceDocs: SourceDocs[] = [];
+        let otherClasses: SourceDocs[] = [];
 
         for (let currentFile of componentFiles) {
             let details: any = this.getComponentSourceData(this.program.getSourceFile(currentFile));
@@ -162,13 +164,37 @@ export class SourceParser {
                 },
                 fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName.replace(this.config.rootDir, ''),
                 moduleDetails: this.getModuleDetailsToComponent(details.classRefName, moduleDocs),
-                selector: details.selector
+                selector: details.selector,
+                extendClasses: details.extendClasses
             };
 
             if (doc.componentDocName) {
                 sourceDocs.push(doc);
+            } else {
+                otherClasses.push(doc);
             }
         }
+
+        sourceDocs = this.getPropertiesFromExtendedComponentClasses(sourceDocs, otherClasses);
+
+        return sourceDocs;
+    }
+
+    private getPropertiesFromExtendedComponentClasses(componentsWithDocs: SourceDocs[], otherClasses: SourceDocs[]): SourceDocs[] {
+        let sourceDocs = [...componentsWithDocs];
+
+        sourceDocs.forEach((doc) => {
+            doc.extendClasses.forEach((extendClass) => {
+                const extendedClass = otherClasses.find((clazz) => {
+                    return extendClass === clazz.componentRefName;
+                });
+
+                if(extendedClass) {
+                    doc.apiDetails.properties = doc.apiDetails.properties.concat(extendedClass.apiDetails.properties);
+                    doc.apiDetails.methods = doc.apiDetails.methods.concat(extendedClass.apiDetails.methods);
+                }
+            });
+        });
 
         return sourceDocs;
     }
@@ -227,7 +253,8 @@ export class SourceParser {
         let details: any = {
             properties: [],
             methods: [],
-            selector: ''
+            selector: '',
+            extendClasses: []
         };
 
         const traverseChild = (childNode: ts.Node) => {
@@ -260,6 +287,14 @@ export class SourceParser {
                     }
                 });
 
+            } else if(childNode.kind === ts.SyntaxKind.HeritageClause) {
+                childNode.getChildren().forEach((child) => {
+                    if(child.kind === ts.SyntaxKind.SyntaxList) {
+                        let extendClasses = child.getText().split(',');
+                        extendClasses = extendClasses.map((value) => value.trim()).filter((value) => value !== '');
+                        details.extendClasses = details.extendClasses.concat(extendClasses);
+                    }
+                });
             }
 
             ts.forEachChild(childNode, traverseChild);
