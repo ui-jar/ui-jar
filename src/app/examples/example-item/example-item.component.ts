@@ -104,7 +104,7 @@ export class ExampleItemComponent implements OnInit {
     }
 
     private setExampleSourceCode(componentRef: ComponentRef<any>, sourceCode: string) {
-        let modifiedSourceCodeSplit = sourceCode.split(/\)[\n\s\t\r]+class/);
+        let modifiedSourceCodeSplit = sourceCode.split(/\)[\n\s\t\r]+class|\)[\n\s\t\r]+export\sclass/);
 
         if(modifiedSourceCodeSplit.length > 1) {
             const propertyNamesInExample = Object.keys(componentRef.instance).filter((propertyName) => {

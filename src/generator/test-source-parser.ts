@@ -163,21 +163,17 @@ export class TestSourceParser {
         });
 
         let inputPropertiesTemplates = '';
-        let exampleComponentProperties = example.componentProperties.map((prop) => {
+        const exampleComponentProperties = example.componentProperties.map((prop) => {
             const firstIndexOfEquals = prop.expression.indexOf('=');
             let propertyName = prop.expression.substr(0, firstIndexOfEquals);
-            propertyName = propertyName.replace(/[\s\.\[\]"']+/gi, '').replace(prop.name, '');
-            const expression = prop.expression.substr(firstIndexOfEquals + 1).replace(/"/gi, '\'').trim();
+            propertyName = propertyName.replace(prop.name, '').replace(/[\s\.\[\]"']+/gi, '');
 
-            return {
-                propertyName: propertyName,
-                propertyValue: expression
-            };
+            return propertyName;
         });
 
         inputProperties.forEach((inputProperty: ApiComponentProperties) => {
-            const isExamplePropertyInput: any = exampleComponentProperties.find((componentProperty: any) =>
-                componentProperty.propertyName === inputProperty.propertyName);
+            const isExamplePropertyInput: any = exampleComponentProperties.find((componentProperty: string) =>
+                componentProperty === inputProperty.propertyName);
 
             if (isExamplePropertyInput) {
                 inputPropertiesTemplates += ` [${inputProperty.propertyName}]="${inputProperty.propertyName}"`;
