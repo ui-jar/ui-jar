@@ -27,10 +27,10 @@ describe('TestSourceParser', () => {
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
             const sourceParser = new SourceParser({ rootDir: './', files: sourceFiles }, program);
-            const sourceDocs = sourceParser.getProjectSourceDocumentation();
+            const { classesWithDocs, otherClasses } = sourceParser.getProjectSourceDocumentation();
 
             const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);
-            testDocs = testSourceParser.getProjectTestDocumentation(sourceDocs);
+            testDocs = testSourceParser.getProjectTestDocumentation(classesWithDocs, otherClasses);
         });
 
         it('should parse files and return list with TestDocs', () => {
@@ -210,10 +210,10 @@ describe('TestSourceParser', () => {
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
             const sourceParser = new SourceParser({ rootDir: './', files: sourceFiles }, program);
-            const sourceDocs = sourceParser.getProjectSourceDocumentation();
+            const { classesWithDocs, otherClasses } = sourceParser.getProjectSourceDocumentation();
 
             const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);
-            testDocs = testSourceParser.getProjectTestDocumentation(sourceDocs);
+            testDocs = testSourceParser.getProjectTestDocumentation(classesWithDocs, otherClasses);
         });
 
         it('should parse files and return list with TestDocs when using test host component', () => {

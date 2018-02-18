@@ -18,10 +18,10 @@ function getProjectDocumentation(options: CliArgs): ProjectDocumentation {
     const sourceFiles = fileSearch.getFiles(options.directory);
     const rootDir = path.resolve(options.directory).replace(/\\/gi, '/');
     const docs = getProjectSourceDocumentation(sourceFiles, rootDir);
-    const testDocs = getProjectTestDocumentation(sourceFiles, docs);
+    const testDocs = getProjectTestDocumentation(sourceFiles, docs.classesWithDocs, docs.otherClasses);
 
     return {
-        docs,
+        docs: docs.classesWithDocs,
         testDocs
     };
 }
@@ -102,11 +102,11 @@ function getProjectSourceDocumentation(sourceFiles: string[], rootDir: string) {
     return sourceParser.getProjectSourceDocumentation();
 }
 
-function getProjectTestDocumentation(sourceFiles, docs) {
+function getProjectTestDocumentation(sourceFiles, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
     const program = ts.createProgram([...sourceFiles], { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
     const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);
 
-    return testSourceParser.getProjectTestDocumentation(docs);
+    return testSourceParser.getProjectTestDocumentation(classesWithDocs, otherClasses);
 }
 
 function getGeneratedDocs(generatedSourceFileNames, generatedTestModuleSourceFiles) {

@@ -50,14 +50,14 @@ export class TestSourceParser {
         this.checker = this.program.getTypeChecker();
     }
 
-    getProjectTestDocumentation(sourceDocs: SourceDocs[]): TestDocs[] {
-        const testDocs: any[] = this.getTestDocs(this.config.files, sourceDocs);
+    getProjectTestDocumentation(classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]): TestDocs[] {
+        const testDocs: any[] = this.getTestDocs(this.config.files, classesWithDocs, otherClasses);
 
         testDocs.filter((component) => component.moduleSetup['imports']).forEach((component) => {
-            sourceDocs.forEach((sourceDocs) => {
-                if (sourceDocs.moduleDetails && component.moduleSetup['imports'].indexOf(sourceDocs.moduleDetails.moduleRefName) > -1) {
+            classesWithDocs.forEach((classDoc) => {
+                if (classDoc.moduleDetails && component.moduleSetup['imports'].indexOf(classDoc.moduleDetails.moduleRefName) > -1) {
                     component.includesComponents = component.includesComponents || [];
-                    component.includesComponents.push(sourceDocs.componentRefName);
+                    component.includesComponents.push(classDoc.componentRefName);
                 }
             });
         });
@@ -94,7 +94,7 @@ export class TestSourceParser {
         }
     }
 
-    private getTestDocs(files: string[], sourceDocs: SourceDocs[]): TestDocs[] {
+    private getTestDocs(files: string[], classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]): TestDocs[] {
         let docs: TestDocs[] = [];
 
         for (let currentFile of files) {
@@ -110,8 +110,8 @@ export class TestSourceParser {
                 example.httpRequests = httpExpressions;
 
                 if (details.bootstrapComponent) {
-                    example.sourceCode = this.getExampleSourceCode(details.inlineComponents,
-                        details.bootstrapComponent, sourceDocs, details, example);
+                    example.sourceCode = this.getExampleSourceCode(details.hasHostComponent,
+                        details.bootstrapComponent, classesWithDocs, otherClasses, details, example);
                 }
             });
 
@@ -125,25 +125,29 @@ export class TestSourceParser {
         return docs;
     }
 
-    private getExampleSourceCode(inlineComponents: InlineComponent[],
-        bootstrapComponent: string, sourceDocs: SourceDocs[], details: any, example: any) {
+    private getExampleSourceCode(hasHostComponent: boolean, bootstrapComponent: string, classesWithDocs: SourceDocs[],
+        otherClasses: SourceDocs[], details: any, example: any) {
 
-        const exampleComponent = inlineComponents.find((inlineComponent) => {
-            return inlineComponent.name === bootstrapComponent;
-        });
-
-        if(exampleComponent) {
-            return exampleComponent.source;
+        if(hasHostComponent) {
+            return this.getTestHostComponentSourceCode(bootstrapComponent, classesWithDocs, otherClasses);
         }
 
-        return this.getComponentSourceCode(details, sourceDocs, example);
+        return this.getComponentSourceCode(details, classesWithDocs, example);
     }
 
-    private getComponentSourceCode(details: any, sourceDocs: SourceDocs[], example: any) {
+    private getTestHostComponentSourceCode(componentRefName: string, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
+        let exampleComponent: SourceDocs = [...classesWithDocs, ...otherClasses].find((classDoc) => {
+            return classDoc.componentRefName === componentRefName;
+        });
+
+        return exampleComponent.source;
+    }
+
+    private getComponentSourceCode(details: any, classesWithDocs: SourceDocs[], example: any) {
         let template = '';
 
-        const currentComponentSourceDocs = sourceDocs.find((sourceDocs: SourceDocs) => {
-            return sourceDocs.componentRefName === details.includeTestForComponent;
+        const currentComponentSourceDocs = classesWithDocs.find((classDoc: SourceDocs) => {
+            return classDoc.componentRefName === details.includeTestForComponent;
         });
 
         if (!currentComponentSourceDocs) {
@@ -300,7 +304,8 @@ export class TestSourceParser {
             inlineComponents: [],
             inlineFunctions: [],
             binaryExpressions: [],
-            examples: []
+            examples: [],
+            hasHostComponent: false
         };
 
         let traverseChild = (childNode: ts.Node) => {
@@ -330,6 +335,7 @@ export class TestSourceParser {
                             details.moduleSetup = this.getModuleDefinitionDetails(childNode);
                         } else if (docs.name === 'hostcomponent') {
                             details.bootstrapComponent = docs.text;
+                            details.hasHostComponent = true;
                         }
                     });
                 }

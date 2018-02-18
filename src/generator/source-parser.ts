@@ -1,4 +1,6 @@
 import * as ts from 'typescript';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export interface SourceDocs {
     componentRefName: string;
@@ -13,6 +15,7 @@ export interface SourceDocs {
     selector: string;
     bootstrapComponent?: string;
     extendClasses: string[];
+    source: string;
 }
 
 export interface ApiDetails {
@@ -38,6 +41,11 @@ export interface ApiComponentProperties {
     description: string;
 }
 
+export interface ProjectSourceDocs {
+    classesWithDocs: SourceDocs[];
+    otherClasses: SourceDocs[];
+}
+
 export class SourceParser {
     private checker: ts.TypeChecker;
 
@@ -45,16 +53,19 @@ export class SourceParser {
         this.checker = this.program.getTypeChecker();
     }
 
-    getProjectSourceDocumentation(): SourceDocs[] {
+    getProjectSourceDocumentation(): ProjectSourceDocs {
         const {
             componentFiles,
             moduleFiles
         } = this.getComponentAndModuleFiles(this.config.files);
 
         const moduleDocs: ModuleDocs[] = this.getModuleDocs(moduleFiles);
-        const sourceDocs: SourceDocs[] = this.getSourceDocs(componentFiles, moduleDocs);
+        const sourceDocs: ProjectSourceDocs = this.getSourceDocs(componentFiles, moduleDocs);
 
-        return sourceDocs;
+        return {
+            classesWithDocs: sourceDocs.classesWithDocs,
+            otherClasses: sourceDocs.otherClasses
+        };
     }
 
     private getComponentAndModuleFiles(files: string[]) {
@@ -146,12 +157,12 @@ export class SourceParser {
         return moduleDocs;
     }
 
-    private getSourceDocs(componentFiles: string[], moduleDocs: ModuleDocs[]): SourceDocs[] {
-        let sourceDocs: SourceDocs[] = [];
+    private getSourceDocs(componentFiles: string[], moduleDocs: ModuleDocs[]): ProjectSourceDocs {
+        let classesWithDocs: SourceDocs[] = [];
         let otherClasses: SourceDocs[] = [];
 
         for (let currentFile of componentFiles) {
-            let details: any = this.getComponentSourceData(this.program.getSourceFile(currentFile));
+            let details: any = this.getComponentSourceData(this.program.getSourceFile(currentFile), currentFile);
 
             let doc: SourceDocs = {            
                 componentRefName: details.classRefName,
@@ -165,25 +176,29 @@ export class SourceParser {
                 fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName.replace(this.config.rootDir, ''),
                 moduleDetails: this.getModuleDetailsToComponent(details.classRefName, moduleDocs),
                 selector: details.selector,
-                extendClasses: details.extendClasses
+                extendClasses: details.extendClasses,
+                source: details.source
             };
 
             if (doc.componentDocName) {
-                sourceDocs.push(doc);
+                classesWithDocs.push(doc);
             } else {
                 otherClasses.push(doc);
             }
         }
 
-        sourceDocs = this.getPropertiesFromExtendedComponentClasses(sourceDocs, otherClasses);
+        classesWithDocs = this.getPropertiesFromExtendedComponentClasses(classesWithDocs, otherClasses);
 
-        return sourceDocs;
+        return {
+            classesWithDocs,
+            otherClasses
+        };
     }
 
-    private getPropertiesFromExtendedComponentClasses(componentsWithDocs: SourceDocs[], otherClasses: SourceDocs[]): SourceDocs[] {
-        let sourceDocs = [...componentsWithDocs];
+    private getPropertiesFromExtendedComponentClasses(classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]): SourceDocs[] {
+        let docs = [...classesWithDocs];
 
-        sourceDocs.forEach((doc) => {
+        docs.forEach((doc) => {
             doc.extendClasses.forEach((extendClass) => {
                 const extendedClass = otherClasses.find((clazz) => {
                     return extendClass === clazz.componentRefName;
@@ -196,7 +211,7 @@ export class SourceParser {
             });
         });
 
-        return sourceDocs;
+        return docs;
     }
 
     private getModuleDetailsToComponent(componentRefName: string, moduleDocs: ModuleDocs[]): ModuleDetails {
@@ -249,18 +264,20 @@ export class SourceParser {
         return details;
     }
 
-    private getComponentSourceData(node: ts.Node) {
+    private getComponentSourceData(node: ts.Node, fileName: string) {
         let details: any = {
             properties: [],
             methods: [],
             selector: '',
-            extendClasses: []
+            extendClasses: [],
+            source: ''
         };
 
         const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
                 details.classRefName = (childNode as ts.ClassDeclaration).name.text;
                 details.selector = this.getComponentSelector((childNode as ts.ClassDeclaration));
+                details.source = this.getComponentSourceCode((childNode as ts.ClassDeclaration), fileName);
 
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.ClassDeclaration).name);
 
@@ -460,6 +477,67 @@ export class SourceParser {
         }, []).join(',');
 
         return parametersAsString;
+    }
+
+    private getComponentSourceCode(node: ts.ClassDeclaration, fileName: string): string {
+        const getPathToTemplateFile = (propertyNode: ts.PropertyAssignment) => {
+            let templateUrl = propertyNode.initializer.getText();
+            templateUrl = templateUrl.substring(1, templateUrl.length - 1);
+            const pathToTemplateFile = path.resolve((this.program.getSourceFile(fileName) as ts.FileReference).fileName, '../'+ templateUrl);
+
+            return pathToTemplateFile;
+        };
+
+        const traverseDecorator = (childNode: ts.Node): { template: string, templateUrlNodeAsString?: string } => {
+            if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
+                if((childNode as ts.PropertyAssignment).name.getText() === 'template') {
+                    let inlineComponentTemplate = (childNode as ts.PropertyAssignment).initializer.getText();
+                    inlineComponentTemplate = inlineComponentTemplate.substring(1, inlineComponentTemplate.length - 1);
+
+                    return {
+                        template: inlineComponentTemplate
+                    };
+                } else if((childNode as ts.PropertyAssignment).name.getText() === 'templateUrl') {
+                    let templateUrlNodeAsString = childNode.getText();
+
+                    return {
+                        template: fs.readFileSync(getPathToTemplateFile((childNode as ts.PropertyAssignment)), 'UTF-8'),
+                        templateUrlNodeAsString
+                    };
+                }
+            }
+
+            return ts.forEachChild(childNode, traverseDecorator);
+        };
+
+        const isComponent = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'Component') {
+                return true;
+            }
+
+            return ts.forEachChild(childNode, isComponent);
+        };
+
+        if (node.decorators) {
+            const sourceCode = node.decorators.reduce((sourceCode: string, decorator: ts.Decorator) => {
+                if (isComponent(decorator)) {
+                    let result = traverseDecorator(node);
+                    let source = node.getText();
+
+                    if(result.templateUrlNodeAsString) {
+                        source = source.replace(result.templateUrlNodeAsString, 'template: `\n'+ result.template +'\n`');
+                    }
+
+                    sourceCode = source;
+                }
+
+                return sourceCode;
+            }, null);
+
+            return sourceCode;
+        }
+
+        return null;
     }
 }
 

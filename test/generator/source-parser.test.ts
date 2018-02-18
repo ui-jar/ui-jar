@@ -5,7 +5,7 @@ import { SourceParser } from '../../src/generator/source-parser';
 describe('SourceParser', () => {
 
     describe('getProjectSourceDocumentation', () => {
-        let sourceDocs;
+        let classesWithDocs;
 
         beforeEach(() => {
             const sourceFiles = ['foobar.component.ts', 'foobar.module.ts', 'foobar.component.test.ts', 'child.component.ts', 'parent.component.ts'];
@@ -14,58 +14,58 @@ describe('SourceParser', () => {
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
             const sourceParser = new SourceParser({ rootDir: './', files: sourceFiles }, program);
-            sourceDocs = sourceParser.getProjectSourceDocumentation();
+            classesWithDocs = sourceParser.getProjectSourceDocumentation().classesWithDocs;
         });
 
         it('should parse files and return list with SourceDocs', () => {
-            assert.equal(sourceDocs.length, 2);
+            assert.equal(classesWithDocs.length, 2);
         });
 
         it('should parse and verify that SourceDocs.componentRefName is valid', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             assert.equal(firstSourceDoc.componentRefName, 'FoobarComponent');
         });
 
         it('should parse and verify that SourceDocs.componentDocName is set', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             assert.equal(firstSourceDoc.componentDocName, 'Foobar');
         });
 
         it('should parse and verify that SourceDocs.groupDocName is set', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             assert.equal(firstSourceDoc.groupDocName, 'Layout');
         });
 
         it('should parse and verify that SourceDocs.description is set', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             assert.equal(firstSourceDoc.description, 'It\'s possible to use <strong>html</strong> in \nthe description');
         });
 
         it('should parse and verify that SourceDocs.fileName is valid', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             assert.equal(firstSourceDoc.fileName, 'foobar.component.ts');
         });
 
         it('should parse and verify that SourceDocs.moduleDetails is valid', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             assert.equal(firstSourceDoc.moduleDetails.moduleRefName, 'FoobarModule');
             assert.equal(firstSourceDoc.moduleDetails.fileName, 'foobar.module.ts');
         });
 
         it('should parse and verify that SourceDocs.selector is valid', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             assert.equal(firstSourceDoc.selector, 'x-foobar');
         });
 
         it('should parse and verify that SourceDocs.apiDetails.properties contains public component properties', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             firstSourceDoc.apiDetails.properties.forEach((property, index) => {
                 if (index === 0) {
@@ -104,7 +104,7 @@ describe('SourceParser', () => {
         });
 
         it('should parse and verify that SourceDocs.apiDetails.methods contains public component methods', () => {
-            let firstSourceDoc = sourceDocs[0];
+            let firstSourceDoc = classesWithDocs[0];
 
             firstSourceDoc.apiDetails.methods.forEach((method, index) => {
                 if (index === 0) {
@@ -123,8 +123,8 @@ describe('SourceParser', () => {
         });
 
         it('should parse and verify that SourceDocs.extendClasses is valid', () => {
-            let firstSourceDoc = sourceDocs[0];
-            let secondSourceDoc = sourceDocs[1];
+            let firstSourceDoc = classesWithDocs[0];
+            let secondSourceDoc = classesWithDocs[1];
 
             assert.equal(firstSourceDoc.extendClasses.length, 0, 'Should not have any extended classes');
             assert.equal(secondSourceDoc.extendClasses.length, 1, 'Should have one extended class');
@@ -132,7 +132,7 @@ describe('SourceParser', () => {
         });
 
         it('should parse and verify that SourceDocs.apiDetails.properties contains public component properties from extended component', () => {
-            let secondSourceDoc = sourceDocs[1];
+            let secondSourceDoc = classesWithDocs[1];
 
             assert.equal(secondSourceDoc.apiDetails.properties.length, 4, 'Should contain public properties from both child and parent component');
             secondSourceDoc.apiDetails.properties.forEach((property, index) => {
@@ -166,7 +166,7 @@ describe('SourceParser', () => {
         });
 
         it('should parse and verify that SourceDocs.apiDetails.methods contains public component methods from extended component', () => {
-            let secondSourceDoc = sourceDocs[1];
+            let secondSourceDoc = classesWithDocs[1];
 
             assert.equal(secondSourceDoc.apiDetails.methods.length, 4, 'Should contain public methods from both child and parent component');
             secondSourceDoc.apiDetails.methods.forEach((method, index) => {

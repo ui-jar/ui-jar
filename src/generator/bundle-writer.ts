@@ -123,17 +123,17 @@ export class BundleTemplateWriter {
     private getComponentData() {
         let result = {};
 
-        this.documentation.forEach((sourceDocs: SourceDocs) => {
-            result[sourceDocs.componentRefName] = {
-                title: sourceDocs.componentDocName,
-                description: sourceDocs.description,
-                sourceFilePath: sourceDocs.fileName,
+        this.documentation.forEach((classDoc: SourceDocs) => {
+            result[classDoc.componentRefName] = {
+                title: classDoc.componentDocName,
+                description: classDoc.description,
+                sourceFilePath: classDoc.fileName,
                 api: {
-                    properties: sourceDocs.apiDetails.properties,
-                    methods: sourceDocs.apiDetails.methods
+                    properties: classDoc.apiDetails.properties,
+                    methods: classDoc.apiDetails.methods
                 },
-                moduleDependencies: [sourceDocs.moduleDetails.moduleRefName],
-                bootstrapComponent: sourceDocs.bootstrapComponent
+                moduleDependencies: [classDoc.moduleDetails.moduleRefName],
+                bootstrapComponent: classDoc.bootstrapComponent
             };
         });
 
@@ -142,8 +142,8 @@ export class BundleTemplateWriter {
 
     private getComponentExampleProperties() {
         let expressions = {};
-        this.documentation.forEach((sourceDocs: SourceDocs) => {
-            expressions[`${sourceDocs.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${sourceDocs.moduleDetails.moduleRefName}()`;
+        this.documentation.forEach((classDoc: SourceDocs) => {
+            expressions[`${classDoc.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${classDoc.moduleDetails.moduleRefName}()`;
         });
 
         let template = Object.keys(expressions).reduce((result, exp, index) => {
@@ -159,8 +159,8 @@ export class BundleTemplateWriter {
     private getComponentRefs() {
         let componentRefs = [];
 
-        this.documentation.forEach((sourceDocs: SourceDocs) => {
-            componentRefs.push(sourceDocs.bootstrapComponent);
+        this.documentation.forEach((classDoc: SourceDocs) => {
+            componentRefs.push(classDoc.bootstrapComponent);
         });
 
         let template = `[${componentRefs}]`;
@@ -171,12 +171,12 @@ export class BundleTemplateWriter {
     private getNavigationLinks() {
         let links = [];
 
-        this.documentation.forEach((sourceDocs: SourceDocs) => {
-            if (sourceDocs.groupDocName) {
+        this.documentation.forEach((classDoc: SourceDocs) => {
+            if (classDoc.groupDocName) {
                 links.push({
-                    group: sourceDocs.groupDocName,
-                    title: sourceDocs.componentDocName,
-                    path: this.urlPrefix ? this.urlPrefix + '/' + sourceDocs.componentRefName : sourceDocs.componentRefName
+                    group: classDoc.groupDocName,
+                    title: classDoc.componentDocName,
+                    path: this.urlPrefix ? this.urlPrefix + '/' + classDoc.componentRefName : classDoc.componentRefName
                 });
             }
         });
