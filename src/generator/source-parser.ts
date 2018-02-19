@@ -162,29 +162,31 @@ export class SourceParser {
         let otherClasses: SourceDocs[] = [];
 
         for (let currentFile of componentFiles) {
-            let details: any = this.getComponentSourceData(this.program.getSourceFile(currentFile), currentFile);
+            let classes: any[] = this.getComponentSourceData(this.program.getSourceFile(currentFile), currentFile);
 
-            let doc: SourceDocs = {            
-                componentRefName: details.classRefName,
-                componentDocName: details.componentDocName,
-                groupDocName: details.groupDocName,
-                description: details.description,
-                apiDetails: {
-                    properties: details.properties,
-                    methods: details.methods
-                },
-                fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName.replace(this.config.rootDir, ''),
-                moduleDetails: this.getModuleDetailsToComponent(details.classRefName, moduleDocs),
-                selector: details.selector,
-                extendClasses: details.extendClasses,
-                source: details.source
-            };
+            classes.forEach((details) => {
+                let doc: SourceDocs = {
+                    componentRefName: details.classRefName,
+                    componentDocName: details.componentDocName,
+                    groupDocName: details.groupDocName,
+                    description: details.description,
+                    apiDetails: {
+                        properties: details.properties,
+                        methods: details.methods
+                    },
+                    fileName: (this.program.getSourceFile(currentFile) as ts.FileReference).fileName.replace(this.config.rootDir, ''),
+                    moduleDetails: this.getModuleDetailsToComponent(details.classRefName, moduleDocs),
+                    selector: details.selector,
+                    extendClasses: details.extendClasses,
+                    source: details.source
+                };
 
-            if (doc.componentDocName) {
-                classesWithDocs.push(doc);
-            } else {
-                otherClasses.push(doc);
-            }
+                if (doc.componentDocName) {
+                    classesWithDocs.push(doc);
+                } else {
+                    otherClasses.push(doc);
+                }
+            });
         }
 
         classesWithDocs = this.getPropertiesFromExtendedComponentClasses(classesWithDocs, otherClasses);
@@ -265,7 +267,8 @@ export class SourceParser {
     }
 
     private getComponentSourceData(node: ts.Node, fileName: string) {
-        let details: any = {
+        let classes = [];
+        let classDetails: any = {
             properties: [],
             methods: [],
             selector: '',
@@ -273,24 +276,29 @@ export class SourceParser {
             source: ''
         };
 
+        let currentClassDetails;
+
         const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
-                details.classRefName = (childNode as ts.ClassDeclaration).name.text;
-                details.selector = this.getComponentSelector((childNode as ts.ClassDeclaration));
-                details.source = this.getComponentSourceCode((childNode as ts.ClassDeclaration), fileName);
+                currentClassDetails = Object.assign({}, classDetails);
+                classes.push(currentClassDetails);
+
+                currentClassDetails.classRefName = (childNode as ts.ClassDeclaration).name.text;
+                currentClassDetails.selector = this.getComponentSelector((childNode as ts.ClassDeclaration));
+                currentClassDetails.source = this.getComponentSourceCode((childNode as ts.ClassDeclaration), fileName);
 
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.ClassDeclaration).name);
 
                 nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
                     switch (docs.name) {
                         case 'group':
-                            details.groupDocName = docs.text;
+                            currentClassDetails.groupDocName = docs.text;
                             break;
                         case 'component':
-                            details.componentDocName = docs.text;
+                            currentClassDetails.componentDocName = docs.text;
                             break;
                         case 'description':
-                            details.description = docs.text;
+                            currentClassDetails.description = docs.text;
                             break;
                     }
                 });
@@ -299,8 +307,8 @@ export class SourceParser {
                     let memberDetails = this.getClassMemberDetails(currentMemberSymbol);
 
                     if (memberDetails) {
-                        details.properties = details.properties.concat(memberDetails.properties);
-                        details.methods = details.methods.concat(memberDetails.methods);
+                        currentClassDetails.properties = currentClassDetails.properties.concat(memberDetails.properties);
+                        currentClassDetails.methods = currentClassDetails.methods.concat(memberDetails.methods);
                     }
                 });
 
@@ -309,7 +317,7 @@ export class SourceParser {
                     if(child.kind === ts.SyntaxKind.SyntaxList) {
                         let extendClasses = child.getText().split(',');
                         extendClasses = extendClasses.map((value) => value.trim()).filter((value) => value !== '');
-                        details.extendClasses = details.extendClasses.concat(extendClasses);
+                        currentClassDetails.extendClasses = currentClassDetails.extendClasses.concat(extendClasses);
                     }
                 });
             }
@@ -319,7 +327,7 @@ export class SourceParser {
 
         traverseChild(node);
 
-        return details;
+        return classes;
     }
 
     private getComponentSelector(node: ts.ClassDeclaration): string {
@@ -540,5 +548,3 @@ export class SourceParser {
         return null;
     }
 }
-
-
