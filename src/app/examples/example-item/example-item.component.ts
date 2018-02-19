@@ -107,12 +107,14 @@ export class ExampleItemComponent implements OnInit {
         let modifiedSourceCodeSplit = sourceCode.split(/\)[\n\s\t\r]+class|\)[\n\s\t\r]+export\sclass/);
 
         if(modifiedSourceCodeSplit.length > 1) {
-            const propertyNamesInExample = Object.keys(componentRef.instance).filter((propertyName) => {
+            const componentKeys = Object.keys(componentRef.instance).concat(Object.keys(Object.getPrototypeOf(componentRef.instance)));
+            const uniqueComponentProperties = Array.from(new Set(componentKeys));
+            const propertyNamesInExample = uniqueComponentProperties.filter((propertyName) => {
                 return new RegExp('="(?:[\\w\\s]+)?'+ propertyName +'(?:\.|\\[)?(?:.+)?"|\{\{(?:\.|\\[["\'])?'+ propertyName +'(?:\.|["\']\\])?(?:.+)?\}\}', 'i').test(modifiedSourceCodeSplit[0]);
             });
 
             try {
-                let classProperties = Object.keys(componentRef.instance).filter((key) => propertyNamesInExample.includes(key)).reduce((result, currentKey) => {
+                let classProperties = propertyNamesInExample.reduce((result, currentKey) => {
                     result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey])};\n`;
                     return result;
                 }, '');
