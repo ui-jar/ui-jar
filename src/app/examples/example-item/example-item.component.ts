@@ -114,8 +114,21 @@ export class ExampleItemComponent implements OnInit {
             });
 
             try {
+                const jsonValues = [];
+                const jsonReplacer = (key, value) => {
+                    if(value !== null && typeof value === 'object') {
+                        if(jsonValues.includes(value)) {
+                            return;
+                        }
+
+                        jsonValues.push(value);
+                    }
+
+                    return value;
+                };
+
                 let classProperties = propertyNamesInExample.reduce((result, currentKey) => {
-                    result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey])};\n`;
+                    result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey], jsonReplacer)};\n`;
                     return result;
                 }, '');
 
