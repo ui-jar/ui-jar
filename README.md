@@ -113,8 +113,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { CheckboxComponent } from './checkbox.component';
 
 describe('CheckboxComponent', () => {
-  let component: CheckboxComponent;
-  let fixture: ComponentFixture<CheckboxComponent>;
+    let fixture: ComponentFixture<CheckboxComponent>;
 
     beforeEach(async(() => {
         /** 
@@ -126,23 +125,22 @@ describe('CheckboxComponent', () => {
 
         TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
             fixture = TestBed.createComponent(CheckboxComponent);
-            component = fixture.componentInstance;
             fixture.detectChanges();      
         });
     }));
 
     /** @uijarexample Add custom title to example here */
     it('should create component with "isDisabled" set to true', () => {
-        component.isDisabled = true;
-        component.label = 'Item A';
+        fixture.componentInstance.isDisabled = true;
+        fixture.componentInstance.label = 'Item A';
 
         ...
     });
 
     /** @uijarexample Add custom title to example here */
     it('should create component with "isDisabled" set to false', () => {
-        component.isDisabled = false;
-        component.label = 'Item A';
+        fixture.componentInstance.isDisabled = false;
+        fixture.componentInstance.label = 'Item A';
 
         ...
     });
@@ -182,7 +180,6 @@ import { Component } from '@angular/core';
 import { ButtonsModule } from './buttons.module';
 
 describe('ButtonComponent', () => {
-  let component: ButtonComponentTestHost;
   let fixture: ComponentFixture<ButtonComponentTestHost>;
 
   beforeEach(async(() => {
@@ -197,14 +194,13 @@ describe('ButtonComponent', () => {
 
     TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
         fixture = TestBed.createComponent(ButtonComponentTestHost);
-        component = fixture.componentInstance;
         fixture.detectChanges();
     });
   }));
 
     /** @uijarexample Add custom title to example here */
     it('should create standard button', () => {
-        component.buttonText = 'Standard button';
+        fixture.componentInstance.buttonText = 'Standard button';
 
         ...
     });
@@ -278,7 +274,6 @@ import { HttpClientTestingModule, HttpTestingController, TestRequest } from '@an
 import { IconComponent } from './icon.component';
 
 describe('IconComponent', () => {
-  let component: IconComponent;
   let fixture: ComponentFixture<IconComponent>;
   let httpMock: HttpTestingController;
 
@@ -293,14 +288,13 @@ describe('IconComponent', () => {
     TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
         fixture = TestBed.createComponent(IconComponent);
         httpMock = fixture.componentRef.injector.get(HttpTestingController);
-        component = fixture.componentInstance;
         fixture.detectChanges();
     });
   }));
 
     /** @uijarexample Add custom title to example here */
     it('should load icon', () => {
-        component.name = 'icon-name';
+        fixture.componentInstance.name = 'icon-name';
         const request: TestRequest = httpMock.expectOne('/cdn/url/icon-name.svg');
         request.flush('<svg>...</svg>');
 
@@ -309,7 +303,7 @@ describe('IconComponent', () => {
 
     /** @uijarexample Add custom title to example here */
     it('should return error when trying to load invalid icon', () => {
-        component.name = 'icon-does-not-exist';
+        fixture.componentInstance.name = 'icon-does-not-exist';
         const request: TestRequest = httpMock.expectOne('/cdn/url/icon-does-not-exist.svg');
         request.error(new ErrorEvent('404 - Not Found', {
             error: new Error('Icon not found'),
