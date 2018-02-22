@@ -59,7 +59,7 @@ platformBrowserDynamic().bootstrapModule(UIJarModule);
 </html>
 ```
 
-## Examples
+## Quickstart
 
 * [Basic usage](#example-usage-basic)
 * [Usage with a test host component](#example-usage-with-test-host-component)
