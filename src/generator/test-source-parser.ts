@@ -21,21 +21,22 @@ export interface TestDocs {
     includeTestForComponent: string;
     includesComponents?: string[];
     inlineComponents: InlineComponent[];
-    binaryExpressions: BinaryExpression[];
     fileName: string;
-    examples: {
-        componentProperties: any[],
-        variableDeclarations: VariableDeclaration[],
-        httpExpressions: {
-            name: string;
-            expression: string;
-            url: string;
-        },
-        sourceCode: string;
-        title: string;
-    }[];
+    examples: TestExample[];
     inlineFunctions: string[];
     bootstrapComponent: string;
+    hasHostComponent: boolean;
+}
+
+export interface TestExample {
+    componentProperties: { name: string; expression: string }[];
+    httpRequests: {
+        name: string;
+        expression: string;
+        url: string;
+    }[];
+    sourceCode: string;
+    title: string;
 }
 
 export interface BinaryExpression {
@@ -98,24 +99,8 @@ export class TestSourceParser {
         let docs: TestDocs[] = [];
 
         for (let currentFile of files) {
-            let details: any = this.getTestSourceDetails(this.program.getSourceFile(currentFile), currentFile);
-            details.fileName = (this.program.getSourceFile(currentFile) as ts.FileReference).fileName;
-
-            details.examples.forEach((example) => {
-                const componentExpressions = this.getComponentExpressionsFromTest(details.bootstrapComponent, example.binaryExpressions);
-                const httpExpressions = this.getHttpExpressionsFromTest(example.variableDeclarations,
-                    example.functionsCall);
-
-                example.componentProperties = componentExpressions;
-                example.httpRequests = httpExpressions;
-
-                if (details.bootstrapComponent) {
-                    example.sourceCode = this.getExampleSourceCode(details.hasHostComponent,
-                        details.bootstrapComponent, classesWithDocs, otherClasses, details, example);
-                }
-            });
-
-            details.inlineFunctions = this.getCalledFunctionFromTest(details.inlineFunctions, details.examples);
+            const details: TestDocs = this.getTestSourceDetails(this.program.getSourceFile(currentFile),
+                currentFile, classesWithDocs, otherClasses);
 
             if (details.bootstrapComponent) {
                 docs.push(details);
@@ -126,7 +111,7 @@ export class TestSourceParser {
     }
 
     private getExampleSourceCode(hasHostComponent: boolean, bootstrapComponent: string, classesWithDocs: SourceDocs[],
-        otherClasses: SourceDocs[], details: any, example: any) {
+        otherClasses: SourceDocs[], details: TestDocs, example: TestExample) {
 
         if(hasHostComponent) {
             return this.getTestHostComponentSourceCode(bootstrapComponent, classesWithDocs, otherClasses);
@@ -143,7 +128,7 @@ export class TestSourceParser {
         return exampleComponent.source;
     }
 
-    private getComponentSourceCode(details: any, classesWithDocs: SourceDocs[], example: any) {
+    private getComponentSourceCode(details: TestDocs, classesWithDocs: SourceDocs[], example: TestExample) {
         let template = '';
 
         const currentComponentSourceDocs = classesWithDocs.find((classDoc: SourceDocs) => {
@@ -262,7 +247,9 @@ export class TestSourceParser {
         return result;
     }
 
-    private getHttpExpressionsFromTest(variableDeclarations: VariableDeclaration[], functionsCall: string[]) {
+    private getExampleHttpRequests(childNode: ts.Node) {
+        const variableDeclarations: VariableDeclaration[] = this.getVariableDeclarationsDetails(childNode);
+        const functionsCall: string[] = this.getExampleFunctionCallsDetails(childNode);
         const testRequestTypeAsString = 'TestRequest';
         const testRequests: VariableDeclaration[] = variableDeclarations.filter((item: VariableDeclaration) => {
             return item.type === testRequestTypeAsString;
@@ -292,17 +279,20 @@ export class TestSourceParser {
         return httpExpressions;
     }
 
-    private getTestSourceDetails(node: ts.Node, fileName: string) {
-        let details: any = {
+    private getTestSourceDetails(node: ts.Node, fileName: string, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
+        let details: TestDocs = {
+            bootstrapComponent: null,
             importStatements: [],
             moduleSetup: {},
             includeTestForComponent: null,
             inlineComponents: [],
             inlineFunctions: [],
-            binaryExpressions: [],
             examples: [],
-            hasHostComponent: false
+            hasHostComponent: false,
+            fileName: (this.program.getSourceFile(fileName) as ts.FileReference).fileName
         };
+
+        let inlineFunctions = [];
 
         let traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.ImportDeclaration) {
@@ -342,23 +332,30 @@ export class TestSourceParser {
                     details.inlineComponents.push(inlineComponent);
                 }
             } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
-                if (this.isExampleComment(childNode)) {
-                    details.examples.push({
-                        binaryExpressions: this.getExampleExpressionDetails(childNode),
-                        functionsCall: this.getExampleFunctionCallsDetails(childNode),
-                        variableDeclarations: this.getVariableDeclarationsDetails(childNode),
-                        title: this.getExampleTitle(childNode)
-                    });
+                if (this.isExampleComment(childNode) && details.bootstrapComponent) {
+                    const example = {
+                        componentProperties: this.getExampleComponentProperties(childNode, details.bootstrapComponent),
+                        httpRequests: this.getExampleHttpRequests(childNode),
+                        title: this.getExampleTitle(childNode),
+                        sourceCode: ''
+                    };
+
+                    example.sourceCode = this.getExampleSourceCode(details.hasHostComponent,
+                        details.bootstrapComponent, classesWithDocs, otherClasses, details, example);
+
+                    details.examples.push(example);
                 }
             } else if (childNode.kind === ts.SyntaxKind.FunctionDeclaration) {
                 const inlineFunction = this.getInlineFunction((childNode as ts.FunctionDeclaration));
-                details.inlineFunctions.push(inlineFunction);
+                inlineFunctions.push(inlineFunction);
             }
 
             ts.forEachChild(childNode, traverseChild);
         };
 
         traverseChild(node);
+
+        details.inlineFunctions = this.getCalledFunctionFromTest(inlineFunctions, details.examples);
 
         return details;
     }
@@ -420,7 +417,7 @@ export class TestSourceParser {
         return '';
     }
 
-    private getExampleExpressionDetails(node: ts.Node): BinaryExpression[] {
+    private getExampleComponentProperties(node: ts.Node, bootstrapComponent: string): { name: string; expression: string }[] {
         let expressions: BinaryExpression[] = [];
 
         const traverseChild = (childNode) => {
@@ -436,7 +433,7 @@ export class TestSourceParser {
 
         traverseChild(node);
 
-        return expressions;
+        return this.getComponentExpressionsFromTest(bootstrapComponent, expressions);
     }
 
     private getExampleFunctionCallsDetails(node: ts.Node): string[] {
