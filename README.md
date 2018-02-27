@@ -1,7 +1,7 @@
 [![npm version](https://badge.fury.io/js/ui-jar.svg)](https://www.npmjs.com/package/ui-jar)
 
 <div align="center">
-![logo](https://raw.githubusercontent.com/ui-jar/ui-jar/master/images/logo.png)
+    <img src="https://raw.githubusercontent.com/ui-jar/ui-jar/master/images/logo.png" width="200" height="200" />
 </div>
 
 # UI-jar
