@@ -1,5 +1,9 @@
 [![npm version](https://badge.fury.io/js/ui-jar.svg)](https://www.npmjs.com/package/ui-jar)
 
+<div align="center">
+![logo](https://raw.githubusercontent.com/ui-jar/ui-jar/master/images/logo.png)
+</div>
+
 # UI-jar
 ### Test Driven Style Guide Development - Angular (2.x and above)
 A drop in module to automatically create a living style guide based on the test you write for your components.<br/>
