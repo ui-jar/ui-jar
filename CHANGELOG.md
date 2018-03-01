@@ -1,3 +1,22 @@
+# 1.0.0-rc.1 (2018-02-20)
+### Bug fixes
+* HostComponent in seperate file is not showing up in Example container
+* API Properties for exteded classes are ignored
+* File watcher is not working properly on Windows 10 and MacOS
+
+### Features
+* Add possibility to use "templateUrl" in a test host component
+
+
+# 1.0.0-beta.12 (2018-01-30)
+### Bug fixes
+* Updated typescript version to supported by Angular 5.2
+
+### Features
+* View source option now include test code implementation and property bindings
+* Source path to each component is now relative to input directory path (before it was absolute path)
+
+
 # 1.0.0-beta.11 (2017-12-13)
 ### Bug fixes
 * Updated typescript version to supported by Angular 5.1
