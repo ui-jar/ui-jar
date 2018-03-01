@@ -56,7 +56,7 @@ nav {
 
         li > a {
             display: block;
-            padding: 15px 20px; 
+            padding: 8px 20px;
             text-decoration: none;
             color: #000;
             border-bottom: 1px #e4e4e4 solid;
@@ -260,7 +260,7 @@ ui-jar-container {
     }
 
     .sub-nav {
-        border-bottom: 1px #dcdcdc solid;
+        border-bottom: 2px #dcdcdc solid;
         margin-bottom: 20px;
 
         > ul {
@@ -282,11 +282,20 @@ ui-jar-container {
             font-family: Arial;
             font-size: 12px;
             text-transform: uppercase;
-            border-bottom: 2px transparent solid;
 
             &.is-active {
+                position: relative;
                 font-weight: bold;
-                border-color: #2a9fc5;
+
+                &:after {
+                    content: '';
+                    position: absolute;
+                    left: 0;
+                    bottom: -2px;
+                    height: 2px;
+                    width: 100%;
+                    background-color: #2a9fc5;
+                }
             }
         }
     }
