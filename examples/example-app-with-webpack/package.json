@@ -1,0 +1,50 @@
+{
+    "name": "ui-jar-example-app-with-webpack",
+    "version": "0.0.0",
+    "scripts": {
+        "start": "webpack-dev-server --inline --progress",
+        "test": "karma start",
+        "ui-jar": "node node_modules/ui-jar/dist/bin/cli.js --directory ./src/app/ --includes \\.ts$",
+        "start-ui-jar-example": "npm run ui-jar && webpack-dev-server --inline --progress --content-base ui-jar"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "@angular/common": "~5.2.0",
+        "@angular/compiler": "~5.2.0",
+        "@angular/core": "~5.2.0",
+        "@angular/forms": "~5.2.0",
+        "@angular/http": "~5.2.0",
+        "@angular/platform-browser": "~5.2.0",
+        "@angular/platform-browser-dynamic": "~5.2.0",
+        "@angular/router": "~5.2.0",
+        "core-js": "^2.4.1",
+        "rxjs": "^5.5.0",
+        "zone.js": "^0.8.4"
+    },
+    "devDependencies": {
+        "@types/jasmine": "2.5.36",
+        "@types/node": "^6.0.45",
+        "angular2-template-loader": "^0.6.0",
+        "awesome-typescript-loader": "^3.0.4",
+        "css-loader": "^0.26.1",
+        "extract-text-webpack-plugin": "2.0.0-beta.5",
+        "file-loader": "^0.9.0",
+        "html-loader": "^0.4.3",
+        "html-webpack-plugin": "^2.16.1",
+        "jasmine-core": "^2.4.1",
+        "karma": "^1.2.0",
+        "karma-chrome-launcher": "^2.0.0",
+        "karma-jasmine": "^1.0.2",
+        "karma-sourcemap-loader": "^0.3.7",
+        "karma-webpack": "^2.0.1",
+        "null-loader": "^0.1.1",
+        "raw-loader": "^0.5.1",
+        "rimraf": "^2.5.2",
+        "style-loader": "^0.13.1",
+        "typescript": "^2.5.0",
+        "ui-jar": "^1.0.0-rc.1",
+        "webpack": "2.2.1",
+        "webpack-dev-server": "2.4.1",
+        "webpack-merge": "^3.0.0"
+    }
+}

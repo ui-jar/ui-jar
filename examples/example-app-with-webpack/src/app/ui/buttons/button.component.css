@@ -1,0 +1,35 @@
+:host.primary {
+    background-color: #4baeb7;
+    border: none;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 3px;
+}
+
+:host.primary:hover {
+    background-color: #86c9ce;
+}
+
+:host.secondary {
+    background-color: #b74b5d;
+    border: none;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 3px;  
+}
+
+:host.secondary:hover {
+    background-color: #cc6879
+}
+
+:host.warning {
+    background-color: #f3a75d;
+    border: none;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 3px;  
+}
+
+:host.warning:hover {
+    background-color: #fdbe83;
+}

@@ -1,0 +1,10 @@
+:host {
+    display: block;
+    background-color: #fff;
+    box-shadow: 1px 1px 3px #b7b7b7;
+    margin-bottom: 20px;
+}
+
+:host.padding {
+    padding: 20px;
+}
