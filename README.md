@@ -32,6 +32,12 @@ node node_modules/ui-jar/dist/bin/cli.js --directory ./app/root/dir --includes \
 * **--url-prefix** (string) - add prefix to all urls in UI-jar, e.g. "project-a/styleguide".
 * **--watch** - enable watch-mode, UI-jar will watch on file changes in your test files.
 
+## Example project setup
+
+* [Example with Angular CLI](https://github.com/ui-jar/ui-jar/tree/master/examples/example-app-with-angular-cli)
+* [Example with Webpack](https://github.com/ui-jar/ui-jar/tree/master/examples/example-app-with-webpack)
+
+
 ## Configuration
 
 Add a entry point to your ui-jar app, e.g ui-jar.ts.<br/>
