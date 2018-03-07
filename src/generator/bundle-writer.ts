@@ -5,7 +5,7 @@ import { SourceDocs, ModuleDetails } from './source-parser';
 
 interface UniqueModulesDetails {
     moduleDetails: ModuleDetails;
-    bootstrapComponent: string;
+    bootstrapComponents: string[];
 }
 
 export class BundleTemplateWriter {
@@ -95,7 +95,7 @@ export class BundleTemplateWriter {
             const componentExamplePropertiesFunction = `getComponentExampleProperties as getComponentExampleProperties_${item.moduleDetails.moduleRefName}`;
             let importPath = path.relative(path.resolve(this.outputDirectoryPath), path.resolve(item.moduleDetails.fileName));
             importPath = importPath.replace('.ts', '').replace(/\\/g, '/');
-            template += `import {${item.moduleDetails.moduleRefName}, ${item.bootstrapComponent}, ${componentExamplePropertiesFunction}} from '${importPath}';\n`;
+            template += `import {${item.moduleDetails.moduleRefName}, ${item.bootstrapComponents}, ${componentExamplePropertiesFunction}} from '${importPath}';\n`;
         });
 
         return template;
@@ -105,14 +105,17 @@ export class BundleTemplateWriter {
         let uniqueModules: UniqueModulesDetails[] = [];
 
         this.documentation.forEach((item) => {
-            let isModuleUnique = uniqueModules.filter((importedModule) => {
+            const isModuleUnique = uniqueModules.filter((importedModule) => {
                 return item.moduleDetails.moduleRefName === importedModule.moduleDetails.moduleRefName;
             }).length === 0;
+
+            const bootstrapComponentsInExample = item.examples.filter((example) => example.bootstrapComponent)
+                                                .map((example) => example.bootstrapComponent);
 
             if (isModuleUnique) {
                 uniqueModules.push({
                     moduleDetails: item.moduleDetails,
-                    bootstrapComponent: item.bootstrapComponent
+                    bootstrapComponents: bootstrapComponentsInExample
                 });
             }
         });
@@ -132,8 +135,7 @@ export class BundleTemplateWriter {
                     properties: classDoc.apiDetails.properties,
                     methods: classDoc.apiDetails.methods
                 },
-                moduleDependencies: [classDoc.moduleDetails.moduleRefName],
-                bootstrapComponent: classDoc.bootstrapComponent
+                moduleDependencies: [classDoc.moduleDetails.moduleRefName]
             };
         });
 
@@ -160,7 +162,11 @@ export class BundleTemplateWriter {
         let componentRefs = [];
 
         this.documentation.forEach((classDoc: SourceDocs) => {
-            componentRefs.push(classDoc.bootstrapComponent);
+            classDoc.examples.forEach((example) => {
+                if(example.bootstrapComponent) {
+                    componentRefs.push(example.bootstrapComponent);
+                }
+            });
         });
 
         let template = `[${componentRefs}]`;

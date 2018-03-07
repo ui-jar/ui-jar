@@ -24,7 +24,6 @@ export interface TestDocs {
     fileName: string;
     examples: TestExample[];
     inlineFunctions: string[];
-    bootstrapComponent: string;
     hasHostComponent: boolean;
 }
 
@@ -37,6 +36,7 @@ export interface TestExample {
     }[];
     sourceCode: string;
     title: string;
+    bootstrapComponent: string;
 }
 
 export interface BinaryExpression {
@@ -52,7 +52,7 @@ export class TestSourceParser {
     }
 
     getProjectTestDocumentation(classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]): TestDocs[] {
-        const testDocs: any[] = this.getTestDocs(this.config.files, classesWithDocs, otherClasses);
+        const testDocs: TestDocs[] = this.getTestDocs(this.config.files, classesWithDocs, otherClasses);
 
         testDocs.filter((component) => component.moduleSetup['imports']).forEach((component) => {
             classesWithDocs.forEach((classDoc) => {
@@ -63,34 +63,35 @@ export class TestSourceParser {
             });
         });
 
-        this.verifyBootstrapComponentIsAvailable(testDocs);
+        this.verifyBootstrapComponentsIsAvailable(testDocs);
 
         return testDocs;
     }
 
-    private verifyBootstrapComponentIsAvailable(docs: any[]) {
-        const result = docs.filter((component, index) => {
-            let containsBootstrapComponent = false;
+    private verifyBootstrapComponentsIsAvailable(docs: TestDocs[]) {
+        const missingBootstrapComponents = docs.reduce((missingComponents, component) => {
+            const bootstrapComponents = component.examples.map((example) => example.bootstrapComponent);
 
-            if (component.includesComponents && component.includesComponents.indexOf(component.bootstrapComponent) > -1) {
-                containsBootstrapComponent = true;
-            }
+            const result = bootstrapComponents.reduce((result, bootstrapComponent) => {
+                if(!(component.includesComponents && component.includesComponents.includes(bootstrapComponent))
+                    && !(component.moduleSetup.declarations && component.moduleSetup.declarations.includes(bootstrapComponent))) {
+                    result.push(bootstrapComponent);
+                }
+                return result;
+            }, []);
 
-            if (component.moduleSetup.declarations &&
-                component.moduleSetup.declarations.indexOf(component.bootstrapComponent) > -1) {
-                containsBootstrapComponent = true;
-            }
+            missingComponents.push(...result);
 
-            return !containsBootstrapComponent;
+            return missingComponents;
+        }, []);
+
+        missingBootstrapComponents.forEach((bootstrapComponent) => {
+            console.error(`Could not find any reference to "${bootstrapComponent}".`);
+            console.error(`1. Verify that "@uijar ${bootstrapComponent}" or "@hostcomponent ${bootstrapComponent}" is using correct component reference name.`);
+            console.error(`2. If you have imported the module that has "${bootstrapComponent}" in @NgModule({ declarations: [${bootstrapComponent}] }) in the test setup, make sure that the imported module also has "${bootstrapComponent}" in @NgModule({ exports: [${bootstrapComponent}] })`);
         });
 
-        result.forEach((testDocs) => {
-            console.error(`Could not find any reference to "${testDocs.bootstrapComponent}".`);
-            console.error(`1. Verify that "@uijar ${testDocs.bootstrapComponent}" or "@hostcomponent ${testDocs.bootstrapComponent}" is using correct component reference name.`);
-            console.error(`2. If you have imported the module that has "${testDocs.bootstrapComponent}" in @NgModule({ declarations: [${testDocs.bootstrapComponent}] }) in the test setup, make sure that the imported module also has "${testDocs.bootstrapComponent}" in @NgModule({ exports: [${testDocs.bootstrapComponent}] })`);
-        });
-
-        if (result.length > 0) {
+        if (missingBootstrapComponents.length > 0) {
             process.exit(1);
         }
     }
@@ -102,7 +103,7 @@ export class TestSourceParser {
             const details: TestDocs = this.getTestSourceDetails(this.program.getSourceFile(currentFile),
                 currentFile, classesWithDocs, otherClasses);
 
-            if (details.bootstrapComponent) {
+            if (details.includeTestForComponent) {
                 docs.push(details);
             }
         }
@@ -121,11 +122,15 @@ export class TestSourceParser {
     }
 
     private getTestHostComponentSourceCode(componentRefName: string, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
-        let exampleComponent: SourceDocs = [...classesWithDocs, ...otherClasses].find((classDoc) => {
+        const exampleComponent: SourceDocs = [...classesWithDocs, ...otherClasses].find((classDoc) => {
             return classDoc.componentRefName === componentRefName;
         });
 
-        return exampleComponent.source;
+        if(exampleComponent) {
+            return exampleComponent.source;
+        }
+
+        return '';
     }
 
     private getComponentSourceCode(details: TestDocs, classesWithDocs: SourceDocs[], example: TestExample) {
@@ -281,7 +286,6 @@ export class TestSourceParser {
 
     private getTestSourceDetails(node: ts.Node, fileName: string, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
         let details: TestDocs = {
-            bootstrapComponent: null,
             importStatements: [],
             moduleSetup: {},
             includeTestForComponent: null,
@@ -291,6 +295,8 @@ export class TestSourceParser {
             hasHostComponent: false,
             fileName: (this.program.getSourceFile(fileName) as ts.FileReference).fileName
         };
+
+        let bootstrapComponent = null;
 
         let inlineFunctions = [];
 
@@ -313,14 +319,14 @@ export class TestSourceParser {
                         };
                     }).forEach((docs: { name: string, text: string }) => {
                         if (docs.name === 'uijar') {
-                            if (!details.bootstrapComponent) {
-                                details.bootstrapComponent = docs.text;
+                            if (!bootstrapComponent) {
+                                bootstrapComponent = docs.text;
                             }
 
                             details.includeTestForComponent = docs.text;
                             details.moduleSetup = this.getModuleDefinitionDetails(childNode);
                         } else if (docs.name === 'hostcomponent') {
-                            details.bootstrapComponent = docs.text;
+                            bootstrapComponent = docs.text;
                             details.hasHostComponent = true;
                         }
                     });
@@ -332,16 +338,21 @@ export class TestSourceParser {
                     details.inlineComponents.push(inlineComponent);
                 }
             } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
-                if (this.isExampleComment(childNode) && details.bootstrapComponent) {
+                if (this.isExampleComment(childNode) && bootstrapComponent) {
                     const example = {
-                        componentProperties: this.getExampleComponentProperties(childNode, details.bootstrapComponent),
+                        componentProperties: this.getExampleComponentProperties(childNode, bootstrapComponent),
                         httpRequests: this.getExampleHttpRequests(childNode),
                         title: this.getExampleTitle(childNode),
-                        sourceCode: ''
+                        sourceCode: '',
+                        bootstrapComponent: this.getExampleBootstrapComponent(childNode)
                     };
 
+                    if(!example.bootstrapComponent) {
+                        example.bootstrapComponent = bootstrapComponent;
+                    }
+
                     example.sourceCode = this.getExampleSourceCode(details.hasHostComponent,
-                        details.bootstrapComponent, classesWithDocs, otherClasses, details, example);
+                        example.bootstrapComponent, classesWithDocs, otherClasses, details, example);
 
                     details.examples.push(example);
                 }
@@ -394,20 +405,20 @@ export class TestSourceParser {
     }
 
     private isExampleComment(node: ts.Node) {
-        const comment = node.getFullText().replace(/[\s\t\n\r]/gi, '');
-        const regexp = /(\/\*{1,}@uijarexample).+\//;
+        const comment = node.getFullText().replace(node.getText(), '');
+        const regexp = /@uijarexample/i;
         const matches = comment.match(regexp);
 
         if (matches) {
-            return comment.indexOf(matches[0]) === 0;
+            return true;
         }
 
         return false;
     }
 
     private getExampleTitle(node: ts.Node) {
-        const comment = node.getFullText();
-        const regexp = /\/\*{1,}[\s\t\r\n\*]+@uijarexample\s(.+)[\t\r\n\s\*]+\//gi;
+        const comment = node.getFullText().replace(node.getText(), '');
+        const regexp = /@uijarexample\s([a-z0-9!"'#$%&\(\)=_\-\s\t\v\,]+)/i;
         const matches = regexp.exec(comment);
 
         if (matches) {
@@ -415,6 +426,18 @@ export class TestSourceParser {
         }
 
         return '';
+    }
+
+    private getExampleBootstrapComponent(node: ts.Node): string {
+        const comment = node.getFullText().replace(node.getText(), '');
+        const regexp = /@hostcomponent\s([a-z0-9_\-$]+)/i;
+        const matches = regexp.exec(comment);
+
+        if (matches) {
+            return matches[1].trim();
+        }
+
+        return null;
     }
 
     private getExampleComponentProperties(node: ts.Node, bootstrapComponent: string): { name: string; expression: string }[] {

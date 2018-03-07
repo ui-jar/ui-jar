@@ -43,12 +43,6 @@ describe('TestSourceParser', () => {
             assert.equal(firstTestDoc.includeTestForComponent, 'FoobarComponent');
         });
 
-        it('should parse and trim whitespaces from TestDocs.bootstrapComponent and verify that TestDocs.bootstrapComponent is valid', () => {
-            let firstTestDoc = testDocs[0];
-
-            assert.equal(firstTestDoc.bootstrapComponent, 'FoobarComponent');
-        });
-
         it('should parse and verify that TestDocs.moduleSetup is valid', () => {
             let firstTestDoc = testDocs[0];
 
@@ -122,18 +116,23 @@ describe('TestSourceParser', () => {
                 if(exampleIndex === 0) {
                     assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
                     assert.equal(example.title, 'Custom title for example');
+                    assert.equal(example.bootstrapComponent, 'FoobarComponent');
                 } else if(exampleIndex === 1) {
                     assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options" [disabled]="disabled"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
                     assert.equal(example.title, '', 'Should not have a title set');
+                    assert.equal(example.bootstrapComponent, 'FoobarComponent');
                 } else if(exampleIndex === 2) {
                     assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
-                    assert.equal(example.title, 'Title-with-dashes_and_"other" _\'01234$#%@\'56,()=/*789 special chars');
+                    assert.equal(example.title, 'Title-with-dashes_and_"other" _\'01234$#%\'56,()=789 special chars');
+                    assert.equal(example.bootstrapComponent, 'FoobarComponent');
                 } else if(exampleIndex === 3) {
                     assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
                     assert.equal(example.title, 'Another custom title');
+                    assert.equal(example.bootstrapComponent, 'FoobarComponent');
                 } else if(exampleIndex === 4) {
                     assert.equal(example.sourceCode, `@Component({\n  selector: 'example-host',\n  template: \`<x-foobar [options]="options"></x-foobar>\`\n})\nclass ExampleHostComponent {}`);
                     assert.equal(example.title, 'Title with number  1234');
+                    assert.equal(example.bootstrapComponent, 'FoobarComponent');
                 } else {
                     assert.equal(true, false, 'Should not be executed');
                 }
@@ -226,12 +225,6 @@ describe('TestSourceParser', () => {
             assert.equal(firstTestDoc.includeTestForComponent, 'FoobarComponent');
         });
 
-        it('should parse and verify that TestDocs.bootstrapComponent is valid when using test host component', () => {
-            let firstTestDoc = testDocs[0];
-
-            assert.equal(firstTestDoc.bootstrapComponent, 'FoobarComponentTestHost');
-        });
-
         it('should parse and verify that TestDocs.examples is valid when using test host component', () => {
             let firstTestDoc = testDocs[0];
 
@@ -250,6 +243,10 @@ describe('TestSourceParser', () => {
                     } else if (exampleIndex === 2) {
                         if(index === 0) {
                             assert.equal(componentProperty.expression, 'hostComponent.content = "Test with http request error"');
+                        }
+                    } else if (exampleIndex === 3) {
+                        if(index === 0) {
+                            assert.equal(componentProperty.expression, 'hostComponent.content = "Test with other hostcomponent"');
                         }
                     } else {
                         assert.equal(true, false, 'Should not be executed');
@@ -271,11 +268,19 @@ describe('TestSourceParser', () => {
                             assert.equal(httpRequest.expression, 'httpRequest.error(new ErrorEvent(\'Server error\', { error: new Error(\'503\'), message: \'Server error\' }))');
                             assert.equal(httpRequest.url, '/error-url');
                         }
+                    } else if(exampleIndex === 3) {
+                        if(index === 0) {
+                            assert.equal(httpRequest.name, 'httpRequest');
+                            assert.equal(httpRequest.expression, 'httpRequest.flush(\'Should return this text\')');
+                            assert.equal(httpRequest.url, '/foobar');
+                        }
                     } else {
                         assert.equal(true, false, 'Should not be executed');
                     }
                 });
 
+                if(exampleIndex === 0) {
+                    assert.equal(example.title, 'Custom title for example');
                 assert.equal(example.sourceCode, 
 `@Component({
           selector: 'x-foobar-test-host',
@@ -285,13 +290,45 @@ describe('TestSourceParser', () => {
           content: string;
           // ...
       }`);
-
-                if(exampleIndex === 0) {
-                    assert.equal(example.title, 'Custom title for example');
+                    assert.equal(example.bootstrapComponent, 'FoobarComponentTestHost');
                 } else if(exampleIndex === 1) {
                     assert.equal(example.title, '', 'Should not have a title set');
+                assert.equal(example.sourceCode, 
+`@Component({
+          selector: 'x-foobar-test-host',
+          template: '<x-foobar><p>{{content}}</p></x-foobar>'
+      })
+      export class FoobarComponentTestHost {
+          content: string;
+          // ...
+      }`);
+                    assert.equal(example.bootstrapComponent, 'FoobarComponentTestHost');
                 } else if(exampleIndex === 2) {
                     assert.equal(example.title, 'Another custom title');
+                    assert.equal(example.bootstrapComponent, 'FooComponentTestHost');
+                assert.equal(example.sourceCode, 
+`@Component({
+          selector: 'x-foo-test-host',
+          template: '<x-foo><p>{{content}}</p></x-foo>'
+      })
+      export class FooComponentTestHost {
+          content: string;
+          // ...
+      }`);
+                } else if(exampleIndex === 3) {
+                    assert.equal(example.title, 'Another custom title with special hostcomponent');
+                    assert.equal(example.bootstrapComponent, 'FooComponentTestHost');
+                assert.equal(example.sourceCode, 
+`@Component({
+          selector: 'x-foo-test-host',
+          template: '<x-foo><p>{{content}}</p></x-foo>'
+      })
+      export class FooComponentTestHost {
+          content: string;
+          // ...
+      }`);
+                } else {
+                    assert.equal(true, false, 'Should not be executed');
                 }
             });
         });
@@ -300,7 +337,7 @@ describe('TestSourceParser', () => {
             let firstTestDoc = testDocs[0];
 
             assert.deepEqual(firstTestDoc.moduleSetup.imports, ['FoobarModule', 'FormsModule', 'HttpClientTestingModule']);
-            assert.deepEqual(firstTestDoc.moduleSetup.declarations, ['FoobarComponentTestHost']);
+            assert.deepEqual(firstTestDoc.moduleSetup.declarations, ['FoobarComponentTestHost', 'FooComponentTestHost']);
         });
     });
 });
@@ -337,9 +374,7 @@ function getTestCompilerHostWithMockComponent() {
           fixture.detectChanges();
         });
         
-        /** 
-         * @uijarexample Custom title for example
-         **/
+        // @uijarexample Custom title for example
         it('should parse test correct when using double quotes to set property value', () => {
             component.title = "Test title";
             component.options = ["item-1", "item-2", "item-3"];
@@ -357,7 +392,7 @@ function getTestCompilerHostWithMockComponent() {
         });
 
         /** 
-         * @uijarexample Title-with-dashes_and_"other" _\'01234$#%@\'56,()=/*789 special chars            */
+         * @uijarexample Title-with-dashes_and_"other" _\'01234$#%\'56,()=789 special chars            */
         it('should parse test correct when using inline function to set property value', () => {
             function getOptions() {
                 return ["item-1", "item-2", "item-3"];
@@ -494,7 +529,7 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
            * @uijar FoobarComponent
            * @hostcomponent FoobarComponentTestHost
            */
-          let moduleDef: TestModuleMetadata = { imports: [FoobarModule, FormsModule, HttpClientTestingModule], declarations: [FoobarComponentTestHost] };
+          let moduleDef: TestModuleMetadata = { imports: [FoobarModule, FormsModule, HttpClientTestingModule], declarations: [FoobarComponentTestHost, FooComponentTestHost] };
           TestBed.configureTestingModule(moduleDef).compileComponents();
         }));
       
@@ -522,11 +557,22 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
 
         /**
          * @uijarexample Another custom title
+         * @hostcomponent FooComponentTestHost  
          **/
-        it('should parse http request in test (error)', () => {
+        it('should parse http request in test (error) and use other hostcomponent', () => {
             hostComponent.content = "Test with http request error";
             const httpRequest: TestRequest = httpMock.expectOne('/error-url');
             httpRequest.error(new ErrorEvent('Server error', { error: new Error('503'), message: 'Server error' }));
+
+            // ...
+        });
+
+        // @uijarexample Another custom title with special hostcomponent
+        //@hostcomponent FooComponentTestHost
+        it('should parse http request in test (flush) and use other hostcomponent', () => {
+            hostComponent.content = "Test with other hostcomponent";
+            const httpRequest: TestRequest = httpMock.expectOne('/foobar');
+            httpRequest.flush('Should return this text');
 
             // ...
         });
@@ -538,6 +584,15 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
           template: '<x-foobar><p>{{content}}</p></x-foobar>'
       })
       export class FoobarComponentTestHost {
+          content: string;
+          // ...
+      }
+
+      @Component({
+          selector: 'x-foo-test-host',
+          template: '<x-foo><p>{{content}}</p></x-foo>'
+      })
+      export class FooComponentTestHost {
           content: string;
           // ...
       }

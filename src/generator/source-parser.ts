@@ -1,19 +1,19 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
+import { TestExample } from './test-source-parser';
 
 export interface SourceDocs {
     componentRefName: string;
     componentDocName: string;
     groupDocName: string;
-    examples?: { componentProperties: any[] }[];
+    examples?: TestExample[];
     description: string;
     fileName: string;
     moduleDetails: ModuleDetails;
     apiDetails: ApiDetails;
     exampleTemplate?: string;
     selector: string;
-    bootstrapComponent?: string;
     extendClasses: string[];
     source: string;
 }

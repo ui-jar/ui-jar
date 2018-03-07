@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { InlineComponent } from './test-source-parser';
+import { InlineComponent, TestDocs } from './test-source-parser';
 
 export interface TestModuleSourceFile {
     sourceFile: ts.SourceFile; 
@@ -13,7 +13,7 @@ export class TestModuleTemplateWriter {
     static outputFilename: string = '__ui-jar-temp-module';
     private outputDirectoryPath: string = path.resolve(__dirname, '../../../temp'); // dist/src/app...
 
-    private getTempModuleTemplate(component: any, moduleId: string) {
+    private getTempModuleTemplate(component: TestDocs, moduleId: string) {
         const moduleName = `TempModule${moduleId}`;
         let defaultImports = `import { NgModule, Component } from "@angular/core";`;
 
@@ -32,7 +32,13 @@ export class TestModuleTemplateWriter {
         template += `${component.inlineFunctions}`;
         template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {}`;
         template += this.getTemplateForExamplePropertiesFunction(component);
-        template += `exports.${component.bootstrapComponent} = ${component.bootstrapComponent};`;
+
+        const bootstrapComponents = component.examples.map((example) => example.bootstrapComponent);
+        const uniqueBootstrapComponents = Array.from(new Set(bootstrapComponents));
+
+        uniqueBootstrapComponents.forEach((bootstrapComponent) => {
+            template += `exports.${bootstrapComponent} = ${bootstrapComponent};`;
+        });
 
         return template;
     }
@@ -41,13 +47,15 @@ export class TestModuleTemplateWriter {
         return inlineComponents.map((inlineComponent) => inlineComponent.source);
     }
 
-    private getModuleSetupTemplate(component: any): string {
+    private getModuleSetupTemplate(component: TestDocs): string {
         let moduleSetupTemplate = Object.keys(component.moduleSetup).reduce((result, propertyName) => {
             result += propertyName + ':[' + component.moduleSetup[propertyName] + '],';
             return result;
         }, '');
 
-        moduleSetupTemplate = moduleSetupTemplate.concat(`entryComponents:[${component.bootstrapComponent}]`);
+        const exampleBootstrapComponents = component.examples.filter((example) => example.bootstrapComponent).map((example) => example.bootstrapComponent);
+
+        moduleSetupTemplate = moduleSetupTemplate.concat(`entryComponents:[${exampleBootstrapComponents}]`);
 
         if (component.moduleSetup.declarations) {
             moduleSetupTemplate = moduleSetupTemplate.concat(`,exports:[${component.moduleSetup.declarations}]`);
@@ -113,6 +121,7 @@ export class TestModuleTemplateWriter {
             exampleProperties += `, httpRequests: ${exampleHttpRequests}`;
             exampleProperties += `, sourceCode: ${JSON.stringify(example.sourceCode)}`;
             exampleProperties += `, title: "${example.title}"`;
+            exampleProperties += `, bootstrapComponent: "${example.bootstrapComponent}"`;
             exampleProperties += '}' + (index < component.examples.length - 1 ? ',' : '');
         });
         exampleProperties += ']';
@@ -145,6 +154,7 @@ export class TestModuleTemplateWriter {
 
                 result.sourceCode = example.sourceCode;
                 result.title = example.title;
+                result.bootstrapComponent = example.bootstrapComponent;
 
                 return result;
             });
@@ -153,11 +163,11 @@ export class TestModuleTemplateWriter {
         return exampleProperties;
     }
 
-    getTestModuleSourceFiles(testDocumentation: any[]): TestModuleSourceFile[] {
+    getTestModuleSourceFiles(testDocumentation: TestDocs[]): TestModuleSourceFile[] {
         let sourceFiles: TestModuleSourceFile[] = [];
 
         testDocumentation.forEach((component, index) => {
-            if (component.bootstrapComponent) {
+            if (component.examples.length > 0) {
                 let sourceFileNameHash = crypto.createHash('md5').update(component.fileName).digest('hex');
                 let sourceFile = ts.createSourceFile(TestModuleTemplateWriter.outputFilename +'-'+ sourceFileNameHash + '.ts',
                     this.getTempModuleTemplate(component, sourceFileNameHash), ts.ScriptTarget.ES5);

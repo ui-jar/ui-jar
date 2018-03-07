@@ -71,7 +71,7 @@ export class ExampleItemComponent implements OnInit {
     }
 
     private getBootstrapComponentRef(componentKey: string) {
-        const bootstrapComponent = this.appData.components[decodeURI(componentKey)].bootstrapComponent;
+        const bootstrapComponent = this._example.bootstrapComponent;
 
         return this.appData.componentRefs.find((componentRef) => {
             return bootstrapComponent === componentRef.name;
@@ -218,4 +218,5 @@ export interface ExampleProperties {
     componentProperties: { name: string, expression: string };
     httpRequests: any;
     sourceCode: string;
+    bootstrapComponent: string;
 }

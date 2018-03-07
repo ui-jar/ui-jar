@@ -5,12 +5,12 @@ import { BundleTemplateWriter } from '../generator/bundle-writer';
 import { FileSearch } from '../generator/file-search';
 import { TestModuleTemplateWriter, TestModuleSourceFile } from '../generator/test-module-writer';
 import { GeneratedSourceParser } from '../generator/generated-source-parser';
-import { TestSourceParser } from '../generator/test-source-parser';
+import { TestSourceParser, TestDocs } from '../generator/test-source-parser';
 import { CliArgs } from '../cli/cli-utils';
 
 interface ProjectDocumentation {
     docs: SourceDocs[];
-    testDocs: any[];
+    testDocs: TestDocs[];
 }
 
 function getProjectDocumentation(options: CliArgs): ProjectDocumentation {
@@ -26,7 +26,7 @@ function getProjectDocumentation(options: CliArgs): ProjectDocumentation {
     };
 }
 
-function getTestModuleSourceFilesData(testDocs: any[]): TestModuleSourceFile[] {
+function getTestModuleSourceFilesData(testDocs: TestDocs[]): TestModuleSourceFile[] {
     return new TestModuleTemplateWriter().getTestModuleSourceFiles(testDocs);
 }
 
@@ -76,7 +76,6 @@ export function generateRequiredFiles(options: CliArgs) {
         testDocs.forEach((testDoc) => {
             if (testDoc.includeTestForComponent === componentDoc.componentRefName) {
                 componentDoc.examples = testDoc.examples;
-                componentDoc.bootstrapComponent = testDoc.bootstrapComponent;
             }
         });
     });
@@ -126,8 +125,8 @@ function getGeneratedDocs(generatedSourceFileNames, generatedTestModuleSourceFil
 
 function getAllAddedComponentsThatHasTest(docs: SourceDocs[]) {
     return docs.filter((docs) => {
-        if(docs.componentDocName && docs.groupDocName && !docs.bootstrapComponent) {
-            console.info(`Could not find any test for "${docs.componentRefName}", add a test to the component to make it visible in UI-jar.`);
+        if(docs.componentDocName && docs.groupDocName && docs.examples.length === 0) {
+            console.info(`Could not find any test with /** @uijarexample */ comment for "${docs.componentRefName}".\nAdd a test and make sure it has a comment as following /** @uijarexample */ to make it visible in UI-jar.`);
             return false;
         }
 
