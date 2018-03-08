@@ -73,6 +73,7 @@ platformBrowserDynamic().bootstrapModule(UIJarModule);
 
 * [Basic usage](#example-usage-basic)
 * [Usage with a test host component](#example-usage-with-test-host-component)
+* [Usage with multiple test host components](#example-usage-with-multiple-test-host-components)
 * [HttpClient example with mock requests](#example-usage-test-with-httpclienttestingmodule)
 * [Add more details about your component](#example-usage-add-more-details-about-your-component)
 
@@ -222,6 +223,97 @@ describe('ButtonComponent', () => {
 })
 class ButtonComponentTestHost {
     buttonText: string;
+}
+```
+
+## Example usage (with multiple test host components)
+
+### Source code
+
+```js
+import { Component } from '@angular/core';
+
+/**
+ * @group Buttons & indicators
+ * @component Buttons
+ */
+@Component({
+    selector: 'button[buttonA]',
+    template: '<ng-content></ng-content>',
+    styleUrls: ['./button.scss']
+})
+export class ButtonComponent {
+    ...
+}
+```
+
+### Test code
+
+Sometimes you want to create multiple test host components for your tests.<br/>
+It's possible to view multiple test host components in UI-jar, just add "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you add your @uijarexample-comment.<br/>
+
+```js
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { Component } from '@angular/core';
+import { ButtonsModule } from './buttons.module';
+
+describe('ButtonComponent', () => {
+    let fixture_1: ComponentFixture<ButtonComponentTestHost>;
+    let fixture_2: ComponentFixture<ButtonComponentAnotherTestHost>;
+
+    beforeEach(async(() => {
+        /**
+         * @uijar ButtonComponent
+         */
+        let moduleDefinition = {
+            imports: [ButtonsModule],
+            declarations: [ButtonComponentTestHost, ButtonComponentAnotherTestHost]
+        };
+
+        TestBed.configureTestingModule(moduleDefinition).compileComponents();
+    }));
+
+    /**
+     * @uijarexample Add custom title to example here
+     * @hostcomponent ButtonComponentTestHost
+     */
+    it('should create standard button', () => {
+        fixture_1 = TestBed.createComponent(ButtonComponentTestHost);
+        fixture_1.componentInstance.buttonText = 'Standard button';
+
+        ...
+    });
+
+    /**
+     * @uijarexample Another example with different host component
+     * @hostcomponent ButtonComponentAnotherTestHost
+     */
+    it('should create standard button', () => {
+        fixture_2 = TestBed.createComponent(ButtonComponentAnotherTestHost);
+        fixture_2.componentInstance.title = 'Custom title';
+        fixture_2.componentInstance.buttonText = 'Standard button';
+
+        ...
+    });
+});
+
+@Component({
+    selector: 'x-button-test-host',
+    template: `<button buttonA>{{buttonText}}</button>`
+})
+class ButtonComponentTestHost {
+    buttonText: string;
+}
+
+@Component({
+    selector: 'x-button-another-test-host',
+    template: `
+    <h1>{{title}}</h1>
+    <button buttonA>{{buttonText}}</button>`
+})
+class ButtonComponentAnotherTestHost {
+    buttonText: string;
+    title: string;
 }
 ```
 
