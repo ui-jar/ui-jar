@@ -230,23 +230,25 @@ describe('TestSourceParser', () => {
 
             firstTestDoc.examples.forEach((example, exampleIndex) => {
                 example.componentProperties.forEach((componentProperty, index) => {
-                    assert.equal(componentProperty.name, 'hostComponent');
-
                     if (exampleIndex === 0) {
+                        assert.equal(componentProperty.name, 'hostComponent');
                         if (index === 0) {
                             assert.equal(componentProperty.expression, 'hostComponent.content = "Test content"');
                         }
                     } else if (exampleIndex === 1) {
+                        assert.equal(componentProperty.name, 'hostComponent');
                         if (index === 0) {
                             assert.equal(componentProperty.expression, 'hostComponent.content = "Test with http request"');
                         }
                     } else if (exampleIndex === 2) {
+                        assert.equal(componentProperty.name, 'hostComponent2');
                         if(index === 0) {
-                            assert.equal(componentProperty.expression, 'hostComponent.content = "Test with http request error"');
+                            assert.equal(componentProperty.expression, 'hostComponent2.content = "Test with http request error"');
                         }
                     } else if (exampleIndex === 3) {
+                        assert.equal(componentProperty.name, 'hostComponent2');
                         if(index === 0) {
-                            assert.equal(componentProperty.expression, 'hostComponent.content = "Test with other hostcomponent"');
+                            assert.equal(componentProperty.expression, 'hostComponent2.content = "Test with other hostcomponent"');
                         }
                     } else {
                         assert.equal(true, false, 'Should not be executed');
@@ -521,7 +523,9 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
 
     describe('FoobarComponent', () => {
         let hostComponent: FoobarComponentTestHost;
+        let hostComponent2: FooComponentTestHost;
         let fixture: ComponentFixture<FoobarComponentTestHost>;
+        let fixture2: ComponentFixture<FooComponentTestHost>;
         let httpMock: HttpTestingController;
       
         beforeEach(async(() => {
@@ -536,6 +540,8 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
         beforeEach(() => {
           fixture = TestBed.createComponent(FoobarComponentTestHost);
           hostComponent = fixture.componentInstance;
+          fixture2 = TestBed.createComponent(FooComponentTestHost);
+          hostComponent2 = fixture.componentInstance;
           fixture.detectChanges();
         });
         
@@ -560,7 +566,7 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
          * @hostcomponent FooComponentTestHost  
          **/
         it('should parse http request in test (error) and use other hostcomponent', () => {
-            hostComponent.content = "Test with http request error";
+            hostComponent2.content = "Test with http request error";
             const httpRequest: TestRequest = httpMock.expectOne('/error-url');
             httpRequest.error(new ErrorEvent('Server error', { error: new Error('503'), message: 'Server error' }));
 
@@ -570,7 +576,7 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
         // @uijarexample Another custom title with special hostcomponent
         //@hostcomponent FooComponentTestHost
         it('should parse http request in test (flush) and use other hostcomponent', () => {
-            hostComponent.content = "Test with other hostcomponent";
+            hostComponent2.content = "Test with other hostcomponent";
             const httpRequest: TestRequest = httpMock.expectOne('/foobar');
             httpRequest.flush('Should return this text');
 

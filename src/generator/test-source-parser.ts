@@ -340,16 +340,20 @@ export class TestSourceParser {
             } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
                 if (this.isExampleComment(childNode) && bootstrapComponent) {
                     const example = {
-                        componentProperties: this.getExampleComponentProperties(childNode, bootstrapComponent),
+                        componentProperties: null,
                         httpRequests: this.getExampleHttpRequests(childNode),
                         title: this.getExampleTitle(childNode),
                         sourceCode: '',
-                        bootstrapComponent: this.getExampleBootstrapComponent(childNode)
+                        bootstrapComponent: this.getExampleHostComponent(childNode)
                     };
 
                     if(!example.bootstrapComponent) {
                         example.bootstrapComponent = bootstrapComponent;
+                    } else {
+                        details.hasHostComponent = true;
                     }
+
+                    example.componentProperties = this.getExampleComponentProperties(childNode, example.bootstrapComponent);
 
                     example.sourceCode = this.getExampleSourceCode(details.hasHostComponent,
                         example.bootstrapComponent, classesWithDocs, otherClasses, details, example);
@@ -428,7 +432,7 @@ export class TestSourceParser {
         return '';
     }
 
-    private getExampleBootstrapComponent(node: ts.Node): string {
+    private getExampleHostComponent(node: ts.Node): string {
         const comment = node.getFullText().replace(node.getText(), '');
         const regexp = /@hostcomponent\s([a-z0-9_\-$]+)/i;
         const matches = regexp.exec(comment);
