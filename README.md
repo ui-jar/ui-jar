@@ -130,7 +130,7 @@ describe('CheckboxComponent', () => {
         /** 
          * @uijar CheckboxComponent
          */
-        let moduleDefinition = {
+        const moduleDefinition = {
             declarations: [CheckboxComponent]
         };
 
@@ -191,23 +191,23 @@ import { Component } from '@angular/core';
 import { ButtonsModule } from './buttons.module';
 
 describe('ButtonComponent', () => {
-  let fixture: ComponentFixture<ButtonComponentTestHost>;
+    let fixture: ComponentFixture<ButtonComponentTestHost>;
 
-  beforeEach(async(() => {
-    /** 
-     * @uijar ButtonComponent
-     * @hostcomponent ButtonComponentTestHost
-     */
-    let moduleDefinition = { 
-        imports: [ButtonsModule],
-        declarations: [ButtonComponentTestHost]
-    };
+    beforeEach(async(() => {
+        /**
+        * @uijar ButtonComponent
+        * @hostcomponent ButtonComponentTestHost
+        */
+        const moduleDefinition = {
+            imports: [ButtonsModule],
+            declarations: [ButtonComponentTestHost]
+        };
 
-    TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
-        fixture = TestBed.createComponent(ButtonComponentTestHost);
-        fixture.detectChanges();
-    });
-  }));
+        TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+            fixture = TestBed.createComponent(ButtonComponentTestHost);
+            fixture.detectChanges();
+        });
+    }));
 
     /** @uijarexample Add custom title to example here */
     it('should create standard button', () => {
@@ -250,7 +250,7 @@ export class ButtonComponent {
 ### Test code
 
 Sometimes you want to create multiple test host components for your tests.<br/>
-It's possible to view multiple test host components in UI-jar, just add "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you add your @uijarexample-comment.<br/>
+It's possible to view multiple test host components in UI-jar, just add "@hostcomponent HOST_COMPONENT_CLASS_NAME" to the JSDoc-comment where you have your "@uijarexample"-comment.<br/>
 
 ```js
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
@@ -258,14 +258,11 @@ import { Component } from '@angular/core';
 import { ButtonsModule } from './buttons.module';
 
 describe('ButtonComponent', () => {
-    let fixture_1: ComponentFixture<ButtonComponentTestHost>;
-    let fixture_2: ComponentFixture<ButtonComponentAnotherTestHost>;
-
     beforeEach(async(() => {
         /**
          * @uijar ButtonComponent
          */
-        let moduleDefinition = {
+        const moduleDefinition = {
             imports: [ButtonsModule],
             declarations: [ButtonComponentTestHost, ButtonComponentAnotherTestHost]
         };
@@ -278,8 +275,8 @@ describe('ButtonComponent', () => {
      * @hostcomponent ButtonComponentTestHost
      */
     it('should create standard button', () => {
-        fixture_1 = TestBed.createComponent(ButtonComponentTestHost);
-        fixture_1.componentInstance.buttonText = 'Standard button';
+        const fixture: ComponentFixture<ButtonComponentTestHost> = TestBed.createComponent(ButtonComponentTestHost);
+        fixture.componentInstance.buttonText = 'Standard button';
 
         ...
     });
@@ -289,9 +286,9 @@ describe('ButtonComponent', () => {
      * @hostcomponent ButtonComponentAnotherTestHost
      */
     it('should create standard button', () => {
-        fixture_2 = TestBed.createComponent(ButtonComponentAnotherTestHost);
-        fixture_2.componentInstance.title = 'Custom title';
-        fixture_2.componentInstance.buttonText = 'Standard button';
+        const fixture: ComponentFixture<ButtonComponentAnotherTestHost> = TestBed.createComponent(ButtonComponentAnotherTestHost);
+        fixture.componentInstance.title = 'Custom title';
+        fixture.componentInstance.buttonText = 'Standard button';
 
         ...
     });
@@ -379,20 +376,21 @@ describe('IconComponent', () => {
   let fixture: ComponentFixture<IconComponent>;
   let httpMock: HttpTestingController;
 
-  beforeEach(async(() => {
-    /** 
-     * @uijar IconComponent
-     */
-    const moduleDefinition = {
-        imports: [HttpClientTestingModule],
-        declarations: [IconComponent],
-    };
-    TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
-        fixture = TestBed.createComponent(IconComponent);
-        httpMock = fixture.componentRef.injector.get(HttpTestingController);
-        fixture.detectChanges();
-    });
-  }));
+    beforeEach(async(() => {
+        /**
+        * @uijar IconComponent
+        */
+        const moduleDefinition = {
+            imports: [HttpClientTestingModule],
+            declarations: [IconComponent],
+        };
+
+        TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+            fixture = TestBed.createComponent(IconComponent);
+            httpMock = fixture.componentRef.injector.get(HttpTestingController);
+            fixture.detectChanges();
+        });
+    }));
 
     /** @uijarexample Add custom title to example here */
     it('should load icon', () => {
