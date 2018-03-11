@@ -138,27 +138,11 @@ nav {
         }
     }
 
-    .beta-banner {
-        position: absolute;
-        top: 32px;
-        right: -34px;
-        width: 161px;
-        padding: 5px;
-        background-color: #c35050;
-        box-shadow: 0px 0px 5px #043b58;
-        transform: rotate(45deg);
-        text-align: center;
-        font-family: monospace;
-        color: #fff;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
     .project-link {
         position: absolute;
         display: block;
         top: 8px;
-        right: 120px;
+        right: 10px;
         padding: 3px 3px 3px 40px;
         line-height: 30px;
         text-decoration: none;
