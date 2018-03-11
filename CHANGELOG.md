@@ -1,3 +1,10 @@
+# 1.0.0 (2018-03-11)
+Happy to announce v.1.0.0 release of UI-jar!
+
+### Features
+* Add possibility to use multiple @hostcomponents
+
+
 # 1.0.0-rc.1 (2018-02-20)
 ### Bug fixes
 * HostComponent in seperate file is not showing up in Example container
