@@ -66,7 +66,7 @@ export class TestModuleTemplateWriter {
         return moduleSetupTemplate;
     }
 
-    private getResolvedImportStatements(component: any): string {
+    private getResolvedImportStatements(component: TestDocs): string {
         let importsTemplate = '';
 
         component.importStatements.forEach((importStatement) => {
@@ -89,7 +89,7 @@ export class TestModuleTemplateWriter {
         return importsTemplate;
     }
 
-    private getTemplateForExamplePropertiesFunction(component: any): string {
+    private getTemplateForExamplePropertiesFunction(component: TestDocs): string {
         // TODO (nording) refactor this...
         let exampleProperties = '[';
         component.examples.forEach((example, index) => {
