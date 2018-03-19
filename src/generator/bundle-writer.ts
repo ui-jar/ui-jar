@@ -16,7 +16,7 @@ export class BundleTemplateWriter {
         private urlPrefix: string) {
     }
 
-    getJavascriptFileTemplate() {
+    private getJavascriptFileTemplate() {
         const template = `
             ${this.getModuleImportStatements()}
             
