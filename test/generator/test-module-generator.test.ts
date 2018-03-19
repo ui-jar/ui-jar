@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as ts from 'typescript';
 import * as sinon from 'sinon';
 import * as fs from 'fs';
-import { TestModuleTemplateWriter, TestModuleSourceFile } from '../../src/generator/test-module-writer';
+import { TestModuleGenerator, TestModuleSourceFile } from '../../src/generator/test-module-generator';
 import { SourceParser } from '../../src/generator/source-parser';
 import { TestSourceParser } from '../../src/generator/test-source-parser';
 
@@ -25,7 +25,7 @@ describe('TestModuleTemplateWriter', () => {
 
             const testSourceParser = new TestSourceParser({ files: sourceFiles }, program);
             const testDocs = testSourceParser.getProjectTestDocumentation(classesWithDocs, otherClasses);
-            const testModuleSourceFiles: TestModuleSourceFile[] = new TestModuleTemplateWriter().getTestModuleSourceFiles(testDocs);
+            const testModuleSourceFiles: TestModuleSourceFile[] = new TestModuleGenerator().getTestModuleSourceFiles(testDocs);
             testModuleSourceFile = testModuleSourceFiles[0].sourceFile.getText();
         });
 

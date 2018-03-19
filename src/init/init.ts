@@ -3,7 +3,8 @@ import * as path from 'path';
 import { SourceParser, SourceDocs } from '../generator/source-parser';
 import { BundleTemplateWriter } from '../generator/bundle-writer';
 import { FileSearch } from '../generator/file-search';
-import { TestModuleTemplateWriter, TestModuleSourceFile } from '../generator/test-module-writer';
+import { TestModuleTemplateWriter } from '../generator/test-module-writer';
+import { TestModuleGenerator, TestModuleSourceFile } from '../generator/test-module-generator';
 import { GeneratedSourceParser } from '../generator/generated-source-parser';
 import { TestSourceParser, TestDocs } from '../generator/test-source-parser';
 import { CliArgs } from '../cli/cli-utils';
@@ -27,7 +28,7 @@ function getProjectDocumentation(options: CliArgs): ProjectDocumentation {
 }
 
 function getTestModuleSourceFilesData(testDocs: TestDocs[]): TestModuleSourceFile[] {
-    return new TestModuleTemplateWriter().getTestModuleSourceFiles(testDocs);
+    return new TestModuleGenerator().getTestModuleSourceFiles(testDocs);
 }
 
 export function generateSingleFile(options: CliArgs, fileName: string) {
@@ -36,15 +37,12 @@ export function generateSingleFile(options: CliArgs, fileName: string) {
         return new RegExp((fileName.replace(/\\/gi, '/').replace(/\./gi, '\\.') +'$')).test(file.fileName);
     });
 
-    const testModuleTemplateWriter = new TestModuleTemplateWriter();
-
     const generatedTestModuleSourceFiles: ts.SourceFile[] = updateCurrentSourceFile.map((file) => {
         return file.sourceFile;
     });
 
-    testModuleTemplateWriter.createTestModuleFiles(generatedTestModuleSourceFiles);
+    createTestModuleFiles(generatedTestModuleSourceFiles);
 }
-
 
 export function generateRequiredFiles(options: CliArgs) {
     console.info('Generating resources...');
@@ -53,11 +51,10 @@ export function generateRequiredFiles(options: CliArgs) {
     const generatedTestModuleSourceFiles: ts.SourceFile[] = getTestModuleSourceFilesData(testDocs).map((file) => {
         return file.sourceFile;
     });
-    
-    let testModuleTemplateWriter = new TestModuleTemplateWriter();
-    testModuleTemplateWriter.createTestModuleFiles(generatedTestModuleSourceFiles);
 
-    let generatedSourceFileNames = generatedTestModuleSourceFiles.map((sourceFile) => {
+    createTestModuleFiles(generatedTestModuleSourceFiles);
+
+    const generatedSourceFileNames = generatedTestModuleSourceFiles.map((sourceFile) => {
         return sourceFile.fileName;
     });
 
@@ -82,7 +79,7 @@ export function generateRequiredFiles(options: CliArgs) {
 
     docs = getAllAddedComponentsThatHasTest(docs);
 
-    let fileWriter = new BundleTemplateWriter(docs, options.urlPrefix);
+    const fileWriter = new BundleTemplateWriter(docs, options.urlPrefix);
 
     try {
         fileWriter.createBundleFile();
@@ -121,6 +118,11 @@ function getGeneratedDocs(generatedSourceFileNames, generatedTestModuleSourceFil
     );
 
     return generatedDocumentation.getGeneratedDocumentation();
+}
+
+function createTestModuleFiles(files: ts.SourceFile[]) {
+    const testModuleTemplateWriter = new TestModuleTemplateWriter();
+    testModuleTemplateWriter.createTestModuleFiles(files);
 }
 
 function getAllAddedComponentsThatHasTest(docs: SourceDocs[]) {
