@@ -6,7 +6,7 @@ import { TestModuleGenerator, TestModuleSourceFile } from '../../src/generator/t
 import { SourceParser } from '../../src/generator/source-parser';
 import { TestSourceParser } from '../../src/generator/test-source-parser';
 
-describe('TestModuleTemplateWriter', () => {
+describe('TestModuleGenerator', () => {
     describe('getTestModuleSourceFiles', () => {
         let testModuleSourceFile;
         let readFileSyncStub;
