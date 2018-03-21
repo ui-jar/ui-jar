@@ -300,7 +300,24 @@ export class TestSourceParser {
 
         let inlineFunctions = [];
 
-        let traverseChild = (childNode: ts.Node) => {
+        const parseJsDocs = (docsNode: ts.Node, docs: { name: string, text: string }[]) => {
+            // TODO (nording) refactor this...
+            docs.forEach((doc) => {
+                if (doc.name === 'uijar') {
+                    if (!bootstrapComponent) {
+                        bootstrapComponent = doc.text;
+                    }
+
+                    details.includeTestForComponent = doc.text;
+                    details.moduleSetup = this.getModuleDefinitionDetails(docsNode);
+                } else if (doc.name === 'hostcomponent') {
+                    bootstrapComponent = doc.text;
+                    details.hasHostComponent = true;
+                }
+            });
+        };
+
+        const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.ImportDeclaration) {
                 let importObj = {
                     value: childNode.getText(),
@@ -312,24 +329,14 @@ export class TestSourceParser {
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
 
                 if (nodeSymbol) {
-                    nodeSymbol.getJsDocTags().map((docs: { name: string, text: string }) => {
+                    const docs = nodeSymbol.getJsDocTags().map((docs: { name: string, text: string }) => {
                         return {
                             name: docs.name,
                             text: docs.text.trim()
                         };
-                    }).forEach((docs: { name: string, text: string }) => {
-                        if (docs.name === 'uijar') {
-                            if (!bootstrapComponent) {
-                                bootstrapComponent = docs.text;
-                            }
-
-                            details.includeTestForComponent = docs.text;
-                            details.moduleSetup = this.getModuleDefinitionDetails(childNode);
-                        } else if (docs.name === 'hostcomponent') {
-                            bootstrapComponent = docs.text;
-                            details.hasHostComponent = true;
-                        }
                     });
+
+                    parseJsDocs(childNode, docs);
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
                 const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration), fileName);
@@ -359,6 +366,14 @@ export class TestSourceParser {
                         example.bootstrapComponent, classesWithDocs, otherClasses, details, example);
 
                     details.examples.push(example);
+                } else {
+                    const docs = this.getJsDocTags(childNode);
+
+                    if(docs.length > 0) {
+                        const testModuleDeclarationNode = this.getTestModuleDeclarationNode(childNode);
+
+                        parseJsDocs(testModuleDeclarationNode, docs);
+                    }
                 }
             } else if (childNode.kind === ts.SyntaxKind.FunctionDeclaration) {
                 const inlineFunction = this.getInlineFunction((childNode as ts.FunctionDeclaration));
@@ -406,6 +421,79 @@ export class TestSourceParser {
             name: inlineFunctionDeclaration.name.getText(),
             func: inlineFunctionDeclaration.getText()
         };
+    }
+
+    private getJsDocTags(node: ts.Node): { name: string, text: string }[] {
+        const jsDoc = node.getFullText().replace(node.getText(), '');
+        let result = [];
+
+        const componentName = this.getUIJarComponentName(jsDoc);
+
+        if(componentName) {
+            result.push(componentName);
+        }
+
+        const hostComponentName = this.getHostComponentName(jsDoc);
+
+        if(hostComponentName) {
+            result.push(hostComponentName);
+        }
+
+        return result;
+    }
+
+    private getHostComponentName(jsDoc: string) {
+        const regexp = /@hostcomponent\s(.+)/i;
+        const matches = jsDoc.match(regexp);
+
+        if(matches) {
+            return {
+                name: 'hostcomponent',
+                text: matches[1].trim()
+            };
+        }
+
+        return null;
+    }
+
+    private getUIJarComponentName(jsDoc: string) {
+        const regexp = /@uijar\s(.+)/i;
+        const matches = jsDoc.match(regexp);
+
+        if(matches) {
+            return {
+                name: 'uijar',
+                text: matches[1].trim()
+            };
+        }
+
+        return null;
+    }
+
+    private getTestModuleDeclarationNode(node: ts.Node) {
+        const traverseChild = (childNode: ts.Node) => {
+            if(childNode.kind === ts.SyntaxKind.Identifier) {
+                const nodeSymbol = this.checker.getSymbolAtLocation(childNode);
+
+                if(nodeSymbol) {
+                    if(nodeSymbol.valueDeclaration) {
+                        const result = nodeSymbol.valueDeclaration.getChildren().find((child) => {
+                            return child.kind === ts.SyntaxKind.ObjectLiteralExpression;
+                        });
+
+                        if(result) {
+                            return result;
+                        }
+                    }
+                }
+            } else if (childNode.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+                return childNode;
+            }
+
+            return ts.forEachChild(childNode, traverseChild);
+        };
+
+        return traverseChild(node);
     }
 
     private isExampleComment(node: ts.Node) {
