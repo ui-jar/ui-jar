@@ -60,9 +60,9 @@ export class ExampleItemComponent implements OnInit {
         let imports = [];
 
         dependencies.forEach((moduleName) => {
-            this.modules.forEach((moduleRef) => {
-                if (moduleName === moduleRef.name) {
-                    imports.push(moduleRef);
+            this.modules.forEach((moduleDetails) => {
+                if (moduleName === moduleDetails.name) {
+                    imports.push(moduleDetails.moduleRef);
                 }
             });
         });
@@ -73,9 +73,13 @@ export class ExampleItemComponent implements OnInit {
     private getBootstrapComponentRef(componentKey: string) {
         const bootstrapComponent = this._example.bootstrapComponent;
 
-        return this.appData.componentRefs.find((componentRef) => {
-            return bootstrapComponent === componentRef.name;
+        const componentDetails = this.appData.componentRefs.find((componentDetails) => {
+            return bootstrapComponent === componentDetails.name;
         });
+
+        if(componentDetails) {
+            return componentDetails.componentRef;
+        }
     }
 
     private createView() {

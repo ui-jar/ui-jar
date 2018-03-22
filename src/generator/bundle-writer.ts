@@ -82,7 +82,12 @@ export class BundleTemplateWriter {
             moduleNames.push(item.moduleDetails.moduleRefName);
         });
 
-        let template = `[${moduleNames}]`;
+        let template = '';
+        moduleNames.forEach((moduleName, index) => {
+            template += `${index > 0 ? ',': ''}{ name: "${moduleName}", moduleRef: ${moduleName}}`;
+        });
+
+        template = `[${template}]`;
 
         return template;
     }
@@ -169,7 +174,12 @@ export class BundleTemplateWriter {
             });
         });
 
-        let template = `[${componentRefs}]`;
+        let template = '';
+        componentRefs.forEach((componentName, index) => {
+            template += `${index > 0 ? ',': ''}{ name: "${componentName}", componentRef: ${componentName}}`;
+        });
+
+        template = `[${template}]`;
 
         return template;
     }
