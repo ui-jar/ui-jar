@@ -531,10 +531,12 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
         beforeEach(async(() => {
           /** 
            * @uijar FoobarComponent
-           * @hostcomponent FoobarComponentTestHost
+           * @hostcomponent FoobarComponentTestHost 
            */
-          let moduleDef: TestModuleMetadata = { imports: [FoobarModule, FormsModule, HttpClientTestingModule], declarations: [FoobarComponentTestHost, FooComponentTestHost] };
-          TestBed.configureTestingModule(moduleDef).compileComponents();
+          TestBed.configureTestingModule({
+            imports: [FoobarModule, FormsModule, HttpClientTestingModule],
+            declarations: [FoobarComponentTestHost, FooComponentTestHost]
+          }).compileComponents();
         }));
       
         beforeEach(() => {
