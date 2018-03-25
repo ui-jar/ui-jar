@@ -1,6 +1,8 @@
 import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
+import { AppData } from '../app.model';
+import { ExampleProperties } from './example-item/example-item.component';
 
 @Component({
     selector: 'ui-jar-examples',
@@ -11,12 +13,12 @@ import { Subscription } from 'rxjs/Subscription';
     `
 })
 export class ExamplesComponent implements OnInit, OnDestroy {
-    examples: any[] = [];
+    examples: ExampleProperties[] = [];
     private routerSub: Subscription;
 
     constructor(private activatedRoute: ActivatedRoute,
         private router: Router,
-        @Inject('AppData') private appData: any) { }
+        @Inject('AppData') private appData: AppData) { }
 
     ngOnInit(): void {
         this.routerSub = this.router.events.subscribe((event) => {
@@ -39,7 +41,7 @@ export class ExamplesComponent implements OnInit, OnDestroy {
         this.examples = this.getComponentExamples(componentName);
     }
 
-    private getComponentExamples(componentKey: string): string[] {
+    private getComponentExamples(componentKey: string): ExampleProperties[] {
         let moduleDependencyName = this.appData.components[decodeURI(componentKey)].moduleDependencies[0];
         return this.appData.examples[moduleDependencyName];
     }

@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
+import { AppData } from '../app.model';
 
 @Component({
     selector: 'ui-jar-container',
@@ -31,7 +32,7 @@ export class ContainerComponent {
 
     constructor(private router: Router,
                 private activatedRoute: ActivatedRoute,
-                @Inject('AppData') private appData: any) {}
+                @Inject('AppData') private appData: AppData) {}
 
     ngOnInit(): void {
         this.routerSub = this.router.events.subscribe((event) => {

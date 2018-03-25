@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { Router, Route, NavigationEnd } from '@angular/router';
-import { NavigationLinks } from './app.model';
+import { NavigationLinks, AppData } from './app.model';
 import { Subscription } from 'rxjs/Subscription';
 
 @Component({
@@ -39,7 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
     showNavigation: boolean = false;
     routerEventSubscription: Subscription;
 
-    constructor(@Inject('AppData') private appData: any,
+    constructor(@Inject('AppData') private appData: AppData,
                 private router: Router) {
         this.navigationLinks = appData.navigationLinks;
         this.resetRouteConfigWithPrefixedUrls();

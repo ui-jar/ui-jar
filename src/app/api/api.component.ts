@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { AppData } from '../app.model';
 
 @Component({
     selector: 'ui-jar-api',
@@ -54,7 +55,7 @@ export class ApiComponent implements OnInit {
     api: any;
 
     constructor(private activatedRoute: ActivatedRoute,
-                @Inject('AppData') private appData: any) {}
+                @Inject('AppData') private appData: AppData) {}
 
     ngOnInit(): void {
         this.createView();

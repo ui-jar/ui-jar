@@ -5,6 +5,7 @@ import { HttpTestingController, TestRequest } from '@angular/common/http/testing
 import { CodeExampleComponent } from './code-example/code-example.component';
 import { Observable } from 'rxjs/Observable';
 import { updateProperty } from 'typescript';
+import { AppData } from '../../app.model';
 
 @Component({
     selector: 'ui-jar-example-item',
@@ -43,7 +44,7 @@ export class ExampleItemComponent implements OnInit {
     constructor(private compiler: Compiler,
                 private parentInjector: Injector,
                 private activatedRoute: ActivatedRoute,
-                @Inject('AppData') private appData: any) { }
+                @Inject('AppData') private appData: AppData) { }
 
     ngOnInit(): void {
         this.modules = this.appData.modules;
