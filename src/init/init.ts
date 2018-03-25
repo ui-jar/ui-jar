@@ -32,16 +32,20 @@ function getTestModuleSourceFilesData(testDocs: TestDocs[]): TestModuleSourceFil
 }
 
 export function generateSingleFile(options: CliArgs, fileName: string) {
-    const generatedTestModuleSourceFilesData = getTestModuleSourceFilesData(getProjectDocumentation(options).testDocs);
-    const updateCurrentSourceFile = generatedTestModuleSourceFilesData.filter((file) => {
-        return new RegExp((fileName.replace(/\\/gi, '/').replace(/\./gi, '\\.') +'$')).test(file.fileName);
-    });
+    try {
+        const generatedTestModuleSourceFilesData = getTestModuleSourceFilesData(getProjectDocumentation(options).testDocs);
+        const updateCurrentSourceFile = generatedTestModuleSourceFilesData.filter((file) => {
+            return new RegExp((fileName.replace(/\\/gi, '/').replace(/\./gi, '\\.') +'$')).test(file.fileName);
+        });
 
-    const generatedTestModuleSourceFiles: ts.SourceFile[] = updateCurrentSourceFile.map((file) => {
-        return file.sourceFile;
-    });
+        const generatedTestModuleSourceFiles: ts.SourceFile[] = updateCurrentSourceFile.map((file) => {
+            return file.sourceFile;
+        });
 
-    createTestModuleFiles(generatedTestModuleSourceFiles);
+        createTestModuleFiles(generatedTestModuleSourceFiles);
+    } catch (error) {
+        console.error(`Failed to generate resources to "${fileName}".`);
+    }
 }
 
 export function generateRequiredFiles(options: CliArgs) {
@@ -84,7 +88,7 @@ export function generateRequiredFiles(options: CliArgs) {
     try {
         fileWriter.createBundleFile();
     } catch (error) {
-        console.error('Failed to generate resources:', error);
+        console.error('Failed to generate resources.');
         return;
     }
 
@@ -127,7 +131,7 @@ function createTestModuleFiles(files: ts.SourceFile[]) {
 
 function getAllAddedComponentsThatHasTest(docs: SourceDocs[]) {
     return docs.filter((docs) => {
-        if(docs.componentDocName && docs.groupDocName && docs.examples.length === 0) {
+        if(docs.componentDocName && docs.groupDocName && (docs.examples && docs.examples.length === 0)) {
             console.info(`Could not find any test with /** @uijarexample */ comment for "${docs.componentRefName}".\nAdd a test and make sure it has a comment as following /** @uijarexample */ to make it visible in UI-jar.`);
             return false;
         }

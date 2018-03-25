@@ -90,10 +90,6 @@ export class TestSourceParser {
             console.error(`1. Verify that "@uijar ${bootstrapComponent}" or "@hostcomponent ${bootstrapComponent}" is using correct component reference name.`);
             console.error(`2. If you have imported the module that has "${bootstrapComponent}" in @NgModule({ declarations: [${bootstrapComponent}] }) in the test setup, make sure that the imported module also has "${bootstrapComponent}" in @NgModule({ exports: [${bootstrapComponent}] })`);
         });
-
-        if (missingBootstrapComponents.length > 0) {
-            process.exit(1);
-        }
     }
 
     private getTestDocs(files: string[], classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]): TestDocs[] {
