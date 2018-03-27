@@ -12,12 +12,9 @@ describe('ProgressBarComponent', () => {
     /**
      * @uijar ProgressBarComponent
      */
-    const moduleDefinition: TestModuleMetadata = {
+    TestBed.configureTestingModule({
       declarations: [ ProgressBarComponent ]
-    };
-
-    TestBed.configureTestingModule(moduleDefinition)
-    .compileComponents();
+    }).compileComponents();
   }));
 
   beforeEach(() => {

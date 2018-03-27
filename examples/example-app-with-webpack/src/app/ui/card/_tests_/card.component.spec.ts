@@ -13,12 +13,9 @@ describe('CardComponent', () => {
      * @uijar CardComponent
      * @hostcomponent CardComponentTestHost
      */
-    const moduleDefinition: TestModuleMetadata = {
+    TestBed.configureTestingModule({
       declarations: [ CardComponent, CardComponentTestHost ]
-    };
-
-    TestBed.configureTestingModule(moduleDefinition)
-    .compileComponents();
+    }).compileComponents();
   }));
 
   beforeEach(() => {
