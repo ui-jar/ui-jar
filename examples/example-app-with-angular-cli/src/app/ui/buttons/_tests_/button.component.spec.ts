@@ -16,7 +16,7 @@ describe('Buttons', () => {
      * @uijar ButtonComponent
      * @hostcomponent ButtonComponentTestHost
      */
-    const moduleDefinition: TestModuleMetadata = {
+    TestBed.configureTestingModule({
       declarations: [
         ButtonComponent,
         ButtonComponentTestHost,
@@ -24,10 +24,7 @@ describe('Buttons', () => {
         ButtonSecondaryDirective,
         ButtonWarningDirective
       ]
-    };
-
-    TestBed.configureTestingModule(moduleDefinition)
-    .compileComponents();
+    }).compileComponents();
   }));
 
   beforeEach(() => {
