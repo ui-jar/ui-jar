@@ -130,11 +130,9 @@ describe('CheckboxComponent', () => {
         /** 
          * @uijar CheckboxComponent
          */
-        const moduleDefinition = {
+        TestBed.configureTestingModule({
             declarations: [CheckboxComponent]
-        };
-
-        TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+        }).compileComponents().then(() => {
             fixture = TestBed.createComponent(CheckboxComponent);
             fixture.detectChanges();      
         });
@@ -198,12 +196,10 @@ describe('ButtonComponent', () => {
         * @uijar ButtonComponent
         * @hostcomponent ButtonComponentTestHost
         */
-        const moduleDefinition = {
+        TestBed.configureTestingModule({
             imports: [ButtonsModule],
             declarations: [ButtonComponentTestHost]
-        };
-
-        TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+        }).compileComponents().then(() => {
             fixture = TestBed.createComponent(ButtonComponentTestHost);
             fixture.detectChanges();
         });
@@ -262,12 +258,10 @@ describe('ButtonComponent', () => {
         /**
          * @uijar ButtonComponent
          */
-        const moduleDefinition = {
+        TestBed.configureTestingModule({
             imports: [ButtonsModule],
             declarations: [ButtonComponentTestHost, ButtonComponentAnotherTestHost]
-        };
-
-        TestBed.configureTestingModule(moduleDefinition).compileComponents();
+        }).compileComponents();
     }));
 
     /**
@@ -380,12 +374,10 @@ describe('IconComponent', () => {
         /**
         * @uijar IconComponent
         */
-        const moduleDefinition = {
+        TestBed.configureTestingModule({
             imports: [HttpClientTestingModule],
             declarations: [IconComponent],
-        };
-
-        TestBed.configureTestingModule(moduleDefinition).compileComponents().then(() => {
+        }).compileComponents().then(() => {
             fixture = TestBed.createComponent(IconComponent);
             httpMock = fixture.componentRef.injector.get(HttpTestingController);
             fixture.detectChanges();
