@@ -1,3 +1,14 @@
+# 1.1.0 (2018-03-27)
+Release v.1.1.0 of UI-jar!
+
+### Bug fixes
+* File watcher shut down if the test setup is invalid in test files
+* Minification Safety
+
+### Features
+* Make it optional to declare test module definition as a variable declaration
+
+
 # 1.0.0 (2018-03-11)
 Happy to announce v.1.0.0 release of UI-jar!
 
