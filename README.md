@@ -13,6 +13,12 @@ Bundle with your favorite build tool and you will automatically get a web app wh
 
 ---
 
+## Demo
+
+<a href="https://ui-jar.github.io/ui-jar" target="_blank">UI-jar demo</a>
+
+---
+
 ## Installation
 ```bash
 npm install ui-jar
