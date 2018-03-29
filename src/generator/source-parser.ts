@@ -276,7 +276,7 @@ export class SourceParser {
             source: ''
         };
 
-        let currentClassDetails;
+        let currentClassDetails = Object.assign({}, classDetails);
 
         const traverseChild = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
