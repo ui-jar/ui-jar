@@ -195,6 +195,14 @@ function getTestCompilerHostWithMockModuleAndComponent() {
     const sourceFileContent = `
         import { Component, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 
+        interface ParentInterface {
+            title: string;
+        }
+        
+        interface ChildInterface extends ParentInterface {
+            subTitle: string;
+        }
+
         /**
          * @group Layout
          * @component Foobar
