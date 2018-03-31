@@ -1,3 +1,10 @@
+# 1.1.0 (2018-03-31)
+Release v.1.1.1 of UI-jar!
+
+### Bug fixes
+* Minor fixes to prevent crash when parsing files #23
+
+
 # 1.1.0 (2018-03-27)
 Release v.1.1.0 of UI-jar!
 
