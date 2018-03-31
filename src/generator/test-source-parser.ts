@@ -325,7 +325,9 @@ export class TestSourceParser {
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
 
                 if (nodeSymbol) {
-                    const docs = nodeSymbol.getJsDocTags().map((docs: { name: string, text: string }) => {
+                    const docs = nodeSymbol.getJsDocTags().filter((docs: { name: string, text?: string }) => {
+                        return docs.name && docs.text;
+                    }).map((docs) => {
                         return {
                             name: docs.name,
                             text: docs.text.trim()
@@ -373,7 +375,10 @@ export class TestSourceParser {
                 }
             } else if (childNode.kind === ts.SyntaxKind.FunctionDeclaration) {
                 const inlineFunction = this.getInlineFunction((childNode as ts.FunctionDeclaration));
-                inlineFunctions.push(inlineFunction);
+
+                if (inlineFunction) {
+                    inlineFunctions.push(inlineFunction);
+                }
             }
 
             ts.forEachChild(childNode, traverseChild);
@@ -413,10 +418,12 @@ export class TestSourceParser {
     }
 
     private getInlineFunction(inlineFunctionDeclaration: ts.FunctionDeclaration) {
-        return {
-            name: inlineFunctionDeclaration.name.getText(),
-            func: inlineFunctionDeclaration.getText()
-        };
+        if (inlineFunctionDeclaration.name) {
+            return {
+                name: inlineFunctionDeclaration.name.getText(),
+                func: inlineFunctionDeclaration.getText()
+            };
+        }
     }
 
     private getJsDocTags(node: ts.Node): { name: string, text: string }[] {

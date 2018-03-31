@@ -283,34 +283,36 @@ export class SourceParser {
                 currentClassDetails = Object.assign({}, classDetails);
                 classes.push(currentClassDetails);
 
-                currentClassDetails.classRefName = (childNode as ts.ClassDeclaration).name.text;
-                currentClassDetails.selector = this.getComponentSelector((childNode as ts.ClassDeclaration));
-                currentClassDetails.source = this.getComponentSourceCode((childNode as ts.ClassDeclaration), fileName);
+                if((childNode as ts.ClassDeclaration).name) {
+                    currentClassDetails.classRefName = (childNode as ts.ClassDeclaration).name.text;
+                    currentClassDetails.selector = this.getComponentSelector((childNode as ts.ClassDeclaration));
+                    currentClassDetails.source = this.getComponentSourceCode((childNode as ts.ClassDeclaration), fileName);
 
-                const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.ClassDeclaration).name);
+                    const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.ClassDeclaration).name);
 
-                nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
-                    switch (docs.name) {
-                        case 'group':
-                            currentClassDetails.groupDocName = docs.text;
-                            break;
-                        case 'component':
-                            currentClassDetails.componentDocName = docs.text;
-                            break;
-                        case 'description':
-                            currentClassDetails.description = docs.text;
-                            break;
-                    }
-                });
+                    nodeSymbol.getJsDocTags().forEach((docs: { name: string, text: string }) => {
+                        switch (docs.name) {
+                            case 'group':
+                                currentClassDetails.groupDocName = docs.text;
+                                break;
+                            case 'component':
+                                currentClassDetails.componentDocName = docs.text;
+                                break;
+                            case 'description':
+                                currentClassDetails.description = docs.text;
+                                break;
+                        }
+                    });
 
-                nodeSymbol.members.forEach((currentMemberSymbol: ts.Symbol) => {
-                    let memberDetails = this.getClassMemberDetails(currentMemberSymbol);
+                    nodeSymbol.members.forEach((currentMemberSymbol: ts.Symbol) => {
+                        let memberDetails = this.getClassMemberDetails(currentMemberSymbol);
 
-                    if (memberDetails) {
-                        currentClassDetails.properties = currentClassDetails.properties.concat(memberDetails.properties);
-                        currentClassDetails.methods = currentClassDetails.methods.concat(memberDetails.methods);
-                    }
-                });
+                        if (memberDetails) {
+                            currentClassDetails.properties = currentClassDetails.properties.concat(memberDetails.properties);
+                            currentClassDetails.methods = currentClassDetails.methods.concat(memberDetails.methods);
+                        }
+                    });
+                }
 
             } else if(childNode.kind === ts.SyntaxKind.HeritageClause) {
                 childNode.getChildren().forEach((child) => {
