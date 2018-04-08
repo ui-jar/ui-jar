@@ -217,19 +217,20 @@ export class SourceParser {
     }
 
     private getModuleDetailsToComponent(componentRefName: string, moduleDocs: ModuleDocs[]): ModuleDetails {
-        return moduleDocs.reduce((result: ModuleDocs[], moduleDoc: ModuleDocs) => {
-            moduleDoc.includesComponents.filter((componentName) => {
+        const moduleDoc = moduleDocs.find((moduleDoc: ModuleDocs) => {
+            const componentContainsInModule = moduleDoc.includesComponents.find((componentName) => {
                 return componentName === componentRefName;
-            }).forEach(res => result.push(moduleDoc));
+            });
 
-            return result;
-        }, [])
-            .map(docs => {
-                return {
-                    moduleRefName: docs.moduleRefName,
-                    fileName: docs.fileName
-                };
-            }).shift();
+            return componentContainsInModule !== undefined;
+        });
+
+        if(moduleDoc) {
+            return {
+                moduleRefName: moduleDoc.moduleRefName,
+                fileName: moduleDoc.fileName
+            };
+        }
     }
 
     private getAllComponentDeclarationsInModule(sourceFileAsText): string[] {
