@@ -233,8 +233,7 @@ export class SourceParser {
     }
 
     private getAllComponentDeclarationsInModule(sourceFileAsText): string[] {
-        let match = sourceFileAsText.replace(/[\n\r\s]+/gi, '').match(/exports:\[([a-zA-Z-_0-9,]+)]?/);
-
+        const match = sourceFileAsText.replace(/[\n\r\s\t]+/gi, '').match(/exports:\[([a-zA-Z\-_0-9,]+)\]/);
         return match && match.length > 0 ? match[1].split(',') : [];
     }
 
