@@ -133,7 +133,11 @@ export class ExampleItemComponent implements OnInit {
                 };
 
                 let classProperties = propertyNamesInExample.reduce((result, currentKey) => {
-                    result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey], jsonReplacer)};\n`;
+                    if(typeof componentRef.instance[currentKey] === 'function'){
+                        result += `  ${currentKey} = ${componentRef.instance[currentKey]};\n`;    
+                    } else {
+                        result += `  ${currentKey} = ${JSON.stringify(componentRef.instance[currentKey], jsonReplacer)};\n`;
+                    }
                     return result;
                 }, '');
 
