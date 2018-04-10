@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SourceDocs, ModuleDetails } from './source-parser';
+import { ModuleDetails, SourceDocs } from './component-parser';
 
 interface UniqueModulesDetails {
     moduleDetails: ModuleDetails;

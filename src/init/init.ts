@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import { SourceParser, SourceDocs } from '../generator/source-parser';
+import { SourceParser } from '../generator/source-parser';
+import { SourceDocs } from '../generator/component-parser';
 import { BundleTemplateWriter } from '../generator/bundle-writer';
 import { FileSearch } from '../generator/file-search';
 import { TestModuleTemplateWriter } from '../generator/test-module-writer';
