@@ -31,7 +31,7 @@ export class SourceParser {
         let moduleFiles = [];
 
         for (let currentFile of files) {
-            if (this.isComponentFile(this.program.getSourceFile(currentFile))) {
+            if (this.isContainingClass(this.program.getSourceFile(currentFile))) {
                 componentFiles.push(currentFile);
             }
 
@@ -43,19 +43,10 @@ export class SourceParser {
         return { componentFiles, moduleFiles };
     }
 
-    private isComponentFile(node: ts.Node): boolean {
-        const traverseDecorator = (childNode: ts.Node) => {
-            if (childNode.kind === ts.SyntaxKind.Identifier &&
-                (childNode.getText() === 'Component' || childNode.getText() === 'Directive')) {
-                return true;
-            }
-
-            return ts.forEachChild(childNode, traverseDecorator);
-        };
-
+    private isContainingClass(node: ts.Node): boolean {
         const traverseChild = (childNode: ts.Node) => {
-            if (childNode.kind == ts.SyntaxKind.Decorator) {
-                return ts.forEachChild(childNode, traverseDecorator);
+            if(childNode.kind === ts.SyntaxKind.ClassDeclaration) {
+                return true;
             }
 
             return ts.forEachChild(childNode, traverseChild);
