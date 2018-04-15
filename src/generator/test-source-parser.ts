@@ -627,7 +627,7 @@ export class TestSourceParser {
         return moduleDefinition;
     }
 
-    private getInlineComponent(node: ts.ClassDeclaration, fileName: string): InlineComponent {
+    private getInlineComponent(classNode: ts.ClassDeclaration, fileName: string): InlineComponent {
         const getPathToTemplateFile = (propertyNode: ts.PropertyAssignment) => {
             let templateUrl = propertyNode.initializer.getText();
             templateUrl = templateUrl.substring(1, templateUrl.length - 1);
@@ -636,26 +636,51 @@ export class TestSourceParser {
             return pathToTemplateFile;
         };
 
-        const traverseDecorator = (childNode: ts.Node): { template: string, templateUrlNodeAsString?: string } => {
-            if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
-                if((childNode as ts.PropertyAssignment).name.getText() === 'template') {
-                    let inlineComponentTemplate = (childNode as ts.PropertyAssignment).initializer.getText();
-                    inlineComponentTemplate = inlineComponentTemplate.substring(1, inlineComponentTemplate.length - 1);
+        const getPathToStyleFile = (propertyNode: ts.PropertyAssignment) => {
+            const styleUrlsAsString = propertyNode.initializer.getText().replace(/[\n\t\r\s]/g, '');
+            const styleUrls = styleUrlsAsString.substring(1, styleUrlsAsString.length - 1).split(',');
 
-                    return {
-                        template: inlineComponentTemplate
-                    };
-                } else if((childNode as ts.PropertyAssignment).name.getText() === 'templateUrl') {
-                    let templateUrlNodeAsString = childNode.getText();
+            return styleUrls.filter((styleUrl) => styleUrl !== '').map((styleUrl) => {
+                return path.resolve((this.program.getSourceFile(fileName) as ts.FileReference).fileName, '../', styleUrl.substring(1, styleUrl.length - 1));
+            });
+        };
 
-                    return {
-                        template: fs.readFileSync(getPathToTemplateFile((childNode as ts.PropertyAssignment)), 'UTF-8'),
-                        templateUrlNodeAsString
-                    };
+        const traverseDecorator = (node: ts.Node): { template: string, templateUrlNodeAsString: string, styles: string, styleUrlsNodeAsString: string } => {
+            const result = {
+                template: '',
+                templateUrlNodeAsString: null,
+                styles: '',
+                styleUrlsNodeAsString: null
+            };
+
+            const traverseChild = (childNode: ts.Node) => {
+                if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
+                    if((childNode as ts.PropertyAssignment).name.getText() === 'template') {
+                        let inlineComponentTemplate = (childNode as ts.PropertyAssignment).initializer.getText();
+                        inlineComponentTemplate = inlineComponentTemplate.substring(1, inlineComponentTemplate.length - 1);
+    
+                        result.template = inlineComponentTemplate;
+                    } else if((childNode as ts.PropertyAssignment).name.getText() === 'templateUrl') {
+                        let templateUrlNodeAsString = childNode.getText();
+    
+                        result.template = fs.readFileSync(getPathToTemplateFile((childNode as ts.PropertyAssignment)), 'UTF-8');
+                        result.templateUrlNodeAsString = templateUrlNodeAsString;
+                    } else if((childNode as ts.PropertyAssignment).name.getText() === 'styleUrls') {
+                        const urls = getPathToStyleFile((childNode as ts.PropertyAssignment));
+                        urls.forEach((styleUrl) => {
+                            result.styles += fs.readFileSync(styleUrl, 'UTF-8');
+                        });
+
+                        result.styleUrlsNodeAsString = childNode.getText();
+                    }
                 }
-            }
 
-            return ts.forEachChild(childNode, traverseDecorator);
+                ts.forEachChild(childNode, traverseChild);
+            };
+
+            traverseChild(node);
+
+            return result;
         };
 
         const isComponent = (childNode: ts.Node) => {
@@ -666,20 +691,24 @@ export class TestSourceParser {
             return ts.forEachChild(childNode, isComponent);
         };
 
-        if (node.decorators) {
-            const inlineComponent = node.decorators.reduce((component: InlineComponent, decorator: ts.Decorator) => {
+        if (classNode.decorators) {
+            const inlineComponent = classNode.decorators.reduce((component: InlineComponent, decorator: ts.Decorator) => {
                 if (isComponent(decorator)) {
-                    let result = traverseDecorator(node);
-                    let source = node.getText();
+                    const result = traverseDecorator(classNode);
+                    let source = classNode.getText();
 
                     if(result.templateUrlNodeAsString) {
                         source = source.replace(result.templateUrlNodeAsString, 'template: `\n'+ result.template +'\n`');
                     }
 
+                    if(result.styleUrlsNodeAsString) {
+                        source = source.replace(result.styleUrlsNodeAsString, 'styles: [`'+ result.styles +'`]');
+                    }
+
                     component = {
                         source: source,
                         template: result.template,
-                        name: (node as ts.ClassDeclaration).name.getText()
+                        name: (classNode as ts.ClassDeclaration).name.getText()
                     };
                 }
 
