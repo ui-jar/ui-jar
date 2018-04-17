@@ -10,7 +10,9 @@ describe('TestSourceParser', () => {
 
     before(() => {
         readFileSyncStub = sinon.stub(fs, 'readFileSync');
-        readFileSyncStub.returns('<p>inline-test-with-external-template-using-template-url</p>');
+        readFileSyncStub.withArgs(sinon.match(/inline\-test\-with\-template\-url\.html$/i)).returns('<p>inline-test-with-external-template-using-template-url</p>');
+        readFileSyncStub.withArgs(sinon.match(/inline\-test\-with\-style\-urls\-1\.css$/i)).returns(':host { background-color: #000; }');
+        readFileSyncStub.withArgs(sinon.match(/inline\-test\-with\-style\-urls\-2\.css$/i)).returns('.foobar { color: #fff; }');
     });
 
     after(() => {
@@ -186,12 +188,16 @@ describe('TestSourceParser', () => {
                     assert.equal(inlineComponent.source.indexOf('@Component({') > -1, true);
                     assert.equal(inlineComponent.source.indexOf('template:') > -1, true);
                     assert.equal(inlineComponent.source.indexOf('templateUrl:') === -1, true);
+                    assert.equal(inlineComponent.source.indexOf('styleUrls:') === -1, true);
+                    assert.equal(inlineComponent.source.indexOf('styles:') === -1, true);
                 } else if(index === 1) {
                     assert.equal(inlineComponent.template, '<p>inline-test-with-external-template-using-template-url</p>');
                     assert.equal(inlineComponent.name, 'InlineTestWithTemplateUrlComponent');
                     assert.equal(inlineComponent.source.indexOf('@Component({') > -1, true);
                     assert.equal(inlineComponent.source.indexOf('template:') > -1, true);
                     assert.equal(inlineComponent.source.indexOf('templateUrl:') === -1, true);
+                    assert.equal(inlineComponent.source.indexOf('styleUrls:') === -1, true);
+                    assert.equal(inlineComponent.source.indexOf('styles: [`:host { background-color: #000; }.foobar { color: #fff; }`]') > -1, true);
                 } else {
                     assert.equal(true, false, 'Should not be executed');
                 }
@@ -459,7 +465,11 @@ function getTestCompilerHostWithMockComponent() {
 
       @Component({
           selector: 'x-inline-test-with-template-url',
-          templateUrl: './inline-test-with-template-url.html'
+          templateUrl: './inline-test-with-template-url.html',
+          styleUrls: [
+              './inline-test-with-style-urls-1.css',
+              './inline-test-with-style-urls-2.css'
+          ]
       })
       export class InlineTestWithTemplateUrlComponent {
           // ...
