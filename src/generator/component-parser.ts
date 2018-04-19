@@ -431,17 +431,36 @@ export class ComponentParser {
     }
 
     private getPropertiesFromExtendedComponentClasses(classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]): SourceDocs[] {
-        let docs = [...classesWithDocs];
+        const docs = [...classesWithDocs];
+        const otherDocsClasses = [...otherClasses];
+
+        const getAllExtendedClassDocs = (componentRefName: string, classes: SourceDocs[]) => {
+            let result = [];
+
+            const extendedClassDocs = classes.find((clazz) => {
+                return componentRefName === clazz.componentRefName;
+            });
+
+            if(extendedClassDocs) {
+                result.push(extendedClassDocs);
+
+                extendedClassDocs.extendClasses.forEach((extendClassName) => {
+                    result = result.concat(getAllExtendedClassDocs(extendClassName, classes)); 
+                });
+            }
+
+            return result;
+        };
 
         docs.forEach((doc) => {
             doc.extendClasses.forEach((extendClass) => {
-                const extendedClass = otherClasses.find((clazz) => {
-                    return extendClass === clazz.componentRefName;
-                });
+                const extendedClassDocs = getAllExtendedClassDocs(extendClass, otherDocsClasses);
 
-                if(extendedClass) {
-                    doc.apiDetails.properties = doc.apiDetails.properties.concat(extendedClass.apiDetails.properties);
-                    doc.apiDetails.methods = doc.apiDetails.methods.concat(extendedClass.apiDetails.methods);
+                if(extendedClassDocs.length > 0) {
+                    extendedClassDocs.forEach((extendedClass) => {
+                        doc.apiDetails.properties = doc.apiDetails.properties.concat(extendedClass.apiDetails.properties);
+                        doc.apiDetails.methods = doc.apiDetails.methods.concat(extendedClass.apiDetails.methods);
+                    });
                 }
             });
         });
