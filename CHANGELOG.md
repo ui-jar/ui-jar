@@ -1,3 +1,12 @@
+# 1.1.2 (2018-04-19)
+Release v.1.1.2 of UI-jar!
+
+### Bug fixes
+* API Properties for exteded classes are ignored
+* View-source tab is displaying wrong value if a function is used in template
+* styleUrls in test host component is not resolved
+
+
 # 1.1.1 (2018-03-31)
 Release v.1.1.1 of UI-jar!
 
