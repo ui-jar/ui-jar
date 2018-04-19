@@ -6,6 +6,7 @@ describe('SourceParser', () => {
 
     describe('getProjectSourceDocumentation', () => {
         let classesWithDocs;
+        let otherClasses;
 
         beforeEach(() => {
             const sourceFiles = ['foobar.component.ts', 'foobar.module.ts', 'foobar.component.test.ts', 'child.component.ts', 'parent.component.ts'];
@@ -14,7 +15,9 @@ describe('SourceParser', () => {
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
 
             const sourceParser = new SourceParser({ rootDir: './', files: sourceFiles }, program);
-            classesWithDocs = sourceParser.getProjectSourceDocumentation().classesWithDocs;
+            const projectDocumentation = sourceParser.getProjectSourceDocumentation();
+            classesWithDocs = projectDocumentation.classesWithDocs;
+            otherClasses = projectDocumentation.otherClasses;
         });
 
         it('should parse files and return list with SourceDocs', () => {
@@ -123,18 +126,23 @@ describe('SourceParser', () => {
         });
 
         it('should parse and verify that SourceDocs.extendClasses is valid', () => {
-            let firstSourceDoc = classesWithDocs[0];
-            let secondSourceDoc = classesWithDocs[1];
+            const foobarComponentSourceDoc = classesWithDocs[0];
+            const childComponentSourceDoc = classesWithDocs[1];
+            const parentComponentSourceDoc = otherClasses[2];
 
-            assert.equal(firstSourceDoc.extendClasses.length, 0, 'Should not have any extended classes');
-            assert.equal(secondSourceDoc.extendClasses.length, 1, 'Should have one extended class');
-            assert.equal(secondSourceDoc.extendClasses[0], 'ParentComponent');
+            assert.equal(foobarComponentSourceDoc.extendClasses.length, 0, 'Should not have any extended classes');
+            assert.equal(childComponentSourceDoc.extendClasses.length, 1, 'Should have one extended class');
+            assert.equal(childComponentSourceDoc.extendClasses[0], 'ParentComponent');
+
+            assert.equal(parentComponentSourceDoc.componentRefName, 'ParentComponent');
+            assert.equal(parentComponentSourceDoc.extendClasses.length, 1, 'Should have one extended class');
+            assert.equal(parentComponentSourceDoc.extendClasses[0], 'BaseComponent');
         });
 
         it('should parse and verify that SourceDocs.apiDetails.properties contains public component properties from extended component', () => {
             let secondSourceDoc = classesWithDocs[1];
 
-            assert.equal(secondSourceDoc.apiDetails.properties.length, 4, 'Should contain public properties from both child and parent component');
+            assert.equal(secondSourceDoc.apiDetails.properties.length, 5, 'Should contain public properties from both child and parent component');
             secondSourceDoc.apiDetails.properties.forEach((property, index) => {
                 if (index === 0) {
                     assert.equal(property.propertyName, 'childTitle');
@@ -159,6 +167,10 @@ describe('SourceParser', () => {
                     assert.equal(property.propertyName, 'parentTitle');
                     assert.equal(property.type, 'string');
                     assert.equal(property.description, 'Parent property description');
+                } else if(index === 4) {
+                    assert.equal(property.propertyName, 'baseId');
+                    assert.equal(property.type, 'number');
+                    assert.equal(property.description, 'Base id description');
                 } else {
                     assert.equal(true, false, 'Should not be executed');
                 }
@@ -168,7 +180,7 @@ describe('SourceParser', () => {
         it('should parse and verify that SourceDocs.apiDetails.methods contains public component methods from extended component', () => {
             let secondSourceDoc = classesWithDocs[1];
 
-            assert.equal(secondSourceDoc.apiDetails.methods.length, 4, 'Should contain public methods from both child and parent component');
+            assert.equal(secondSourceDoc.apiDetails.methods.length, 5, 'Should contain public methods from both child and parent component');
             secondSourceDoc.apiDetails.methods.forEach((method, index) => {
                 if (index === 0) {
                     assert.equal(method.methodName, 'publicChildMethod()');
@@ -182,6 +194,9 @@ describe('SourceParser', () => {
                 } else if (index === 3) {
                     assert.equal(method.methodName, 'publicParentMethodWithDescription()');
                     assert.equal(method.description, 'Parent method description');
+                } else if(index === 4) {
+                    assert.equal(method.methodName, 'publicBaseMethod()');
+                    assert.equal(method.description, '');
                 } else {
                     assert.equal(true, false, 'Should not be executed');
                 }
@@ -291,11 +306,22 @@ function getTestCompilerHostWithMockModuleAndComponent() {
     const parentComponentSourceFileContent = `
         import { Component } from '@angular/core';
 
-        @Component({
-            selector: 'x-parent',
-            template: 'test'
-        })
-        export class ParentComponent {
+        export abstract class BaseComponent {
+            /**
+             * Base id description
+             */
+            baseId: number;
+
+            publicBaseMethod() {
+                return true;
+            }
+
+            private baseMethodShouldNotBeVisibleInParse() {
+                return false;
+            }
+        }
+
+        export class ParentComponent extends BaseComponent {
             /**
              * Parent property description
              */
