@@ -89,7 +89,7 @@ export function generateRequiredFiles(options: CliArgs) {
     try {
         fileWriter.createBundleFile();
     } catch (error) {
-        console.error('Failed to generate resources.');
+        console.error('Failed to generate resources: ', error);
         return;
     }
 
