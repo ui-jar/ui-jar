@@ -8,7 +8,7 @@ export interface SourceDocs {
     componentRefName: string;
     componentDocName: string;
     groupDocName: string;
-    examples?: TestExample[];
+    examples: TestExample[];
     description: string;
     fileName: string;
     moduleDetails: ModuleDetails;
@@ -60,6 +60,7 @@ export class ComponentParser {
                     componentRefName: details.classRefName,
                     componentDocName: details.componentDocName,
                     groupDocName: details.groupDocName,
+                    examples: [],
                     description: details.description,
                     apiDetails: {
                         properties: details.properties,
