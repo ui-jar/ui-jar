@@ -52,7 +52,7 @@ export class ComponentParser {
         let classesWithDocs: SourceDocs[] = [];
         let otherClasses: SourceDocs[] = [];
 
-        for (let currentFile of componentFiles) {
+        componentFiles.forEach((currentFile) => {
             let classes: any[] = this.getComponentSourceData(this.program.getSourceFile(currentFile), currentFile);
 
             classes.forEach((details) => {
@@ -79,7 +79,7 @@ export class ComponentParser {
                     otherClasses.push(doc);
                 }
             });
-        }
+        });
 
         classesWithDocs = this.getPropertiesFromExtendedComponentClasses(classesWithDocs, otherClasses);
 

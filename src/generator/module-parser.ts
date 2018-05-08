@@ -12,7 +12,7 @@ export class ModuleParser {
     getModuleDocs(moduleFiles: string[]): ModuleDocs[] {
         let moduleDocs: ModuleDocs[] = [];
 
-        for (let currentFile of moduleFiles) {
+        moduleFiles.forEach((currentFile) => {
             let moduleDoc: ModuleDocs = {};
             let details: any = this.getModuleSourceData(this.program.getSourceFile(currentFile));
 
@@ -24,7 +24,7 @@ export class ModuleParser {
             if (moduleDoc.moduleRefName) {
                 moduleDocs.push(moduleDoc);
             }
-        }
+        });
 
         return moduleDocs;
     }

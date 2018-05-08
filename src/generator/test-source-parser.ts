@@ -95,14 +95,14 @@ export class TestSourceParser {
     private getTestDocs(files: string[], classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]): TestDocs[] {
         let docs: TestDocs[] = [];
 
-        for (let currentFile of files) {
+        files.forEach((currentFile) => {
             const details: TestDocs = this.getTestSourceDetails(this.program.getSourceFile(currentFile),
                 currentFile, classesWithDocs, otherClasses);
 
             if (details.includeTestForComponent) {
                 docs.push(details);
             }
-        }
+        });
 
         return docs;
     }
