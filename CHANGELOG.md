@@ -1,3 +1,11 @@
+# 1.1.3 (2018-05-09)
+Release v.1.1.3 of UI-jar!
+
+### Bug fixes
+* Proper failure if failed to generate resources
+* Minor fixes to parsing
+
+
 # 1.1.2 (2018-04-19)
 Release v.1.1.2 of UI-jar!
 
