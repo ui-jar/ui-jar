@@ -9,7 +9,15 @@ describe('SourceParser', () => {
         let otherClasses;
 
         beforeEach(() => {
-            const sourceFiles = ['foobar.component.ts', 'foobar.module.ts', 'foobar.component.test.ts', 'child.component.ts', 'parent.component.ts'];
+            const sourceFiles = [
+                'foobar.component.ts',
+                'foobar.module.ts',
+                'foobar.component.test.ts',
+                'child.component.ts',
+                'parent.component.ts',
+                'child-generic.component.ts',
+                'parent-generic.component.ts'
+            ];
             const compilerHost = getTestCompilerHostWithMockModuleAndComponent();
             const program: ts.Program = ts.createProgram([...sourceFiles],
                 { target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS }, compilerHost);
@@ -21,7 +29,7 @@ describe('SourceParser', () => {
         });
 
         it('should parse files and return list with SourceDocs', () => {
-            assert.equal(classesWithDocs.length, 2);
+            assert.equal(classesWithDocs.length, 3);
         });
 
         it('should parse and verify that SourceDocs.componentRefName is valid', () => {
@@ -128,19 +136,27 @@ describe('SourceParser', () => {
         it('should parse and verify that SourceDocs.extendClasses is valid', () => {
             const foobarComponentSourceDoc = classesWithDocs[0];
             const childComponentSourceDoc = classesWithDocs[1];
+            const childGenericSourceDoc = classesWithDocs[2];
             const parentComponentSourceDoc = otherClasses[2];
+            const parentGenericComponentSourceDoc = otherClasses[3];
 
             assert.equal(foobarComponentSourceDoc.extendClasses.length, 0, 'Should not have any extended classes');
             assert.equal(childComponentSourceDoc.extendClasses.length, 1, 'Should have one extended class');
+            assert.equal(childGenericSourceDoc.extendClasses.length, 1, 'Should have one extended class');
+
             assert.equal(childComponentSourceDoc.extendClasses[0], 'ParentComponent');
+            assert.equal(childGenericSourceDoc.extendClasses[0], 'ParentGenericComponent');
 
             assert.equal(parentComponentSourceDoc.componentRefName, 'ParentComponent');
             assert.equal(parentComponentSourceDoc.extendClasses.length, 1, 'Should have one extended class');
             assert.equal(parentComponentSourceDoc.extendClasses[0], 'BaseComponent');
+            
+            assert.equal(parentGenericComponentSourceDoc.componentRefName, 'ParentGenericComponent');
+            assert.equal(parentGenericComponentSourceDoc.extendClasses.length, 0, 'Should not have any extended classes');
         });
 
         it('should parse and verify that SourceDocs.apiDetails.properties contains public component properties from extended component', () => {
-            let secondSourceDoc = classesWithDocs[1];
+            const secondSourceDoc = classesWithDocs[1];
 
             assert.equal(secondSourceDoc.apiDetails.properties.length, 5, 'Should contain public properties from both child and parent component');
             secondSourceDoc.apiDetails.properties.forEach((property, index) => {
@@ -178,10 +194,74 @@ describe('SourceParser', () => {
         });
 
         it('should parse and verify that SourceDocs.apiDetails.methods contains public component methods from extended component', () => {
-            let secondSourceDoc = classesWithDocs[1];
+            const secondSourceDoc = classesWithDocs[1];
 
             assert.equal(secondSourceDoc.apiDetails.methods.length, 5, 'Should contain public methods from both child and parent component');
             secondSourceDoc.apiDetails.methods.forEach((method, index) => {
+                if (index === 0) {
+                    assert.equal(method.methodName, 'publicChildMethod()');
+                    assert.equal(method.description, '');
+                } else if (index === 1) {
+                    assert.equal(method.methodName, 'childMethodWithPublicModifierShouldBeVisibleInParse()');
+                    assert.equal(method.description, 'Description to method should be parsed');
+                } else if (index === 2) {
+                    assert.equal(method.methodName, 'publicParentMethod()');
+                    assert.equal(method.description, '');
+                } else if (index === 3) {
+                    assert.equal(method.methodName, 'publicParentMethodWithDescription()');
+                    assert.equal(method.description, 'Parent method description');
+                } else if(index === 4) {
+                    assert.equal(method.methodName, 'publicBaseMethod()');
+                    assert.equal(method.description, '');
+                } else {
+                    assert.equal(true, false, 'Should not be executed');
+                }
+            });
+        });
+
+        it('should parse and verify that SourceDocs.apiDetails.properties contains public component properties from extended component<T>', () => {
+            const thirdSourceDoc = classesWithDocs[2];
+
+            assert.equal(thirdSourceDoc.apiDetails.properties.length, 5, 'Should contain public properties from both child and parent component');
+            thirdSourceDoc.apiDetails.properties.forEach((property, index) => {
+                if (index === 0) {
+                    assert.equal(property.propertyName, 'childTitle');
+                    assert.equal(property.type, 'string');
+                } else if (index === 1) {
+                    assert.equal(property.propertyName, 'childOptions');
+
+                    property.decoratorNames.forEach((decoratorName) => {
+                        assert.equal(decoratorName, '@Input()');
+                    });
+                } else if (index === 2) {
+                    assert.equal(property.propertyName, 'childIsSmall');
+
+                    property.decoratorNames.forEach((decoratorName, decoratorIndex) => {
+                        if (decoratorIndex === 0) {
+                            assert.equal(decoratorName, '@HostBinding(\'class.small\')');
+                        } else if (decoratorIndex === 1) {
+                            assert.equal(decoratorName, '@Input()');
+                        }
+                    });
+                } else if (index === 3) {
+                    assert.equal(property.propertyName, 'parentTitle');
+                    assert.equal(property.type, 'string');
+                    assert.equal(property.description, 'Parent property description');
+                } else if(index === 4) {
+                    assert.equal(property.propertyName, 'parentType');
+                    assert.equal(property.type, 'T');
+                    assert.equal(property.description, '');
+                } else {
+                    assert.equal(true, false, 'Should not be executed');
+                }
+            });
+        });
+
+        it('should parse and verify that SourceDocs.apiDetails.methods contains public component methods from extended component<T>', () => {
+            const thirdSourceDoc = classesWithDocs[2];
+
+            assert.equal(thirdSourceDoc.apiDetails.methods.length, 4, 'Should contain public methods from both child and parent component');
+            thirdSourceDoc.apiDetails.methods.forEach((method, index) => {
                 if (index === 0) {
                     assert.equal(method.methodName, 'publicChildMethod()');
                     assert.equal(method.description, '');
@@ -344,6 +424,69 @@ function getTestCompilerHostWithMockModuleAndComponent() {
         }
     `;
 
+    const childGenericComponentSourceFileContent = `
+        import { Component, Input, HostBinding } from '@angular/core';
+
+        /**
+         * @group Layout
+         * @component ChildGenericComponent
+         */
+        @Component({
+            selector: 'x-child-generic',
+            template: 'test'
+        })
+        export class ChildGenericComponent extends ParentGenericComponent<string> {
+            childTitle: string;
+            @Input() childOptions: string[];
+
+            @HostBinding('class.small')
+            @Input()
+            childIsSmall: boolean = false;
+
+            publicChildMethod(): number {
+                return 1;
+            }
+
+            /**
+             * Description to method should be parsed
+             */
+            public childMethodWithPublicModifierShouldBeVisibleInParse() {
+                return true;
+            }
+
+            private childMethodShouldNotBeVisibleInParse() {
+                return true;
+            }
+        }
+    `;
+
+    const parentGenericComponentSourceFileContent = `
+        import { Component } from '@angular/core';
+
+        export class ParentGenericComponent<T> {
+            /**
+             * Parent property description
+             */
+            parentTitle: string;
+            parentType: T;
+
+            publicParentMethod(): number {
+                return 1;
+            }
+
+            /**
+             * Parent method description
+             */
+            publicParentMethodWithDescription(): number {
+                return 1;
+            }
+
+            private parentMethodShouldNotBeVisibleInParse() {
+                return true;
+            }
+        }
+    `;
+
     const sourceFileModuleContent = `
         import { NgModule } from '@angular/core';
         import { CommonModule } from '@angular/common';
@@ -373,6 +516,10 @@ function getTestCompilerHostWithMockModuleAndComponent() {
             return ts.createSourceFile(fileName, childComponentSourceFileContent, ts.ScriptTarget.ES5);
         } else if (fileName.indexOf('parent.component.ts') > -1) {
             return ts.createSourceFile(fileName, parentComponentSourceFileContent, ts.ScriptTarget.ES5);
+        } else if(fileName.indexOf('child-generic.component.ts') > -1) {
+            return ts.createSourceFile(fileName, childGenericComponentSourceFileContent, ts.ScriptTarget.ES5);
+        } else if (fileName.indexOf('parent-generic.component.ts') > -1) {
+            return ts.createSourceFile(fileName, parentGenericComponentSourceFileContent, ts.ScriptTarget.ES5);
         }
 
         return ts.createSourceFile(fileName, sourceFileContent, ts.ScriptTarget.ES5);

@@ -158,7 +158,13 @@ export class ComponentParser {
                 childNode.getChildren().forEach((child) => {
                     if(child.kind === ts.SyntaxKind.SyntaxList) {
                         let extendClasses = child.getText().split(',');
-                        extendClasses = extendClasses.map((value) => value.trim()).filter((value) => value !== '');
+
+                        extendClasses = extendClasses.map((value) => {
+                            value = value.trim();
+                            value = value.replace(/<.+>/gi, '');
+
+                            return value;
+                        }).filter((value) => value !== '');
                         currentClassDetails.extendClasses = currentClassDetails.extendClasses.concat(extendClasses);
                     }
                 });
