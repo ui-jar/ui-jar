@@ -66,11 +66,29 @@ export class FileSearch {
                         return true;
                     }
                 }
+            } else if(childNode.kind === ts.SyntaxKind.CallExpression) {
+                const isTestFile = this.containsUIJarAnnotation(childNode);
+
+                if(isTestFile) {
+                    return true;
+                }
             }
 
             return ts.forEachChild(childNode, traverseChild);
         };
 
         return traverseChild(program.getSourceFile(currentFile)) === true;
+    }
+
+    private containsUIJarAnnotation(node: ts.Node) {
+        const jsDoc = node.getFullText().replace(node.getText(), '');
+        const regexp = /@uijar\s(.+)/i;
+        const matches = jsDoc.match(regexp);
+
+        if(matches) {
+            return true;
+        }
+
+        return false;
     }
 }
