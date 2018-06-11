@@ -146,7 +146,7 @@ describe('TestSourceParser', () => {
 
             firstTestDoc.importStatements.forEach((importStatement, index) => {
                 if (index === 0) {
-                    assert.equal(importStatement.value, 'import { Component } from \'@angular/core\';');
+                    assert.equal(importStatement.value, 'import { Component, NgModule } from \'@angular/core\';');
                     assert.equal(importStatement.path, '\'@angular/core\'');
                 } else if (index === 1) {
                     assert.equal(importStatement.value, 'import { async, ComponentFixture, TestBed, TestModuleMetadata } from \'@angular/core/testing\';');
@@ -198,6 +198,22 @@ describe('TestSourceParser', () => {
                     assert.equal(inlineComponent.source.indexOf('templateUrl:') === -1, true);
                     assert.equal(inlineComponent.source.indexOf('styleUrls:') === -1, true);
                     assert.equal(inlineComponent.source.indexOf('styles: [`:host { background-color: #000; }.foobar { color: #fff; }`]') > -1, true);
+                } else {
+                    assert.equal(true, false, 'Should not be executed');
+                }
+            });
+        });
+
+        it('should parse and verify that TestDocs.inlineModules contains "InlineTestModule"', () => {
+            const firstTestDoc = testDocs[0];
+
+            firstTestDoc.inlineModules.forEach((inlineModule, index) => {
+                if(index === 0) {
+                    assert.equal(inlineModule.name, 'InlineTestModule');
+                    assert.equal(inlineModule.source.indexOf('@NgModule({') > -1, true);
+                    assert.equal(inlineModule.source.indexOf('imports: []') > -1, true);
+                    assert.equal(inlineModule.source.indexOf('declarations: []') > -1, true);
+                    assert.equal(inlineModule.source.indexOf('exports: []') > -1, true);
                 } else {
                     assert.equal(true, false, 'Should not be executed');
                 }
@@ -352,7 +368,7 @@ describe('TestSourceParser', () => {
 
 function getTestCompilerHostWithMockComponent() {
     const testSourceFileContent = `
-    import { Component } from '@angular/core';
+    import { Component, NgModule } from '@angular/core';
     import { async, ComponentFixture, TestBed, TestModuleMetadata } from '@angular/core/testing';
     import { FoobarComponent } from './foobar.component.ts';
     import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing.ts';
@@ -477,6 +493,15 @@ function getTestCompilerHostWithMockComponent() {
 
       function shouldBeIgnoredBecauseItIsNotUsed() {
         // ...
+      }
+
+      @NgModule({
+          imports: [],
+          declarations: [],
+          exports: []
+      })
+      export class InlineTestModule {
+          // ...
       }
     `;
 

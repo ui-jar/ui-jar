@@ -1,7 +1,7 @@
 import * as ts from 'typescript';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { InlineComponent, TestDocs } from './test-source-parser';
+import { InlineComponent, TestDocs, InlineModule } from './test-source-parser';
 import { TestModuleTemplateWriter } from './test-module-writer';
 
 export interface TestModuleSourceFile {
@@ -26,6 +26,7 @@ export class TestModuleGenerator {
 
         template += this.getResolvedImportStatements(component);
         template += this.getInlineComponentSourceCode(component.inlineComponents);
+        template += this.getInlineModuleSourceCode(component.inlineModules);
         template += `${component.inlineFunctions}`;
         template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {}`;
         template += this.getTemplateForExamplePropertiesFunction(component);
@@ -42,6 +43,10 @@ export class TestModuleGenerator {
 
     private getInlineComponentSourceCode(inlineComponents: InlineComponent[]) {
         return inlineComponents.map((inlineComponent) => inlineComponent.source);
+    }
+
+    private getInlineModuleSourceCode(inlineModules: InlineModule[]) {
+        return inlineModules.map((inlineModule) => inlineModule.source);
     }
 
     private getModuleSetupTemplate(component: TestDocs): string {

@@ -15,12 +15,18 @@ export interface InlineComponent {
     name: string;
 }
 
+export interface InlineModule {
+    source: string;
+    name: string;
+}
+
 export interface TestDocs {
     importStatements: { value: string, path: string }[];
     moduleSetup: any;
     includeTestForComponent: string;
     includesComponents?: string[];
     inlineComponents: InlineComponent[];
+    inlineModules: InlineModule[];
     fileName: string;
     examples: TestExample[];
     inlineFunctions: string[];
@@ -286,6 +292,7 @@ export class TestSourceParser {
             moduleSetup: {},
             includeTestForComponent: null,
             inlineComponents: [],
+            inlineModules: [],
             inlineFunctions: [],
             examples: [],
             hasHostComponent: false,
@@ -338,9 +345,14 @@ export class TestSourceParser {
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
                 const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration), fileName);
+                const inlineModule = this.getInlineModule((childNode as ts.ClassDeclaration));
 
                 if (inlineComponent) {
                     details.inlineComponents.push(inlineComponent);
+                }
+
+                if(inlineModule) {
+                    details.inlineModules.push(inlineModule);
                 }
             } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
                 if (this.isExampleComment(childNode) && bootstrapComponent) {
@@ -719,6 +731,31 @@ export class TestSourceParser {
         }
 
         return null;
+    }
+
+    private getInlineModule(classNode: ts.ClassDeclaration): InlineModule {
+        const isNgModule = (childNode: ts.Node) => {
+            if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'NgModule') {
+                return true;
+            }
+
+            return ts.forEachChild(childNode, isNgModule);
+        };
+
+        if (classNode.decorators) {
+            const inlineModule = classNode.decorators.reduce((ngModule: InlineModule, decorator: ts.Decorator) => {
+                if (isNgModule(decorator)) {
+                    ngModule = {
+                        source: classNode.getText(),
+                        name: (classNode as ts.ClassDeclaration).name.getText()
+                    };
+                }
+
+                return ngModule;
+            }, null);
+
+            return inlineModule;
+        }
     }
 
 }
