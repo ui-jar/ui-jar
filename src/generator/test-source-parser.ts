@@ -207,7 +207,7 @@ export class TestSourceParser {
 
         const componentExpressions = componentVariables.reduce((result, componentVariable) => {
             const expressions = binaryExpressions.filter((expression) => {
-                return expression.asString.indexOf(componentVariable.name) === 0;
+                return expression.asString.indexOf(componentVariable.value) === 0;
             }).map((expression) => {
                 return {
                     name: componentVariable.name,
