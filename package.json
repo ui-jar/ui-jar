@@ -1,6 +1,6 @@
 {
     "name": "ui-jar",
-    "version": "1.1.3",
+    "version": "1.1.4",
     "description": "A drop in module to automatically create a living style guide based on the test you write for your components in Angular (4.x and above).",
     "private": true,
     "homepage": "https://github.com/ui-jar/ui-jar",
