@@ -1,3 +1,12 @@
+# 1.1.4 (2018-06-19)
+Release v.1.1.4 of UI-jar!
+
+### Bug fixes
+* Generated App does not work in IE 11
+* NgModule declared inside test file is not defined correct
+* The watcher does not appear to be working for spec files
+
+
 # 1.1.3 (2018-05-09)
 Release v.1.1.3 of UI-jar!
 
