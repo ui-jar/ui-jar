@@ -177,27 +177,6 @@ export class TestSourceParser {
         return `@Component({\n  selector: 'example-host',\n  template: \`${template}\`\n})\nclass ExampleHostComponent {}`;
     }
 
-    private getCalledFunctionFromTest(inlineFunctions: { name: string, func: string }[],
-        examples: any[]): string[] {
-
-        let calledInlineFunctions = inlineFunctions.reduce((result, inlineFunction) => {
-            const isCalledFunction = examples.filter((example) => {
-                return example.componentProperties.filter((componentProperty) => {
-                    const functionCall = inlineFunction.name + '(';
-                    return componentProperty.expression.indexOf(functionCall) > -1;
-                }).length > 0;
-            }).length > 0;
-
-            if (isCalledFunction) {
-                result = result.concat(inlineFunction.func);
-            }
-
-            return result;
-        }, []);
-
-        return calledInlineFunctions;
-    }
-
     private getComponentExpressionsFromTest(bootstrapComponent: string, binaryExpressions: BinaryExpression[]) {
 
         const variables = this.convertBinaryExpressionToVariableDeclaration(bootstrapComponent, binaryExpressions);
@@ -398,7 +377,7 @@ export class TestSourceParser {
 
         traverseChild(node);
 
-        details.inlineFunctions = this.getCalledFunctionFromTest(inlineFunctions, details.examples);
+        details.inlineFunctions = inlineFunctions.map((inlineFunction) => inlineFunction.func);
 
         return details;
     }

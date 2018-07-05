@@ -172,6 +172,8 @@ describe('TestSourceParser', () => {
                     assert.equal(new RegExp(/function\sgetOptions\(\)\s\{/i).test(inlineFunction), true);
                 } else if (index === 1) {
                     assert.equal(new RegExp(/function\sgetTitle\(\)\s\{/i).test(inlineFunction), true);
+                } else if (index === 2) {
+                    assert.equal(new RegExp(/function\sfunctionThatIsNotUsedInTestShouldAlsoBeIncluded\(\)\s\{/i).test(inlineFunction), true);
                 } else {
                     assert.equal(true, false, 'Should not be executed');
                 }
@@ -426,23 +428,18 @@ function getTestCompilerHostWithMockComponent() {
                 return "Test title";
             }
 
-            function functionThatIsNotUsedShouldBeIgnored() {
-                return null;
-            }
-
             component.title = getTitle();
             component.options = getOptions();
 
             // ...
         });
 
-        it('should ignore tests without /** @uijarexample */ annotation', () => {
-            function shouldNotBeVisibleInParse() {
-                return ['item-1', 'item-2'];
-            }
+        function functionThatIsNotUsedInTestShouldAlsoBeIncluded() {
+            return null;
+        }
 
+        it('should ignore tests without /** @uijarexample */ annotation', () => {
             component.title = "Title should not be visible in parse";
-            component.options = shouldNotBeVisibleInParse();
         });
 
         /** 
@@ -489,10 +486,6 @@ function getTestCompilerHostWithMockComponent() {
       })
       export class InlineTestWithTemplateUrlComponent {
           // ...
-      }
-
-      function shouldBeIgnoredBecauseItIsNotUsed() {
-        // ...
       }
 
       @NgModule({
@@ -638,10 +631,6 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
       export class FooComponentTestHost {
           content: string;
           // ...
-      }
-
-      function shouldBeIgnoredBecauseItIsNotUsed() {
-        // ...
       }
     `;
 

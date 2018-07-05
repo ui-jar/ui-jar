@@ -53,7 +53,9 @@ describe('TestModuleGenerator', () => {
                 return ["item-1", "item-2", "item-3"];
             },function getTitle() {
                 return "Test title";
-            }@NgModule({imports:[CommonModule,HttpClientTestingModule],declarations:[FoobarComponent],providers:[AnotherService,{ provide: CustomService, useValue: { foo: true, bar: [{ a: 1}, 2, 'foo bar']}, _bar: true, 'foo-bar': false, $foo: "foo", fooFn: (foo) => { /** jsdoc should be ok */ return foo += 123; }, query: '?foobar=true!#hashbang' }],entryComponents:[FoobarComponent,FoobarComponent,FoobarComponent,FoobarComponent,FoobarComponent],exports:[FoobarComponent]}) export class TempModule8b329cf5499a0006dd4ce48ad34ec7f4 {}export function getComponentExampleProperties () { 
+            },function functionThatIsNotUsedInTestShouldAlsoBeIncluded() {
+            return null;
+        }@NgModule({imports:[CommonModule,HttpClientTestingModule],declarations:[FoobarComponent],providers:[AnotherService,{ provide: CustomService, useValue: { foo: true, bar: [{ a: 1}, 2, 'foo bar']}, _bar: true, 'foo-bar': false, $foo: "foo", fooFn: (foo) => { /** jsdoc should be ok */ return foo += 123; }, query: '?foobar=true!#hashbang' }],entryComponents:[FoobarComponent,FoobarComponent,FoobarComponent,FoobarComponent,FoobarComponent],exports:[FoobarComponent]}) export class TempModule8b329cf5499a0006dd4ce48ad34ec7f4 {}export function getComponentExampleProperties () { 
             let examples = [{ properties: {"component.title": "Test title", "component.options": ["item-1", "item-2", "item-3"], }, componentPropertyName: "component", httpRequests: {}, sourceCode: "@Component({\\n  selector: 'example-host',\\n  template: \`<x-foobar [options]=\\"options\\"></x-foobar>\`\\n})\\nclass ExampleHostComponent {}", title: "Custom title for example", bootstrapComponent: "FoobarComponent"},{ properties: {"component.title": 'Test title 2', "component.options": ['item-1', 'item-2'], "component.disabled": true, }, componentPropertyName: "component", httpRequests: {}, sourceCode: "@Component({\\n  selector: 'example-host',\\n  template: \`<x-foobar [options]=\\"options\\" [disabled]=\\"disabled\\"></x-foobar>\`\\n})\\nclass ExampleHostComponent {}", title: "", bootstrapComponent: "FoobarComponent"},{ properties: {"component.title": getTitle(), "component.options": getOptions(), }, componentPropertyName: "component", httpRequests: {}, sourceCode: "@Component({\\n  selector: 'example-host',\\n  template: \`<x-foobar [options]=\\"options\\"></x-foobar>\`\\n})\\nclass ExampleHostComponent {}", title: "Title-with-dashes_and_"other" _'01234$#%'56,()=789 special chars", bootstrapComponent: "FoobarComponent"},{ properties: {"component.title": "Test with http request", "component.options": ["item-1", "item-2", "item-3"], }, componentPropertyName: "component", httpRequests: {"request": { expression: "request.flush('Should return this text')", url: "/foobar" }, }, sourceCode: "@Component({\\n  selector: 'example-host',\\n  template: \`<x-foobar [options]=\\"options\\"></x-foobar>\`\\n})\\nclass ExampleHostComponent {}", title: "Another custom title", bootstrapComponent: "FoobarComponent"},{ properties: {"component.title": "Test with http request error", "component.options": ["item-1", "item-2", "item-3"], }, componentPropertyName: "component", httpRequests: {"request": { expression: "request.error(new ErrorEvent('Server error', { error: new Error('503'), message: 'Server error' }))", url: "/error-url" }, }, sourceCode: "@Component({\\n  selector: 'example-host',\\n  template: \`<x-foobar [options]=\\"options\\"></x-foobar>\`\\n})\\nclass ExampleHostComponent {}", title: "Title with number  1234", bootstrapComponent: "FoobarComponent"}];
             let modifiedExamples = [];
 
@@ -150,23 +152,18 @@ function getTestCompilerHostWithMockComponent() {
                 return "Test title";
             }
 
-            function functionThatIsNotUsedShouldBeIgnored() {
-                return null;
-            }
-
             component.title = getTitle();
             component.options = getOptions();
 
             // ...
         });
 
-        it('should ignore tests without /** @uijarexample */ annotation', () => {
-            function shouldNotBeVisibleInParse() {
-                return ['item-1', 'item-2'];
-            }
+        function functionThatIsNotUsedInTestShouldAlsoBeIncluded() {
+            return null;
+        }
 
+        it('should ignore tests without /** @uijarexample */ annotation', () => {
             component.title = "Title should not be visible in parse";
-            component.options = shouldNotBeVisibleInParse();
         });
 
         /** 
@@ -209,10 +206,6 @@ function getTestCompilerHostWithMockComponent() {
       })
       export class InlineTestWithTemplateUrlComponent {
           // ...
-      }
-
-      function shouldBeIgnoredBecauseItIsNotUsed() {
-        // ...
       }
     `;
 
