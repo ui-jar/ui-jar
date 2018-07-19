@@ -19,6 +19,84 @@ Bundle with your favorite build tool and you will automatically get a web app wh
 
 ---
 
+## Step-by-step setup with Angular CLI
+
+Download latest Angular CLI and generate your app
+```bash
+> npm install @angular/cli -g
+> ng new my-app
+> cd my-app
+> npm install ui-jar
+> ng generate application ui-jar
+```
+
+Open package.json and add following in "scripts".
+
+```json
+    "ui-jar": "node node_modules/ui-jar/dist/bin/cli.js --directory ./src/app/ --includes \\.ts$",
+    "start-ui-jar-example": "npm run ui-jar && ng serve ui-jar"
+```
+
+Open "projects/ui-jar/tsonfig.app.json" and add following:
+
+```json
+"exclude": [
+    ...
+    "../../src/**/*.spec.ts"
+]
+"include": [
+    "**/*.ts",
+    "../../src/**/*.ts"
+]
+```
+
+Open "projects/ui-jar/main.ts" and replace content  with following:
+
+```ts
+import { enableProdMode } from '@angular/core';
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
+import { environment } from './environments/environment';
+import { UIJarModule } from 'ui-jar';
+
+if (environment.production) {
+  enableProdMode();
+}
+
+platformBrowserDynamic().bootstrapModule(UIJarModule);
+```
+
+Open "projects/ui-jar/index.html" and replace content with following:
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UiJar</title>
+  <base href="/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <ui-jar-app></ui-jar-app>
+</body>
+</html>
+```
+
+Open "projects/ui-jar/styles.css" and add following line:
+
+```css
+@import url('../../../node_modules/ui-jar/dist/src/styles/default.css');
+```
+
+```bash
+npm run start-ui-jar-example
+```
+
+Done! :)
+
+
 ## Installation
 ```bash
 npm install ui-jar
