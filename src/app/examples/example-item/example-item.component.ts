@@ -26,6 +26,7 @@ import { AppData } from '../../app.model';
         <ui-jar-code-example [sourceCode]="exampleSourceCode"></ui-jar-code-example>
         <div class="example-container">
             <div #example></div>
+            <p *ngIf="!isLoaded" class="loading-text">Loading...</p>
         </div>
     `
 })
@@ -35,6 +36,7 @@ export class ExampleItemComponent implements OnInit {
     private modules: any = [];
     _example: ExampleProperties;
     exampleSourceCode: string = '';
+    isLoaded: boolean = false;
 
     @Input()
     set example(value: any) {
@@ -48,7 +50,11 @@ export class ExampleItemComponent implements OnInit {
 
     ngOnInit(): void {
         this.modules = this.appData.modules;
-        this.createView();
+        
+        setTimeout(() => {
+            this.createView();
+            this.isLoaded = true;
+        }, 1);
     }
 
     private getCurrentComponentName(): string {

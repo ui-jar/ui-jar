@@ -201,6 +201,10 @@ ui-jar-example-item {
 
     .example-container {
         padding: 20px;
+
+        .loading-text {
+            text-align: center;
+        }
     }
 
     .example-top-bar {
