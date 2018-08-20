@@ -19,6 +19,13 @@ Bundle with your favorite build tool and you will automatically get a web app wh
 
 ---
 
+## Example project setup
+
+* [Example with Angular CLI](https://github.com/ui-jar/ui-jar/tree/master/examples/example-app-with-angular-cli)
+* [Example with Webpack](https://github.com/ui-jar/ui-jar/tree/master/examples/example-app-with-webpack)
+
+---
+
 ## Step-by-step setup with Angular CLI
 
 Download latest Angular CLI and generate your app
@@ -97,7 +104,7 @@ npm run start-ui-jar-example
 Done! :)
 
 
-## Installation
+## Custom installation
 ```bash
 npm install ui-jar
 ```
@@ -115,12 +122,6 @@ node node_modules/ui-jar/dist/bin/cli.js --directory ./app/root/dir --includes \
 * **--excludes** (RegExp) - space separated list of files to exclude e.g. "a\\.component\\.ts$ b\\.component\\.ts$"
 * **--url-prefix** (string) - add prefix to all urls in UI-jar, e.g. "project-a/styleguide".
 * **--watch** - enable watch-mode, UI-jar will watch on file changes in your test files.
-
-## Example project setup
-
-* [Example with Angular CLI](https://github.com/ui-jar/ui-jar/tree/master/examples/example-app-with-angular-cli)
-* [Example with Webpack](https://github.com/ui-jar/ui-jar/tree/master/examples/example-app-with-webpack)
-
 
 ## Configuration
 
