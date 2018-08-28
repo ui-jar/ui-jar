@@ -31,6 +31,7 @@ export interface TestDocs {
     examples: TestExample[];
     inlineFunctions: string[];
     hasHostComponent: boolean;
+    overrideModuleMetadata: { entryComponents: string[] };
 }
 
 export interface TestExample {
@@ -275,7 +276,10 @@ export class TestSourceParser {
             inlineFunctions: [],
             examples: [],
             hasHostComponent: false,
-            fileName: (this.program.getSourceFile(fileName) as ts.FileReference).fileName
+            fileName: (this.program.getSourceFile(fileName) as ts.FileReference).fileName,
+            overrideModuleMetadata: {
+                entryComponents: []
+            }
         };
 
         let bootstrapComponent = null;
@@ -355,6 +359,8 @@ export class TestSourceParser {
                         example.bootstrapComponent, classesWithDocs, otherClasses, details, example);
 
                     details.examples.push(example);
+                } else if (this.isOverrideModuleExpression(childNode)) {
+                    details.overrideModuleMetadata = this.getOverrideModuleMetadata(childNode as ts.CallExpression);
                 } else {
                     const docs = this.getJsDocTags(childNode);
 
@@ -406,6 +412,45 @@ export class TestSourceParser {
         traverseChild(node);
 
         return variableDeclarations;
+    }
+
+    private getOverrideModuleMetadata(node: ts.CallExpression) {
+        let isSetterPropertyAssignment = false;
+        let overrideModuleMetadata = {
+            entryComponents: []
+        };
+
+        const traverseChild = (childNode: ts.Node) => {
+            if(childNode.kind === ts.SyntaxKind.PropertyAssignment) {
+                const propertyName = (childNode as ts.PropertyAssignment).name.getText();
+                if(propertyName === 'set') {
+                    isSetterPropertyAssignment = true;
+                }
+
+                if(isSetterPropertyAssignment) {
+                    if(propertyName === 'entryComponents'){
+                        const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.PropertyAssignment).name);
+
+                        if(nodeSymbol && nodeSymbol.valueDeclaration) {
+                            const result = nodeSymbol.valueDeclaration.getChildren().find((child) => {
+                                return child.kind === ts.SyntaxKind.ArrayLiteralExpression;
+                            });
+
+                            if(result) {
+                                const entryComponents = (result as ts.ArrayLiteralExpression).elements.map((element) => element.getText());
+                                overrideModuleMetadata.entryComponents = entryComponents;
+                            }
+                        }
+                    }
+                }
+            }
+
+            ts.forEachChild(childNode, traverseChild);
+        };
+
+        traverseChild(node);
+
+        return overrideModuleMetadata;
     }
 
     private getInlineFunction(inlineFunctionDeclaration: ts.FunctionDeclaration) {
@@ -496,6 +541,14 @@ export class TestSourceParser {
         const matches = comment.match(regexp);
 
         if (matches) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isOverrideModuleExpression(node: ts.Node) {
+        if ((node as ts.CallExpression).expression.getText() === 'TestBed.overrideModule') {
             return true;
         }
 

@@ -56,8 +56,9 @@ export class TestModuleGenerator {
         }, '');
 
         const exampleBootstrapComponents = component.examples.filter((example) => example.bootstrapComponent).map((example) => example.bootstrapComponent);
+        const entryComponents = exampleBootstrapComponents.concat(component.overrideModuleMetadata.entryComponents);
 
-        moduleSetupTemplate = moduleSetupTemplate.concat(`entryComponents:[${exampleBootstrapComponents}]`);
+        moduleSetupTemplate = moduleSetupTemplate.concat(`entryComponents:[${entryComponents}]`);
 
         if (component.moduleSetup.declarations) {
             moduleSetupTemplate = moduleSetupTemplate.concat(`,exports:[${component.moduleSetup.declarations}]`);
