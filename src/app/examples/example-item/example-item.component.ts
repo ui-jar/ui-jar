@@ -4,7 +4,6 @@ import { HttpBackend, HttpRequest, HttpEvent } from '@angular/common/http';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { CodeExampleComponent } from './code-example/code-example.component';
 import { Observable } from 'rxjs/Observable';
-import { updateProperty } from 'typescript';
 import { AppData } from '../../app.model';
 
 @Component({
@@ -161,7 +160,8 @@ export class ExampleItemComponent implements OnInit {
     private getBootstrapComponentFactory(componentKey: string) {
         const bootstrapComponentRef = this.getBootstrapComponentRef(componentKey);
         const importModule = this.getComponentModuleImports(componentKey)[0];
-        const moduleFactory = this.compiler.compileModuleSync(importModule);
+        const overridenImportModule = this.setModuleMetadataOverridesOnImports(importModule);
+        const moduleFactory = this.compiler.compileModuleSync(overridenImportModule);
         const moduleRef = moduleFactory.create(this.parentInjector);
 
         return moduleRef.componentFactoryResolver.resolveComponentFactory(bootstrapComponentRef);
@@ -220,6 +220,38 @@ export class ExampleItemComponent implements OnInit {
             eval(propertyExpression);
         });
     }
+
+    private setModuleMetadataOverridesOnImports(ngModule: any) {
+        const moduleDetail = this.appData.modules.find((moduleDetails) => {
+            return moduleDetails.moduleRef === ngModule;
+        });
+
+        const hasMetadataAnnotations = ngModule.__annotations__ && ngModule.__annotations__[0];
+
+        if (moduleDetail && hasMetadataAnnotations) {
+            const modulesMetadataOverride = this.appData.moduleMetadataOverrides[moduleDetail.name];
+            const importsInModule = ngModule.__annotations__[0].imports || [];
+    
+            importsInModule.forEach((importedNgModule) => {
+                modulesMetadataOverride.forEach((moduleMetadataOverride) => {                
+                    if (importedNgModule === moduleMetadataOverride.moduleRefName) {
+                        const hasMetadataAnnotations = importedNgModule.__annotations__ && importedNgModule.__annotations__[0];
+        
+                        if (hasMetadataAnnotations) {
+                            const metadata = importedNgModule.__annotations__[0];
+                            const supportedMetadataOverrides = ['entryComponents'];
+                            
+                            supportedMetadataOverrides.forEach((metadataPropertyName) => {
+                                metadata[metadataPropertyName] = moduleMetadataOverride[metadataPropertyName];
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        return ngModule;
+    }
 }
 
 interface MockHttpRequest {
@@ -234,4 +266,9 @@ export interface ExampleProperties {
     httpRequests: any;
     sourceCode: string;
     bootstrapComponent: string;
+}
+
+export interface ModuleMetadataOverrideProperties {
+    moduleRefName: any;
+    entryComponents: any[];
 }

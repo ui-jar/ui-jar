@@ -30,6 +30,7 @@ export class TestModuleGenerator {
         template += `${component.inlineFunctions}`;
         template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {}`;
         template += this.getTemplateForExamplePropertiesFunction(component);
+        template += this.getModuleMetadataOverrideProperties(component);
 
         const bootstrapComponents = component.examples.map((example) => example.bootstrapComponent);
         const uniqueBootstrapComponents = Array.from(new Set(bootstrapComponents));
@@ -55,8 +56,7 @@ export class TestModuleGenerator {
             return result;
         }, '');
 
-        const exampleBootstrapComponents = component.examples.filter((example) => example.bootstrapComponent).map((example) => example.bootstrapComponent);
-        const entryComponents = exampleBootstrapComponents.concat(component.overrideModuleMetadata.entryComponents);
+        const entryComponents = component.examples.filter((example) => example.bootstrapComponent).map((example) => example.bootstrapComponent);
 
         moduleSetupTemplate = moduleSetupTemplate.concat(`entryComponents:[${entryComponents}]`);
 
@@ -164,6 +164,25 @@ export class TestModuleGenerator {
         }`;
 
         return exampleProperties;
+    }
+
+    private getModuleMetadataOverrideProperties(component: TestDocs) {
+        let properties = component.moduleMetadataOverride.reduce((result, metadataOverride) => {
+            result += `{
+                moduleRefName: ${metadataOverride.moduleRefName},
+                entryComponents: [${metadataOverride.entryComponents}]
+            },`;
+
+            return result;
+        }, '');
+
+        properties = `[${properties}]`;
+
+        const template = `export function getModuleMetadataOverrideProperties () {
+            return ${properties};
+        }`;
+
+        return template;
     }
 
     getTestModuleSourceFiles(testDocumentation: TestDocs[]): TestModuleSourceFile[] {

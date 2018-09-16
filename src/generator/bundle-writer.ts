@@ -27,7 +27,8 @@ export class BundleTemplateWriter {
                     navigationLinks: ${this.getNavigationLinks()},
                     components: ${this.getComponentData()},
                     urlPrefix: '${this.urlPrefix}',
-                    examples: ${this.getComponentExampleProperties()}
+                    examples: ${this.getComponentExampleProperties()},
+                    moduleMetadataOverrides: ${this.getModuleMetadataOverrideProperties()}
                 };
             }
         `;
@@ -98,9 +99,10 @@ export class BundleTemplateWriter {
 
         moduleImports.forEach((item) => {
             const componentExamplePropertiesFunction = `getComponentExampleProperties as getComponentExampleProperties_${item.moduleDetails.moduleRefName}`;
+            const moduleMetadataOverridePropertiesFunction = `getModuleMetadataOverrideProperties as getModuleMetadataOverrideProperties_${item.moduleDetails.moduleRefName}`;
             let importPath = path.relative(path.resolve(this.outputDirectoryPath), path.resolve(item.moduleDetails.fileName));
             importPath = importPath.replace('.ts', '').replace(/\\/g, '/');
-            template += `import {${item.moduleDetails.moduleRefName}, ${item.bootstrapComponents}, ${componentExamplePropertiesFunction}} from '${importPath}';\n`;
+            template += `import {${item.moduleDetails.moduleRefName}, ${item.bootstrapComponents}, ${componentExamplePropertiesFunction}, ${moduleMetadataOverridePropertiesFunction}} from '${importPath}';\n`;
         });
 
         return template;
@@ -153,6 +155,22 @@ export class BundleTemplateWriter {
             expressions[`${classDoc.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${classDoc.moduleDetails.moduleRefName}()`;
         });
 
+        let template = Object.keys(expressions).reduce((result, exp, index) => {
+            result += (index > 0 ? ',' : '') + `${exp}: ${expressions[exp]}`;
+            return result;
+        }, '');
+
+        template = `{${template}}`;
+
+        return template;
+    }
+
+    private getModuleMetadataOverrideProperties() {
+        let expressions = {};
+        this.documentation.forEach((classDoc: SourceDocs) => {
+            expressions[`${classDoc.moduleDetails.moduleRefName}`] = `getModuleMetadataOverrideProperties_${classDoc.moduleDetails.moduleRefName}()`;
+        });
+        
         let template = Object.keys(expressions).reduce((result, exp, index) => {
             result += (index > 0 ? ',' : '') + `${exp}: ${expressions[exp]}`;
             return result;

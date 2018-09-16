@@ -31,7 +31,10 @@ export interface TestDocs {
     examples: TestExample[];
     inlineFunctions: string[];
     hasHostComponent: boolean;
-    overrideModuleMetadata: { entryComponents: string[] };
+    moduleMetadataOverride: { 
+        moduleRefName: string;
+        entryComponents: string[]
+    }[];
 }
 
 export interface TestExample {
@@ -277,9 +280,7 @@ export class TestSourceParser {
             examples: [],
             hasHostComponent: false,
             fileName: (this.program.getSourceFile(fileName) as ts.FileReference).fileName,
-            overrideModuleMetadata: {
-                entryComponents: []
-            }
+            moduleMetadataOverride: []
         };
 
         let bootstrapComponent = null;
@@ -360,7 +361,7 @@ export class TestSourceParser {
 
                     details.examples.push(example);
                 } else if (this.isOverrideModuleExpression(childNode)) {
-                    details.overrideModuleMetadata = this.getOverrideModuleMetadata(childNode as ts.CallExpression);
+                    details.moduleMetadataOverride.push(this.getOverrideModuleMetadata(childNode as ts.CallExpression));
                 } else {
                     const docs = this.getJsDocTags(childNode);
 
@@ -417,6 +418,7 @@ export class TestSourceParser {
     private getOverrideModuleMetadata(node: ts.CallExpression) {
         let isSetterPropertyAssignment = false;
         let overrideModuleMetadata = {
+            moduleRefName: node.arguments[0].getText(),
             entryComponents: []
         };
 
@@ -448,7 +450,7 @@ export class TestSourceParser {
             ts.forEachChild(childNode, traverseChild);
         };
 
-        traverseChild(node);
+        traverseChild(node.arguments[1]);
 
         return overrideModuleMetadata;
     }

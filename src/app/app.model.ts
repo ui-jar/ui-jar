@@ -1,4 +1,4 @@
-import { ExampleProperties } from './examples/example-item/example-item.component';
+import { ExampleProperties, ModuleMetadataOverrideProperties } from './examples/example-item/example-item.component';
 
 export interface NavigationLinks {
     group: string;
@@ -22,4 +22,5 @@ export interface AppData {
     }[];
     urlPrefix: string;
     examples: { [key: string]: ExampleProperties[] };
+    moduleMetadataOverrides: { [key: string]: ModuleMetadataOverrideProperties }[];
 }

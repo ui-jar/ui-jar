@@ -87,6 +87,11 @@ describe('TestModuleGenerator', () => {
 
                 return result;
             });
+        }export function getModuleMetadataOverrideProperties () {
+            return [{
+                moduleRefName: SomeModuleToOverrideMetadataIn,
+                entryComponents: [CustomOverridenEntryComponent]
+            },];
         }exports.FoobarComponent = FoobarComponent;`);
         });
     });
@@ -115,6 +120,13 @@ function getTestCompilerHostWithMockComponent() {
               declarations: [FoobarComponent],
               providers: [{ provide: CustomService, useValue: { foo: true, bar: [{ a: 1}, 2, 'foo bar']}, _bar: true, 'foo-bar': false, $foo: "foo", fooFn: (foo) => { /** jsdoc should be ok */ return foo += 123; }, query: '?foobar=true!#hashbang' }, AnotherService]
             };
+
+          TestBed.overrideModule(SomeModuleToOverrideMetadataIn, {
+            set: {
+              entryComponents: [ CustomOverridenEntryComponent ]
+            }
+          };
+
           TestBed.configureTestingModule(moduleDef).compileComponents();
         }));
       
