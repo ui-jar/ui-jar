@@ -1,3 +1,14 @@
+# 1.1.5 (2018-09-20)
+Release v.1.1.5 of UI-jar!
+
+### Bug fixes
+* I don't appear to be able to import the BrowserAnimationsModule
+* Slow navigation on page with large number of examples
+
+### Features
+* Support for entryComponents overrides
+
+
 # 1.1.4 (2018-06-19)
 Release v.1.1.4 of UI-jar!
 
