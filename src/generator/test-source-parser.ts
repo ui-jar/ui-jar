@@ -287,8 +287,7 @@ export class TestSourceParser {
 
         let inlineFunctions = [];
 
-        const parseJsDocs = (docsNode: ts.Node, docs: { name: string, text: string }[]) => {
-            // TODO (nording) refactor this...
+        const parseUIJarJsDocs = (docs: { name: string, text: string }[]) => {
             docs.forEach((doc) => {
                 if (doc.name === 'uijar') {
                     if (!bootstrapComponent) {
@@ -296,7 +295,6 @@ export class TestSourceParser {
                     }
 
                     details.includeTestForComponent = doc.text;
-                    details.moduleSetup = this.getModuleDefinitionDetails(docsNode);
                 } else if (doc.name === 'hostcomponent') {
                     bootstrapComponent = doc.text;
                     details.hasHostComponent = true;
@@ -325,7 +323,11 @@ export class TestSourceParser {
                         };
                     });
 
-                    parseJsDocs(childNode, docs);
+                    docs.filter((doc) => doc.name === 'uijar').forEach((doc) => {
+                        details.moduleSetup = this.getModuleDefinitionDetails(nodeSymbol.valueDeclaration);
+                    });
+
+                    parseUIJarJsDocs(docs);
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
                 const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration), fileName);
@@ -362,13 +364,24 @@ export class TestSourceParser {
                     details.examples.push(example);
                 } else if (this.isOverrideModuleExpression(childNode)) {
                     details.moduleMetadataOverride.push(this.getOverrideModuleMetadata(childNode as ts.CallExpression));
-                } else {
+                } else if(this.isConfigureTestingModuleExpression(childNode)) {
                     const docs = this.getJsDocTags(childNode);
 
                     if(docs.length > 0) {
-                        const testModuleDeclarationNode = this.getTestModuleDeclarationNode(childNode);
+                        docs.filter((doc) => doc.name === 'uijar').forEach((doc) => {
+                            let testModuleDefinitionNode: ts.Node = (childNode as ts.CallExpression).arguments[0];
+                            if (testModuleDefinitionNode.kind === ts.SyntaxKind.Identifier) {
+                                const nodeSymbol = this.checker.getSymbolAtLocation(testModuleDefinitionNode);
 
-                        parseJsDocs(testModuleDeclarationNode, docs);
+                                if(nodeSymbol) {
+                                    testModuleDefinitionNode = nodeSymbol.valueDeclaration;
+                                }
+                            }
+
+                            details.moduleSetup = this.getModuleDefinitionDetails(testModuleDefinitionNode);
+                        });
+
+                        parseUIJarJsDocs(docs);
                     }
                 }
             } else if (childNode.kind === ts.SyntaxKind.FunctionDeclaration) {
@@ -511,32 +524,6 @@ export class TestSourceParser {
         return null;
     }
 
-    private getTestModuleDeclarationNode(node: ts.Node) {
-        const traverseChild = (childNode: ts.Node) => {
-            if(childNode.kind === ts.SyntaxKind.Identifier) {
-                const nodeSymbol = this.checker.getSymbolAtLocation(childNode);
-
-                if(nodeSymbol) {
-                    if(nodeSymbol.valueDeclaration) {
-                        const result = nodeSymbol.valueDeclaration.getChildren().find((child) => {
-                            return child.kind === ts.SyntaxKind.ObjectLiteralExpression;
-                        });
-
-                        if(result) {
-                            return result;
-                        }
-                    }
-                }
-            } else if (childNode.kind === ts.SyntaxKind.ObjectLiteralExpression) {
-                return childNode;
-            }
-
-            return ts.forEachChild(childNode, traverseChild);
-        };
-
-        return traverseChild(node);
-    }
-
     private isExampleComment(node: ts.Node) {
         const comment = node.getFullText().replace(node.getText(), '');
         const regexp = /@uijarexample/i;
@@ -555,6 +542,14 @@ export class TestSourceParser {
         }
 
         return false;
+    }
+
+    private isConfigureTestingModuleExpression(node: ts.Node) {
+        if ((node as ts.CallExpression).expression.getText() === 'TestBed.configureTestingModule') {
+            return true;
+        }
+
+        return false;    
     }
 
     private getExampleTitle(node: ts.Node) {
