@@ -26,6 +26,11 @@ export class TestModuleGenerator {
             component.moduleSetup.imports.splice(animationModuleIndex, 1);
         }
 
+        if (component.moduleSetup.imports.find((importStatement) => importStatement.includes('RouterTestingModule'))) {
+            component.moduleSetup.imports = this.overrideRouterTestingModuleWithRouterModule(component.moduleSetup.imports);
+            defaultImports += `import { RouterModule } from "@angular/router";`;
+        }
+
         let moduleSetupTemplate = this.getModuleSetupTemplate(component);
         let template = `/**::ui-jar_source_module::${component.includeTestForComponent}*/${defaultImports}`;
 
@@ -45,6 +50,14 @@ export class TestModuleGenerator {
         });
 
         return template;
+    }
+
+    private overrideRouterTestingModuleWithRouterModule(importModules: any[]): any[] {
+        const importModulesClone = importModules.slice();
+        const routerTestingModuleIndex = importModulesClone.findIndex((importStatement) => importStatement.includes('RouterTestingModule'));
+        importModulesClone.splice(routerTestingModuleIndex, 1, 'RouterModule');
+
+        return importModulesClone;
     }
 
     private getInlineComponentSourceCode(inlineComponents: InlineComponent[]) {
