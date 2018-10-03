@@ -21,6 +21,11 @@ export class TestModuleGenerator {
             component.moduleSetup.imports.push('CommonModule');
         }
 
+        if (component.moduleSetup.imports.includes('BrowserAnimationsModule')) {
+            const animationModuleIndex = component.moduleSetup.imports.indexOf('BrowserAnimationsModule');
+            component.moduleSetup.imports.splice(animationModuleIndex, 1);
+        }
+
         let moduleSetupTemplate = this.getModuleSetupTemplate(component);
         let template = `/**::ui-jar_source_module::${component.includeTestForComponent}*/${defaultImports}`;
 
