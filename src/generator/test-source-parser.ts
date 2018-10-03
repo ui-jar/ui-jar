@@ -631,32 +631,17 @@ export class TestSourceParser {
             if (parentNode && parentNode.getText() === childNode.parent.getText()) {
                 if (childNode.kind === ts.SyntaxKind.PropertyAssignment) {
                     const propertyName = (childNode as ts.PropertyAssignment).name.getText();
-                    let propertyValue;
 
                     (childNode as ts.PropertyAssignment).getChildren().forEach((child) => {
                         if (child.kind === ts.SyntaxKind.ArrayLiteralExpression) {
-                            propertyValue = child.getText();
+                            (child as ts.ArrayLiteralExpression).elements.forEach((item) => {
+                                if (propertyName) {
+                                    moduleDefinition[propertyName] = moduleDefinition[propertyName] || [];
+                                    moduleDefinition[propertyName].push(item.getText());
+                                }
+                            });
                         }
                     });
-
-                    if (propertyName && propertyValue) {
-                        let propertyValueTrim = propertyValue.replace(/[\n\t\r]+/gi, '');
-                        let customProviders = propertyValueTrim.match(/(\{.+\})/gi);
-
-                        if (customProviders) {
-                            customProviders.forEach((provider) => {
-
-                                propertyValueTrim = propertyValueTrim.replace(provider, '');
-                            });
-                        } else {
-                            customProviders = [];
-                        }
-
-                        propertyValueTrim = propertyValueTrim.substring(1, propertyValueTrim.length - 1);
-
-                        moduleDefinition[propertyName] = propertyValueTrim.split(',').map((item) => item.trim())
-                            .concat(customProviders).filter((item) => item !== '');
-                    }
                 }
             }
 

@@ -50,7 +50,7 @@ describe('TestSourceParser', () => {
 
             assert.deepEqual(firstTestDoc.moduleSetup.imports, ['CommonModule', 'HttpClientTestingModule']);
             assert.deepEqual(firstTestDoc.moduleSetup.declarations, ['FoobarComponent']);
-            assert.deepEqual(firstTestDoc.moduleSetup.providers, [ 'AnotherService', '{ provide: CustomService, useValue: { foo: true, bar: [{ a: 1}, 2, \'foo bar\']}, _bar: true, \'foo-bar\': false, $foo: "foo", fooFn: (foo) => { /** jsdoc should be ok */ return foo += 123; }, query: \'?foobar=true!#hashbang\' }']);
+            assert.deepEqual(firstTestDoc.moduleSetup.providers, ['{ provide: CustomService, useValue: { foo: true, bar: [{ a: 1}, 2, \'foo bar\']}, _bar: true, \'foo-bar\': false, $foo: "foo", fooFn: (foo) => { /** jsdoc should be ok */ return foo += 123; }, query: \'?foobar=true!#hashbang\' }', 'AnotherService']);
         });
 
         it('should parse and verify that TestDocs.examples contains valid component properties', () => {
