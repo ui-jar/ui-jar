@@ -1,3 +1,11 @@
+# 1.1.6 (2018-10-04)
+Release v.1.1.6 of UI-jar!
+
+### Bug fixes
+* Replace usage with RouterTestingModule in test with RouterModule when viewing examples
+* Parsing issue occurs with special characters
+
+
 # 1.1.5 (2018-09-20)
 Release v.1.1.5 of UI-jar!
 
