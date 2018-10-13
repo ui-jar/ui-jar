@@ -9,13 +9,7 @@ export interface VariableDeclaration {
     value: string;
 }
 
-export interface InlineComponent {
-    source: string;
-    template: string;
-    name: string;
-}
-
-export interface InlineModule {
+export interface InlineClass {
     source: string;
     name: string;
 }
@@ -25,8 +19,7 @@ export interface TestDocs {
     moduleSetup: any;
     includeTestForComponent: string;
     includesComponents?: string[];
-    inlineComponents: InlineComponent[];
-    inlineModules: InlineModule[];
+    inlineClasses: InlineClass[];
     fileName: string;
     examples: TestExample[];
     inlineFunctions: string[];
@@ -274,8 +267,7 @@ export class TestSourceParser {
             importStatements: [],
             moduleSetup: {},
             includeTestForComponent: null,
-            inlineComponents: [],
-            inlineModules: [],
+            inlineClasses: [],
             inlineFunctions: [],
             examples: [],
             hasHostComponent: false,
@@ -330,16 +322,7 @@ export class TestSourceParser {
                     parseUIJarJsDocs(docs);
                 }
             } else if (childNode.kind === ts.SyntaxKind.ClassDeclaration) {
-                const inlineComponent = this.getInlineComponent((childNode as ts.ClassDeclaration), fileName);
-                const inlineModule = this.getInlineModule((childNode as ts.ClassDeclaration));
-
-                if (inlineComponent) {
-                    details.inlineComponents.push(inlineComponent);
-                }
-
-                if(inlineModule) {
-                    details.inlineModules.push(inlineModule);
-                }
+                details.inlineClasses.push(this.getInlineClass((childNode as ts.ClassDeclaration), fileName));
             } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
                 if (this.isExampleComment(childNode) && bootstrapComponent) {
                     const example = {
@@ -653,7 +636,7 @@ export class TestSourceParser {
         return moduleDefinition;
     }
 
-    private getInlineComponent(classNode: ts.ClassDeclaration, fileName: string): InlineComponent {
+    private getInlineComponent(classNode: ts.ClassDeclaration, fileName: string): InlineClass {
         const getPathToTemplateFile = (propertyNode: ts.PropertyAssignment) => {
             let templateUrl = propertyNode.initializer.getText();
             templateUrl = templateUrl.substring(1, templateUrl.length - 1);
@@ -709,6 +692,24 @@ export class TestSourceParser {
             return result;
         };
 
+        const result = traverseDecorator(classNode);
+        let source = classNode.getText();
+
+        if(result.templateUrlNodeAsString) {
+            source = source.replace(result.templateUrlNodeAsString, 'template: `\n'+ result.template +'\n`');
+        }
+
+        if(result.styleUrlsNodeAsString) {
+            source = source.replace(result.styleUrlsNodeAsString, 'styles: [`'+ result.styles +'`]');
+        }
+
+        return {
+            source: source,
+            name: (classNode as ts.ClassDeclaration).name.getText()
+        };
+    }
+
+    private getInlineClass(classNode: ts.ClassDeclaration, fileName: string): InlineClass {
         const isComponent = (childNode: ts.Node) => {
             if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'Component') {
                 return true;
@@ -718,58 +719,26 @@ export class TestSourceParser {
         };
 
         if (classNode.decorators) {
-            const inlineComponent = classNode.decorators.reduce((component: InlineComponent, decorator: ts.Decorator) => {
+            const inlineClass = classNode.decorators.reduce((clazz: InlineClass, decorator: ts.Decorator) => {
                 if (isComponent(decorator)) {
-                    const result = traverseDecorator(classNode);
-                    let source = classNode.getText();
-
-                    if(result.templateUrlNodeAsString) {
-                        source = source.replace(result.templateUrlNodeAsString, 'template: `\n'+ result.template +'\n`');
-                    }
-
-                    if(result.styleUrlsNodeAsString) {
-                        source = source.replace(result.styleUrlsNodeAsString, 'styles: [`'+ result.styles +'`]');
-                    }
-
-                    component = {
-                        source: source,
-                        template: result.template,
-                        name: (classNode as ts.ClassDeclaration).name.getText()
-                    };
-                }
-
-                return component;
-            }, null);
-
-            return inlineComponent;
-        }
-
-        return null;
-    }
-
-    private getInlineModule(classNode: ts.ClassDeclaration): InlineModule {
-        const isNgModule = (childNode: ts.Node) => {
-            if (childNode.kind === ts.SyntaxKind.Identifier && childNode.getText() === 'NgModule') {
-                return true;
-            }
-
-            return ts.forEachChild(childNode, isNgModule);
-        };
-
-        if (classNode.decorators) {
-            const inlineModule = classNode.decorators.reduce((ngModule: InlineModule, decorator: ts.Decorator) => {
-                if (isNgModule(decorator)) {
-                    ngModule = {
+                    return this.getInlineComponent(classNode, fileName);
+                } else {
+                    clazz = {
                         source: classNode.getText(),
                         name: (classNode as ts.ClassDeclaration).name.getText()
                     };
                 }
 
-                return ngModule;
+                return clazz;
             }, null);
 
-            return inlineModule;
+            return inlineClass;
         }
+
+        return {
+            source: classNode.getText(),
+            name: (classNode as ts.ClassDeclaration).name.getText()
+        };
     }
 
 }

@@ -146,7 +146,7 @@ describe('TestSourceParser', () => {
 
             firstTestDoc.importStatements.forEach((importStatement, index) => {
                 if (index === 0) {
-                    assert.equal(importStatement.value, 'import { Component, NgModule } from \'@angular/core\';');
+                    assert.equal(importStatement.value, 'import { Component, NgModule, Directive, Injectable, Pipe, PipeTransform } from \'@angular/core\';');
                     assert.equal(importStatement.path, '\'@angular/core\'');
                 } else if (index === 1) {
                     assert.equal(importStatement.value, 'import { async, ComponentFixture, TestBed, TestModuleMetadata } from \'@angular/core/testing\';');
@@ -180,42 +180,44 @@ describe('TestSourceParser', () => {
             });
         });
 
-        it('should parse and verify that TestDocs.inlineComponents contains "InlineTestComponent"', () => {
-            let firstTestDoc = testDocs[0];
-
-            firstTestDoc.inlineComponents.forEach((inlineComponent, index) => {
-                if(index === 0) {
-                    assert.equal(inlineComponent.template, '<p>inline-test</p>');
-                    assert.equal(inlineComponent.name, 'InlineTestComponent');
-                    assert.equal(inlineComponent.source.indexOf('@Component({') > -1, true);
-                    assert.equal(inlineComponent.source.indexOf('template:') > -1, true);
-                    assert.equal(inlineComponent.source.indexOf('templateUrl:') === -1, true);
-                    assert.equal(inlineComponent.source.indexOf('styleUrls:') === -1, true);
-                    assert.equal(inlineComponent.source.indexOf('styles:') === -1, true);
-                } else if(index === 1) {
-                    assert.equal(inlineComponent.template, '<p>inline-test-with-external-template-using-template-url</p>');
-                    assert.equal(inlineComponent.name, 'InlineTestWithTemplateUrlComponent');
-                    assert.equal(inlineComponent.source.indexOf('@Component({') > -1, true);
-                    assert.equal(inlineComponent.source.indexOf('template:') > -1, true);
-                    assert.equal(inlineComponent.source.indexOf('templateUrl:') === -1, true);
-                    assert.equal(inlineComponent.source.indexOf('styleUrls:') === -1, true);
-                    assert.equal(inlineComponent.source.indexOf('styles: [`:host { background-color: #000; }.foobar { color: #fff; }`]') > -1, true);
-                } else {
-                    assert.equal(true, false, 'Should not be executed');
-                }
-            });
-        });
-
-        it('should parse and verify that TestDocs.inlineModules contains "InlineTestModule"', () => {
+        it('should parse and verify that TestDocs.inlineClasses contain all declared classes in file', () => {
             const firstTestDoc = testDocs[0];
 
-            firstTestDoc.inlineModules.forEach((inlineModule, index) => {
+            firstTestDoc.inlineClasses.forEach((inlineClass, index) => {
                 if(index === 0) {
-                    assert.equal(inlineModule.name, 'InlineTestModule');
-                    assert.equal(inlineModule.source.indexOf('@NgModule({') > -1, true);
-                    assert.equal(inlineModule.source.indexOf('imports: []') > -1, true);
-                    assert.equal(inlineModule.source.indexOf('declarations: []') > -1, true);
-                    assert.equal(inlineModule.source.indexOf('exports: []') > -1, true);
+                    assert.equal(inlineClass.name, 'InlineTestComponent');
+                    assert.equal(inlineClass.source.indexOf('@Component({') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('template: \'<p>inline-test</p>\'') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('templateUrl:') === -1, true);
+                    assert.equal(inlineClass.source.indexOf('styleUrls:') === -1, true);
+                    assert.equal(inlineClass.source.indexOf('styles:') === -1, true);
+                } else if(index === 1) {
+                    assert.equal(inlineClass.name, 'InlineTestWithTemplateUrlComponent');
+                    assert.equal(inlineClass.source.indexOf('@Component({') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('template: `\n<p>inline-test-with-external-template-using-template-url</p>\n`') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('templateUrl:') === -1, true);
+                    assert.equal(inlineClass.source.indexOf('styleUrls:') === -1, true);
+                    assert.equal(inlineClass.source.indexOf('styles: [`:host { background-color: #000; }.foobar { color: #fff; }`]') > -1, true);
+                } else if(index === 2) {
+                    assert.equal(inlineClass.name, 'InlineTestModule');
+                    assert.equal(inlineClass.source.indexOf('@NgModule({') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('imports: []') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('declarations: []') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('exports: []') > -1, true);
+                } else if(index === 3) {
+                    assert.equal(inlineClass.name, 'InlineDirective');
+                    assert.equal(inlineClass.source.indexOf('@Directive({') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('selector: \'[xInlineDirective]\'') > -1, true);
+                } else if(index === 4) {
+                    assert.equal(inlineClass.name, 'InlineService');
+                    assert.equal(inlineClass.source.indexOf('@Injectable()') > -1, true);
+                } else if(index === 5) {
+                    assert.equal(inlineClass.name, 'InlinePipe');
+                    assert.equal(inlineClass.source.indexOf('@Pipe({') > -1, true);
+                    assert.equal(inlineClass.source.indexOf('name: \'inlinePipe\'') > -1, true);
+                } else if(index === 6) {
+                    assert.equal(inlineClass.name, 'InlineClassWithNoNgDecorator');
+                    assert.equal(inlineClass.source.indexOf('propertyValue = true;') > -1, true);
                 } else {
                     assert.equal(true, false, 'Should not be executed');
                 }
@@ -370,7 +372,7 @@ describe('TestSourceParser', () => {
 
 function getTestCompilerHostWithMockComponent() {
     const testSourceFileContent = `
-    import { Component, NgModule } from '@angular/core';
+    import { Component, NgModule, Directive, Injectable, Pipe, PipeTransform } from '@angular/core';
     import { async, ComponentFixture, TestBed, TestModuleMetadata } from '@angular/core/testing';
     import { FoobarComponent } from './foobar.component.ts';
     import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing.ts';
@@ -494,6 +496,30 @@ function getTestCompilerHostWithMockComponent() {
           exports: []
       })
       export class InlineTestModule {
+          // ...
+      }
+
+      @Directive({
+          selector: '[xInlineDirective]'
+      })
+      export class InlineDirective {
+          // ...
+      }
+
+      @Injectable()
+      export class InlineService {
+          // ...
+      }
+
+      @Pipe({
+          name: 'inlinePipe'
+      })
+      export class InlinePipe implements PipeTransform {
+          // ...
+      }
+
+      class InlineClassWithNoNgDecorator {
+          propertyValue = true;
           // ...
       }
     `;
