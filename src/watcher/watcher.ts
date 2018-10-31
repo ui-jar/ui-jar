@@ -1,6 +1,6 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import * as EventEmitter from 'events';
+import { watch } from 'chokidar';
 
 export interface FileWatcherOptions {
     directory: string;
@@ -21,15 +21,15 @@ export class FileWatcher {
 
         let debounceTime = 500;
         let watchTimer = null;
-        let watcher = fs.watch(path.resolve(this.config.directory), { encoding: 'utf8', recursive: true, persistent: true });
+        let watcher = watch(path.resolve(this.config.directory), { persistent: true });
 
-        watcher.addListener('change', (eventName: string, fileName: string) => {
-            if(!this.shouldBeIncluded(fileName)) {
+        watcher.on('change', (path: string) => {
+            if(!this.shouldBeIncluded(path)) {
                 return;
             }
 
             clearTimeout(watchTimer);
-            watchTimer = setTimeout(() => this.eventHandler(fileName), debounceTime);
+            watchTimer = setTimeout(() => this.eventHandler(path), debounceTime);
         });
     }
 
