@@ -117,6 +117,17 @@ node node_modules/ui-jar/dist/bin/cli.js --directory ./app/root/dir --includes \
 
 #### CLI options
 
+* **--config** - You can send a JSON file with the configurations e.g.: `--config ./ui-jar.config.json`
+```
+File: ./ui-jar.config.json
+{
+  "directory": "./projects/",
+  "includes": [ ".ts$" ],
+  "watch": true,
+  "urlPrefix": ""
+}
+```
+
 * **--directory** (string) - path to app root dir e.g. "./src/app"
 * **--includes** (RegExp) - space separated list of files to include e.g. "foo\\.ts$ bar\\.ts$"
 * **--excludes** (RegExp) - space separated list of files to exclude e.g. "a\\.component\\.ts$ b\\.component\\.ts$"
