@@ -119,8 +119,8 @@ node node_modules/ui-jar/dist/bin/cli.js --directory ./app/root/dir --includes \
 
 * **--config** - You can send a JSON file with the configurations e.g.: `--config ./ui-jar.config.json`
 
+Example config file (ui-jar.config.json):
 ```json
-File: ./ui-jar.config.json
 {
   "directory": "./projects/",
   "includes": [ ".ts$" ],
