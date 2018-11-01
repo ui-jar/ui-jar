@@ -118,7 +118,8 @@ node node_modules/ui-jar/dist/bin/cli.js --directory ./app/root/dir --includes \
 #### CLI options
 
 * **--config** - You can send a JSON file with the configurations e.g.: `--config ./ui-jar.config.json`
-```
+
+```json
 File: ./ui-jar.config.json
 {
   "directory": "./projects/",
