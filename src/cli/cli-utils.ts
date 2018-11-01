@@ -84,7 +84,7 @@ export function parseCliArguments(args: string[]): CliArgs {
 
     if(formattedArgs.config) {
         if(formattedArgs.config.length !== 1) {
-            throw new Error(`Expected to receive the configuration path whem using --config.`);
+            throw new Error(`Expected to receive the configuration path when using --config.`);
         }
 
         const configPath = path.resolve(formattedArgs.config[0]);
