@@ -1,16 +1,20 @@
+import * as path from 'path';
+import * as fs from 'fs';
 
 export interface CliArgs {
     directory?: string;
     includes?: RegExp[];
     excludes?: RegExp[];
+    config?: string[];
     urlPrefix?: string;
     watch?: boolean;
 }
 
 const CliCommandOptions = {
+    CONFIG: '--config',
     DIRECTORY: '--directory',
-    INCLUDES: '--includes',
     EXCLUDES: '--excludes',
+    INCLUDES: '--includes',
     URL_PREFIX: '--url-prefix',
     WATCH: '--watch'
 };
@@ -43,6 +47,7 @@ export function parseCliArguments(args: string[]): CliArgs {
             switch(value) {
                 case CliCommandOptions.DIRECTORY:
                 case CliCommandOptions.EXCLUDES:
+                case CliCommandOptions.CONFIG:
                 case CliCommandOptions.INCLUDES:
                 case CliCommandOptions.URL_PREFIX:
                     currentArgument = toCamelCase(value.replace('--', ''));
@@ -75,6 +80,20 @@ export function parseCliArguments(args: string[]): CliArgs {
         formattedArgs.watch = formattedArgs.watch[0];
     } else {
         formattedArgs.watch = false;
+    }
+
+    if(formattedArgs.config) {
+        if(formattedArgs.config.length !== 1) {
+            throw new Error(`Expected to receive the configuration path whem using --config.`);
+        }
+
+        const configPath = path.resolve(formattedArgs.config[0]);
+
+        if (!fs.existsSync(configPath)) {
+            throw new Error(`Invalid configuration path (${configPath}).`);
+        }
+
+        formattedArgs = { ...formattedArgs, ...require(configPath) };
     }
 
     return formattedArgs;
