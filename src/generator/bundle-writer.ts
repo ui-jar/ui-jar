@@ -207,15 +207,29 @@ export class BundleTemplateWriter {
 
         this.documentation.forEach((classDoc: SourceDocs) => {
             if (classDoc.groupDocName) {
-                links.push({
-                    group: classDoc.groupDocName,
+                let linkGroup = links.find((section) => section.groupName === classDoc.groupDocName);
+
+                if (!linkGroup) {
+                    links.push({
+                        groupName: classDoc.groupDocName,
+                        links: []
+                    });
+
+                    linkGroup = links[links.length - 1];
+                }
+
+                linkGroup.links.push({
                     title: classDoc.componentDocName,
                     path: this.urlPrefix ? this.urlPrefix + '/' + classDoc.componentRefName : classDoc.componentRefName
                 });
             }
         });
 
-        links.sort((itemA, itemB) => itemA.group.localeCompare(itemB.group));
+        links.forEach((linkGroup) => {
+            linkGroup.links.sort((itemA, itemB) => itemA.title.localeCompare(itemB.title));
+        });
+
+        links.sort((itemA, itemB) => itemA.groupName.localeCompare(itemB.groupName));
 
         return JSON.stringify(links);
     }

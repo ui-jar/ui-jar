@@ -20,9 +20,9 @@ import { Subscription } from 'rxjs/Subscription';
         <section class="container">
             <nav [class.is-visible]="showNavigation">
                 <ul>
-                    <ng-container *ngFor="let link of navigationLinks; let index = index;">
-                        <li class="groupName" *ngIf="link.group !== navigationLinks[index-1]?.group">{{link.group}}</li>
-                        <li>
+                    <ng-container *ngFor="let linkGroup of navigationLinks">
+                        <li class="groupName">{{linkGroup.groupName}}</li>
+                        <li *ngFor="let link of linkGroup.links">
                             <a [routerLink]="link.path">{{link.title}}</a>
                         </li>
                     </ng-container>

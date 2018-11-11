@@ -1,9 +1,13 @@
 import { ExampleProperties, ModuleMetadataOverrideProperties } from './examples/example-item/example-item.component';
 
 export interface NavigationLinks {
-    group: string;
+    groupName: string;
+    links: NavigationLink[];
+}
+
+export interface NavigationLink {
     title: string;
-    path: string;
+    path: string;    
 }
 
 export interface AppData {
