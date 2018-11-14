@@ -1,3 +1,14 @@
+# 1.1.7 (2018-11-14)
+Release v.1.1.7 of UI-jar!
+
+### Bug fixes
+* Examples cannot be loaded if @Injectable, @Pipe and @Directive is declared inside test file
+* Watch mode not reloading
+
+### Features
+* Configuration as JSON file
+
+
 # 1.1.6 (2018-10-04)
 Release v.1.1.6 of UI-jar!
 
