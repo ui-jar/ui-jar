@@ -426,7 +426,7 @@ export class ComponentParser {
     }
 
     private getNodeComment(nodeSymbol: ts.Symbol | ts.Signature): string {
-        const comment = nodeSymbol.getDocumentationComment().reduce((result, comment: { text: string, kind: string }) => {
+        const comment = nodeSymbol.getDocumentationComment(this.checker).reduce((result, comment: { text: string, kind: string }) => {
             if (comment.kind === 'text') {
                 result += comment.text;
             }
