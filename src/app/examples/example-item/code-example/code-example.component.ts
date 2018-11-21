@@ -10,7 +10,7 @@ import { Component, Input, HostBinding } from '@angular/core';
 })
 export class CodeExampleComponent {
     @Input() sourceCode: string;
-    @HostBinding('class.is-visible') private isVisible: boolean = false;
+    @HostBinding('class.is-visible') isVisible: boolean = false;
 
     hide() {
         this.isVisible = false;
