@@ -1,3 +1,10 @@
+# 1.1.8 (2018-11-21)
+Release v.1.1.8 of UI-jar!
+
+### Bug fixes
+* Cannot read property 'getTypeAtLocation' of undefined
+
+
 # 1.1.7 (2018-11-14)
 Release v.1.1.7 of UI-jar!
 
