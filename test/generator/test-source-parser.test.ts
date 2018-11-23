@@ -678,20 +678,6 @@ function getTestCompilerHostWithMockModuleAndTestHostComponent() {
         }
     `;
 
-    const sourceFileModuleContent = `
-        import { NgModule } from '@angular/core';
-        import { CommonModule } from '@angular/common';
-
-        @NgModule({
-            imports: [CommonModule],
-            declarations: [FoobarComponent],
-            exports: [FoobarComponent]
-        })
-        export class FoobarModule {
-            // ...
-        }
-    `;
-
     let compilerHost = ts.createCompilerHost({ target: ts.ScriptTarget.ES5, module: ts.ModuleKind.CommonJS });
 
     compilerHost.getSourceFile = (fileName: string, languageVersion: ts.ScriptTarget,
