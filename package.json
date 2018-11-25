@@ -10,7 +10,7 @@
         "release": "tsc && npm run css && ngc -p tsconfig-aot.json",
         "test": "tsc && mocha \"dist/test/**/*.js\" ",
         "test:watch": "tsc && mocha \"dist/test/**/*.js\" --watch ",
-        "tslint": "tslint --config tslint.json src/**/*.ts test/**/*.ts"
+        "tslint": "tslint --project tslint.json src/**/*.ts test/**/*.ts"
     },
     "author": "Kristoffer Nording",
     "license": "MIT",

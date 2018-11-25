@@ -9,6 +9,7 @@
         "no-duplicate-imports": true,
         "no-console": [true, "log"],
         "semicolon": [true],
-        "variable-name": [true, "ban-keywords"]
+        "variable-name": [true, "ban-keywords"],
+        "no-unused-variable": true
     }
 }

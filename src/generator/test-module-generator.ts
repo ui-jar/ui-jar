@@ -126,7 +126,6 @@ export class TestModuleGenerator {
 
             let exampleHttpRequests = '{';
             example.httpRequests.forEach((httpRequest) => {
-                const httRequestPropertyName = httpRequest.name;
                 const propertyName = '"' + httpRequest.name.replace(/\s+/gi, '').replace(/"/gi, '\'') + '"';
                 exampleHttpRequests += propertyName +': { expression: "'+ httpRequest.expression.replace(/"/gi, '\'') +'", url: "'+ httpRequest.url +'" }';
                 exampleHttpRequests += ', ';
