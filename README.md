@@ -104,6 +104,31 @@ npm run start-ui-jar-example
 Done! :)
 
 
+## Custom Styles
+
+You can overwrite the colors using css variables, for example:
+```css
+@import url('../node_modules/ui-jar/dist/src/styles/default.css');
+
+:root {
+  --main-background: #002F24;
+  --contrast-color: #fff;
+  --accent-color: #000;
+  --accent-contrast-color: #fff;
+  --scroll-background: #333;
+  --scroll-color: #333;
+  --example-header-background: #00503E;
+  --items-header-background: #00503E;
+  --items-header-color: #fff;
+  --border-color: rgba(0, 0, 0, .3);
+  --menu-item-background-hover: #00503E;
+  --menu-item-color: #fff;
+  --code-example-background: #333;
+  --text-highlight: #ffbb00;
+}
+```
+
+
 ## Custom installation
 ```bash
 npm install ui-jar
