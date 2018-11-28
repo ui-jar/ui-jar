@@ -357,7 +357,7 @@ export class ComponentParser {
 
         const hasPrivateModifier = nodeSymbol.valueDeclaration.modifiers.filter(
             (modifier: ts.Modifier) => {
-                return modifier.kind === ts.SyntaxKind.PrivateKeyword;
+                return modifier.kind === ts.SyntaxKind.PrivateKeyword || modifier.kind === ts.SyntaxKind.ProtectedKeyword;
             }).length > 0;
 
         return hasPrivateModifier;

@@ -324,13 +324,18 @@ function getTestCompilerHostWithMockModuleAndComponent() {
              */
             propertyWithDescription: number;
 
-            private propertyShouldNotBeVisibleInParse: boolean = true;
+            private privatePropertyShouldNotBeVisibleInParse: boolean = true;
+            protected protectedPropertyShouldNotBeVisibleInParse: boolean = true;
 
             publicMethod(): number {
                 return 1;
             }
 
-            private methodShouldNotBeVisibleInParse() {
+            private privateMethodShouldNotBeVisibleInParse() {
+                return true;
+            }
+
+            protected protectedMethodShouldNotBeVisibleInParse() {
                 return true;
             }
 
