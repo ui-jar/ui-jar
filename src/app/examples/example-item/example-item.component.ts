@@ -27,7 +27,59 @@ import { AppData } from '../../app.model';
             <div #example></div>
             <p *ngIf="!isLoaded" class="loading-text">Loading...</p>
         </div>
-    `
+    `,
+    styles: [`
+        :host {
+            display: block;
+            box-shadow: 1px 1px 3px #4e4e4e;
+            margin-bottom: 10px;
+        }
+
+        .view-source-btn {
+            position: absolute;
+            z-index: 500;
+            top: 6px;
+            right: 0;
+            background: none;
+            border: 0;
+            outline: 0;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .view-source-btn:hover {
+            color: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .view-source-btn svg {
+            vertical-align: text-top;
+        }
+
+        .example-container {
+            padding: 20px;
+        }
+
+        .example-container .loading-text {
+            text-align: center;
+        }
+
+        .example-top-bar {
+            position: relative;
+            background: var(--items-header-background);
+            height: 35px;
+            border-bottom: 1px #ddd solid;
+        }
+
+        .example-top-bar h2 {
+            float: left;
+            margin: 0 0 0 8px;
+            font-size: 14px;
+            font-weight: normal;
+            line-height: 35px;
+            color: var(--items-header-color);
+        }
+    `]
 })
 export class ExampleItemComponent implements OnInit {
     @ViewChild('example', { read: ViewContainerRef }) content: ViewContainerRef;

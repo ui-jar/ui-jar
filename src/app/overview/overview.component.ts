@@ -15,7 +15,22 @@ import { AppData } from '../app.model';
                 </div>
             </ng-template>
         </div>
-    `
+    `,
+    styles: [`
+        :host {
+            display: -webkit-flex;
+            display: flex;
+            -webkit-flex-direction: column;
+            flex-direction: column;
+        
+            font-family: Arial;
+            font-size: 14px;
+        }
+
+        .description-container {
+            margin-top: 30px;
+        }
+    `]
 })
 export class OverviewComponent implements OnInit, OnDestroy {
     description: string;
