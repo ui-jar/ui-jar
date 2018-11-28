@@ -16,7 +16,7 @@
             "es2016",
             "dom"
         ],
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
     },
     "exclude": [
         "node_modules",
