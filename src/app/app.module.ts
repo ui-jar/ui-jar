@@ -8,8 +8,11 @@ import { IntroductionComponent } from './introduction/introduction.component';
 import { OverviewComponent } from './overview/overview.component';
 import { ApiComponent } from './api/api.component';
 import { ExamplesModule } from './examples/examples.module';
+import { AppConfig } from './app-config.interface';
 
 let generatedOutput = require('../../../temp/__ui-jar-temp');
+
+declare const UIJarConfiguration: AppConfig;
 
 @NgModule({
     imports: [
@@ -18,8 +21,8 @@ let generatedOutput = require('../../../temp/__ui-jar-temp');
         ExamplesModule,
         RouterModule.forRoot([
             { path: '', component: IntroductionComponent },
-            { 
-                path: ':component', 
+            {
+                path: ':component',
                 component: ContainerComponent,
                 children: [
                     {
@@ -50,7 +53,8 @@ let generatedOutput = require('../../../temp/__ui-jar-temp');
         AppComponent
     ],
     providers: [
-        { provide: 'AppData', useFactory: generatedOutput.getAppData }
+        { provide: 'AppData', useFactory: generatedOutput.getAppData },
+        { provide: 'AppConfig', useValue: typeof UIJarConfiguration !== 'undefined' ? UIJarConfiguration : {} }
     ]
 })
 export class UIJarModule {

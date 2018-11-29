@@ -104,7 +104,9 @@ npm run start-ui-jar-example
 Done! :)
 
 
-## Custom Styles
+## Customizing your UIJar
+
+### Custom Styles
 
 You can overwrite the colors using css variables, for example:
 ```css
@@ -127,9 +129,29 @@ You can overwrite the colors using css variables, for example:
   --text-highlight: #ffbb00;
 }
 ```
+### Custom Content
+
+To overwrite content (f.e. header title, home page, etc) you just need to define the global variable `UIJarConfiguration`, please note that it should be created before angular bootstraps.
+
+One way of doing it is to add `<script>` tag in your `index.html`, like the following example:
+
+```html
+<script>
+    window.UIJarConfiguration = {
+        title: `My custom title`,
+        homeContent: `
+            <h1 class="title">Home page!</h1>
+            <p>I'm a custom page!</p>
+        `
+    };
+</script>
+```
+
+You can check the [`app-config.interface.ts` file](https://github.com/ui-jar/ui-jar/blob/master/src/app/app.interface.ts) to see all the possible atributes.
 
 
 ## Custom installation
+
 ```bash
 npm install ui-jar
 ```

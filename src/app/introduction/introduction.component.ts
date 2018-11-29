@@ -1,12 +1,14 @@
 import { Component, Inject } from '@angular/core';
+import { AppConfig } from '../app-config.interface';
 
 @Component({
     selector: 'ui-jar-introduction',
     template: `
-        <div class="title-container">
+        <div class="title-container" *ngIf="!config.homeContent">
             <h1 class="title">UI-JAR<span>@</span></h1>
             <p>Test Driven Style Guide Development</p>
         </div>
+        <div class="title-container" *ngIf="config.homeContent" [innerHTML]="config.homeContent"></div>
     `,
     styles: [`
         :host {
@@ -32,7 +34,7 @@ import { Component, Inject } from '@angular/core';
         .title-container .title > span {
             font-size: 20px;
         }
-        
+
         .title-container > p {
             margin: 0;
             font-size: 14px;
@@ -40,5 +42,9 @@ import { Component, Inject } from '@angular/core';
     `]
 })
 export class IntroductionComponent {
+  constructor(
+      @Inject('AppConfig') public config: AppConfig
+  ) {
 
+  }
 }

@@ -1,21 +1,27 @@
-import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
-import { Router, Route, NavigationEnd } from '@angular/router';
-import { NavigationLinks, AppData } from './app.model';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { NavigationEnd, Route, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+
+import { AppConfig } from './app-config.interface';
+import { AppData, NavigationLinks } from './app.model';
 
 @Component({
     selector: 'ui-jar-app',
     template: `
         <div class="top-nav-bar">
             <div class="app-title">
-                <a routerLink="/">UI-jar<span>@</span></a>
+                <a routerLink="/" [innerHTML]="config.title || 'UI-jar <span>@</span>'"></a>
             </div>
             <button class="nav-burger-btn" (click)="toggleNavigation()">
                 <span>-</span>
                 <span>-</span>
                 <span>-</span>
             </button>
-            <a href="//github.com/ui-jar/ui-jar" target="_blank" class="project-link">GitHub</a>
+            <a
+                [href]="config.project ? config.project.repository : '//github.com/ui-jar/ui-jar'"
+                target="_blank"
+                class="project-link"
+                [innerHTML]="config.project?.repositoryTitle || 'GitHub'"></a>
         </div>
         <section>
             <nav [class.is-visible]="showNavigation">
@@ -68,7 +74,7 @@ import { Subscription } from 'rxjs';
             padding: 8px 20px;
             text-decoration: none;
             color: var(--menu-item-color);
-            border-bottom: 1px var(--border-color) solid;            
+            border-bottom: 1px var(--border-color) solid;
         }
 
         ul > li > a:hover {
@@ -167,7 +173,7 @@ import { Subscription } from 'rxjs';
                 width: 100%;
                 left: auto;
             }
-        
+
             nav {
                 position: fixed;
                 top: 50px;
@@ -179,7 +185,7 @@ import { Subscription } from 'rxjs';
             nav.is-visible {
                 transform: translateX(0);
             }
-        
+
             .top-nav-bar .app-title {
                 display: none;
             }
@@ -192,18 +198,21 @@ import { Subscription } from 'rxjs';
 })
 export class AppComponent implements OnInit, OnDestroy {
     navigationLinks: NavigationLinks[];
-    showNavigation: boolean = false;
+    showNavigation = false;
     routerEventSubscription: Subscription;
 
-    constructor(@Inject('AppData') private appData: AppData,
-                private router: Router) {
+    constructor(
+        @Inject('AppConfig') public config: AppConfig,
+        @Inject('AppData') private appData: AppData,
+        private router: Router
+    ) {
         this.navigationLinks = appData.navigationLinks;
         this.resetRouteConfigWithPrefixedUrls();
     }
 
     ngOnInit(): void {
         this.routerEventSubscription = this.router.events.subscribe((event) => {
-            if(event instanceof NavigationEnd) {
+            if (event instanceof NavigationEnd) {
                 this.showNavigation = false;
             }
         });
@@ -214,7 +223,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     get currentRouteConfig() {
-        let clonedRouteConfig = [];
+        const clonedRouteConfig = [];
         this.router.config.forEach((route: Route) => {
             clonedRouteConfig.push({ ...route });
         });
@@ -230,8 +239,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
     private addUrlPrefixToAllRoutes(currentRouteConfig: Route[]): Route[] {
         currentRouteConfig.forEach((route: Route) => {
-            if(this.appData.urlPrefix) {
-                route.path = route.path !== '' ? this.appData.urlPrefix +'/'+ route.path : this.appData.urlPrefix;
+            if (this.appData.urlPrefix) {
+                route.path = route.path !== '' ? this.appData.urlPrefix + '/' + route.path : this.appData.urlPrefix;
             }
         });
 
