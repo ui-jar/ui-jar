@@ -347,21 +347,25 @@ export class TestSourceParser {
                     details.examples.push(example);
                 } else if (this.isOverrideModuleExpression(childNode)) {
                     details.moduleMetadataOverride.push(this.getOverrideModuleMetadata(childNode as ts.CallExpression));
-                } else if(this.isConfigureTestingModuleExpression(childNode)) {
+                } else {
                     const docs = this.getJsDocTags(childNode);
 
                     if(docs.length > 0) {
                         docs.filter((doc) => doc.name === 'uijar').forEach((doc) => {
+                            // TestBed.configureTestingModule({ imports: [] ... }) or other function with first argument with TestModuleMetadata
                             let testModuleDefinitionNode: ts.Node = (childNode as ts.CallExpression).arguments[0];
-                            if (testModuleDefinitionNode.kind === ts.SyntaxKind.Identifier) {
-                                const nodeSymbol = this.checker.getSymbolAtLocation(testModuleDefinitionNode);
 
-                                if(nodeSymbol) {
-                                    testModuleDefinitionNode = nodeSymbol.valueDeclaration;
+                            if (testModuleDefinitionNode) {                            
+                                if (testModuleDefinitionNode.kind === ts.SyntaxKind.Identifier) {
+                                    const nodeSymbol = this.checker.getSymbolAtLocation(testModuleDefinitionNode);
+
+                                    if(nodeSymbol) {
+                                        testModuleDefinitionNode = nodeSymbol.valueDeclaration;
+                                    }
                                 }
-                            }
 
-                            details.moduleSetup = this.getModuleDefinitionDetails(testModuleDefinitionNode);
+                                details.moduleSetup = this.getModuleDefinitionDetails(testModuleDefinitionNode);
+                            }
                         });
 
                         parseUIJarJsDocs(docs);
@@ -525,14 +529,6 @@ export class TestSourceParser {
         }
 
         return false;
-    }
-
-    private isConfigureTestingModuleExpression(node: ts.Node) {
-        if ((node as ts.CallExpression).expression.getText() === 'TestBed.configureTestingModule') {
-            return true;
-        }
-
-        return false;    
     }
 
     private getExampleTitle(node: ts.Node) {
