@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, Provider, Type, ModuleWithProviders, SchemaMetadata } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
@@ -12,9 +12,7 @@ import { AppConfig } from './app-config.interface';
 
 let generatedOutput = require('../../../temp/__ui-jar-temp');
 
-declare const UIJarConfiguration: AppConfig;
-
-@NgModule({
+const modules = {
     imports: [
         BrowserModule,
         BrowserAnimationsModule,
@@ -53,10 +51,22 @@ declare const UIJarConfiguration: AppConfig;
         AppComponent
     ],
     providers: [
-        { provide: 'AppData', useFactory: generatedOutput.getAppData },
-        { provide: 'AppConfig', useValue: typeof UIJarConfiguration !== 'undefined' ? UIJarConfiguration : {} }
-    ]
-})
-export class UIJarModule {
+        { provide: 'AppData', useFactory: generatedOutput.getAppData }
+    ],
+    entryComponents: [],
+    schemas: []
+};
 
-}
+export const UIJarModule = (settings: AppConfig = { config: {} }) => {
+    if (!settings.providers) {
+        settings.providers = [];
+    }
+
+    settings.providers.push({ provide: 'AppConfig', useValue: settings.config });
+
+    ['providers', 'declarations', 'imports', 'entryComponents', 'bootstrap', 'schemas'].forEach(
+        attr => settings[attr] && modules[attr] ? modules[attr].push(...settings[attr]) : null
+    );
+    
+    return NgModule(modules);
+};

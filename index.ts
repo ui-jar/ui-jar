@@ -1,1 +1,2 @@
-export * from './src/app/app.module';
+export * from './src/app';
+export * from './src/app/app-config.interface';

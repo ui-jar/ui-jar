@@ -60,16 +60,13 @@ Open "projects/ui-jar/tsonfig.app.json" and add following:
 Open "projects/ui-jar/main.ts" and replace content  with following:
 
 ```ts
-import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { environment } from './environments/environment';
 import { UIJarModule } from 'ui-jar';
 
-if (environment.production) {
-  enableProdMode();
-}
+@UIJarModule()
+class MainModule {}
 
-platformBrowserDynamic().bootstrapModule(UIJarModule);
+platformBrowserDynamic().bootstrapModule(MainModule);
 ```
 
 Open "projects/ui-jar/index.html" and replace content with following:
@@ -131,23 +128,44 @@ You can overwrite the colors using css variables, for example:
 ```
 ### Custom Content
 
-To overwrite content (f.e. header title, home page, etc) you just need to define the global variable `UIJarConfiguration`, please note that it should be created before angular bootstraps.
+To overwrite content (f.e. header title, home page, etc) you just need send as object on `@UIJarModule`.
 
-One way of doing it is to add `<script>` tag in your `index.html`, like the following example:
 
-```html
-<script>
-    window.UIJarConfiguration = {
-        title: `My custom title`,
-        homeContent: `
-            <h1 class="title">Home page!</h1>
-            <p>I'm a custom page!</p>
-        `
-    };
-</script>
+For example:
+
+```TS
+
+@UIJarModule({
+  config: {
+    title: 'My custom title',
+    project: {
+      repository: 'https://gitlab.com/my-project',
+      repositoryTitle: 'Gitlab'
+    },
+    homeContent: `<h1>Dude, that's awesome!</h1>`
+  },
+})
+class Module {}
+
+platformBrowserDynamic().bootstrapModule(Module);
+
 ```
 
-You can check the [`app-config.interface.ts` file](https://github.com/ui-jar/ui-jar/blob/master/src/app/app.interface.ts) to see all the possible atributes.
+You can check the [`app-config.interface.ts` file](https://github.com/ui-jar/ui-jar/blob/master/src/app/app-config.interface.ts) to see all the possible atributes.
+
+
+### Custom Imports, Providers, Declarations, etc...
+
+```TS
+
+@UIJarModule({
+  imports: [ IonicModule.forRoot() ]
+})
+class Module {}
+
+platformBrowserDynamic().bootstrapModule(Module);
+
+```
 
 
 ## Custom installation
@@ -194,7 +212,12 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { UIJarModule } from 'ui-jar';
 
 enableProdMode();
-platformBrowserDynamic().bootstrapModule(UIJarModule);
+
+@UIJarModule()
+class Module {}
+
+platformBrowserDynamic().bootstrapModule(Module);
+
 ```
 
 ```html
