@@ -40,6 +40,7 @@ export interface TestExample {
     sourceCode: string;
     title: string;
     bootstrapComponent: string;
+    selector: string;
 }
 
 export interface BinaryExpression {
@@ -110,40 +111,31 @@ export class TestSourceParser {
         return docs;
     }
 
-    private getExampleSourceCode(hasHostComponent: boolean, bootstrapComponent: string, classesWithDocs: SourceDocs[],
-        otherClasses: SourceDocs[], details: TestDocs, example: TestExample) {
-
-        if(hasHostComponent) {
-            return this.getTestHostComponentSourceCode(bootstrapComponent, classesWithDocs, otherClasses);
-        }
-
-        return this.getComponentSourceCode(details, classesWithDocs, example);
-    }
-
-    private getTestHostComponentSourceCode(componentRefName: string, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
+    private getExampleComponentSourceDocs(bootstrapComponent: string, classesWithDocs: SourceDocs[],
+        otherClasses: SourceDocs[], details: TestDocs): SourceDocs {
         const exampleComponent: SourceDocs = [...classesWithDocs, ...otherClasses].find((classDoc) => {
-            return classDoc.componentRefName === componentRefName;
+            return classDoc.componentRefName === (details.hasHostComponent ? bootstrapComponent : details.includeTestForComponent);
         });
 
-        if(exampleComponent) {
+        return exampleComponent;
+    }
+
+    private getExampleSourceCode(hasHostComponent: boolean, exampleComponent: SourceDocs, example: TestExample) {
+        if(hasHostComponent) {
             return exampleComponent.source;
         }
 
-        return '';
+        return this.getComponentSourceCode(exampleComponent, example);
     }
 
-    private getComponentSourceCode(details: TestDocs, classesWithDocs: SourceDocs[], example: TestExample) {
+    private getComponentSourceCode(exampleComponent: SourceDocs, example: TestExample) {
         let template = '';
 
-        const currentComponentSourceDocs = classesWithDocs.find((classDoc: SourceDocs) => {
-            return classDoc.componentRefName === details.includeTestForComponent;
-        });
-
-        if (!currentComponentSourceDocs) {
+        if (!exampleComponent) {
             return template;
         }
 
-        const inputProperties = currentComponentSourceDocs.apiDetails.properties.filter((prop) => {
+        const inputProperties = exampleComponent.apiDetails.properties.filter((prop) => {
             const isInput = prop.decoratorNames.filter((decoratorName) => {
                 return decoratorName.indexOf('@Input(') > -1;
             }).length > 0;
@@ -169,7 +161,7 @@ export class TestSourceParser {
             }
         });
 
-        template += `<${currentComponentSourceDocs.selector}${inputPropertiesTemplates}></${currentComponentSourceDocs.selector}>`;
+        template += `<${exampleComponent.selector}${inputPropertiesTemplates}></${exampleComponent.selector}>`;
 
         return `@Component({\n  selector: 'example-host',\n  template: \`${template}\`\n})\nclass ExampleHostComponent {}`;
     }
@@ -330,7 +322,8 @@ export class TestSourceParser {
                         httpRequests: this.getExampleHttpRequests(childNode),
                         title: this.getExampleTitle(childNode),
                         sourceCode: '',
-                        bootstrapComponent: this.getExampleHostComponent(childNode)
+                        bootstrapComponent: this.getExampleHostComponent(childNode),
+                        selector: ''
                     };
 
                     if(!example.bootstrapComponent) {
@@ -339,10 +332,11 @@ export class TestSourceParser {
                         details.hasHostComponent = true;
                     }
 
-                    example.componentProperties = this.getExampleComponentProperties(childNode, example.bootstrapComponent);
+                    const exampleComponent: SourceDocs = this.getExampleComponentSourceDocs(example.bootstrapComponent, classesWithDocs, otherClasses, details);
 
-                    example.sourceCode = this.getExampleSourceCode(details.hasHostComponent,
-                        example.bootstrapComponent, classesWithDocs, otherClasses, details, example);
+                    example.componentProperties = this.getExampleComponentProperties(childNode, example.bootstrapComponent);
+                    example.sourceCode = this.getExampleSourceCode(details.hasHostComponent, exampleComponent, example);
+                    example.selector = exampleComponent.selector;
 
                     details.examples.push(example);
                 } else if (this.isOverrideModuleExpression(childNode)) {

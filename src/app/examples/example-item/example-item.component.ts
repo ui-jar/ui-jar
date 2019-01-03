@@ -1,7 +1,8 @@
-import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inject, ComponentRef, Input } from '@angular/core';
+import { Component, OnInit, Compiler, Injector, ViewContainerRef, ViewChild, Inject, ComponentRef, Input, NgZone } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpBackend, HttpRequest, HttpEvent } from '@angular/common/http';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { CodeExampleComponent } from './code-example/code-example.component';
 import { Observable } from 'rxjs';
 import { AppData } from '../../app.model';
@@ -95,8 +96,8 @@ export class ExampleItemComponent implements OnInit {
     }
 
     constructor(private compiler: Compiler,
-                private parentInjector: Injector,
                 private activatedRoute: ActivatedRoute,
+                private ngZone: NgZone,
                 @Inject('AppData') private appData: AppData) { }
 
     ngOnInit(): void {
@@ -128,7 +129,7 @@ export class ExampleItemComponent implements OnInit {
         return imports;
     }
 
-    private getBootstrapComponentRef(componentKey: string) {
+    private getBootstrapComponentRef() {
         const bootstrapComponent = this._example.bootstrapComponent;
 
         const componentDetails = this.appData.componentRefs.find((componentDetails) => {
@@ -157,12 +158,18 @@ export class ExampleItemComponent implements OnInit {
         this.cleanUp();
 
         const componentName = this.getCurrentComponentName();
-        const componentFactory = this.getBootstrapComponentFactory(componentName);
-        const componentRef = this.content.createComponent(componentFactory);
+        const bootstrapModule = this.getBootstrapModule(componentName);
+        const bootstrapComponentRef = this.getBootstrapComponentRef();
 
-        this.listenOnHttpRequests(componentRef.injector, this._example.httpRequests);
-        this.setComponentProperties(componentRef, this._example.componentProperties);
-        this.setExampleSourceCode(componentRef, this._example.sourceCode);
+        this.content.element.nativeElement.appendChild(document.createElement(this._example.selector));
+
+        platformBrowserDynamic().bootstrapModule(bootstrapModule, { ngZone: this.ngZone }).then((ngModuleRef) => {
+            const componentRef = (ngModuleRef.instance as any).bootstrapComponent(bootstrapComponentRef, this.content.element.nativeElement.firstChild);
+
+            this.listenOnHttpRequests(componentRef.injector, this._example.httpRequests);
+            this.setComponentProperties(componentRef, this._example.componentProperties);
+            this.setExampleSourceCode(componentRef, this._example.sourceCode);
+        });
     }
 
     private setExampleSourceCode(componentRef: ComponentRef<any>, sourceCode: string) {
@@ -209,14 +216,11 @@ export class ExampleItemComponent implements OnInit {
         this.exampleSourceCode = modifiedSourceCodeSplit.join(')\nclass');
     }
 
-    private getBootstrapComponentFactory(componentKey: string) {
-        const bootstrapComponentRef = this.getBootstrapComponentRef(componentKey);
+    private getBootstrapModule(componentKey: string) {
         const importModule = this.getComponentModuleImports(componentKey)[0];
         const overridenImportModule = this.setModuleMetadataOverridesOnImports(importModule);
-        const moduleFactory = this.compiler.compileModuleSync(overridenImportModule);
-        const moduleRef = moduleFactory.create(this.parentInjector);
 
-        return moduleRef.componentFactoryResolver.resolveComponentFactory(bootstrapComponentRef);
+        return overridenImportModule;
     }
 
     private cleanUp() {
@@ -266,9 +270,8 @@ export class ExampleItemComponent implements OnInit {
 
     private setComponentProperties(componentRef: ComponentRef<any>, componentProperties) {
         componentProperties.map((propItem) => {
-            return propItem.expression.replace(propItem.name, '__uijar__componentInstance');
+            return propItem.expression.replace(propItem.name, 'componentRef.instance');
         }).forEach((propertyExpression) => {
-            const __uijar__componentInstance = componentRef.instance;
             eval(propertyExpression);
         });
     }
@@ -318,6 +321,7 @@ export interface ExampleProperties {
     httpRequests: any;
     sourceCode: string;
     bootstrapComponent: string;
+    selector: string;
 }
 
 export interface ModuleMetadataOverrideProperties {

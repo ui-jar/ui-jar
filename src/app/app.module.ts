@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 import { ContainerComponent } from './container/container.component';
 import { AppComponent } from './app.component';
@@ -17,7 +16,6 @@ declare const UIJarConfiguration: AppConfig;
 @NgModule({
     imports: [
         BrowserModule,
-        BrowserAnimationsModule,
         ExamplesModule,
         RouterModule.forRoot([
             { path: '', component: IntroductionComponent },

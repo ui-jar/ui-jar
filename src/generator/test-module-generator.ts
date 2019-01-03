@@ -12,18 +12,14 @@ export interface TestModuleSourceFile {
 export class TestModuleGenerator {
     private getTempModuleTemplate(component: TestDocs, moduleId: string) {
         const moduleName = `TempModule${moduleId}`;
-        let defaultImports = `import { NgModule, Component } from "@angular/core";`;
+        let defaultImports = `import { NgModule, Component } from "@angular/core";import { BrowserModule } from "@angular/platform-browser";`;
 
         component.moduleSetup.imports = component.moduleSetup.imports || [];
+        component.moduleSetup.imports.push('BrowserModule');
 
         if (!component.moduleSetup.imports.includes('CommonModule')) {
             defaultImports += `import { CommonModule } from "@angular/common";`;
             component.moduleSetup.imports.push('CommonModule');
-        }
-
-        if (component.moduleSetup.imports.includes('BrowserAnimationsModule')) {
-            const animationModuleIndex = component.moduleSetup.imports.indexOf('BrowserAnimationsModule');
-            component.moduleSetup.imports.splice(animationModuleIndex, 1);
         }
 
         if (component.moduleSetup.imports.find((importStatement) => importStatement.includes('RouterTestingModule'))) {
@@ -33,11 +29,20 @@ export class TestModuleGenerator {
 
         let moduleSetupTemplate = this.getModuleSetupTemplate(component);
         let template = `/**::ui-jar_source_module::${component.includeTestForComponent}*/${defaultImports}`;
-
+        
         template += this.getResolvedImportStatements(component);
         template += this.getInlineClassSourceCode(component.inlineClasses);
         template += `${component.inlineFunctions}`;
-        template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {}`;
+        template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {
+            private appRef;
+            bootstrapComponent(value, bootstrapNode) {
+                return this.appRef.bootstrap(value, bootstrapNode);
+            }
+            
+            ngDoBootstrap(appRef) {
+                this.appRef = appRef;
+            }
+        }`;
         template += this.getTemplateForExamplePropertiesFunction(component);
         template += this.getModuleMetadataOverrideProperties(component);
 
@@ -54,7 +59,7 @@ export class TestModuleGenerator {
     private overrideRouterTestingModuleWithRouterModule(importModules: any[]): any[] {
         const importModulesClone = importModules.slice();
         const routerTestingModuleIndex = importModulesClone.findIndex((importStatement) => importStatement.includes('RouterTestingModule'));
-        importModulesClone.splice(routerTestingModuleIndex, 1, 'RouterModule');
+        importModulesClone.splice(routerTestingModuleIndex, 1, 'RouterModule.forRoot([{ path: "**", component: {} }])');
 
         return importModulesClone;
     }
@@ -137,6 +142,7 @@ export class TestModuleGenerator {
             exampleProperties += `, sourceCode: ${JSON.stringify(example.sourceCode)}`;
             exampleProperties += `, title: "${example.title}"`;
             exampleProperties += `, bootstrapComponent: "${example.bootstrapComponent}"`;
+            exampleProperties += `, selector: "${example.selector}"`;
             exampleProperties += '}' + (index < component.examples.length - 1 ? ',' : '');
         });
         exampleProperties += ']';
@@ -170,6 +176,7 @@ export class TestModuleGenerator {
                 result.sourceCode = example.sourceCode;
                 result.title = example.title;
                 result.bootstrapComponent = example.bootstrapComponent;
+                result.selector = example.selector;
 
                 return result;
             });
