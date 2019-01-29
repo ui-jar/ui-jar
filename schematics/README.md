@@ -11,7 +11,7 @@ If you installed ui-jar with this command, you can skip step 1 because the `ng-a
 ## 1 - Set up an initial ui-jar project
 
 ```
-ng g ui-jar-schematics:generate-uijar-project
+ng g ui-jar:generate-uijar-project
 ```
 
 - creates a project named 'ui-jar' in the projects directory of the Angular workspace
