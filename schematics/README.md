@@ -29,7 +29,7 @@ npm run start:ui-jar
 ## 2 - Add configuration for a specific project or library
 
 ```
-ng g ui-jar-schematics:add-uijar-doc [options]
+ng g ui-jar:add-uijar-doc [options]
 ```
 
 - creates a specific tsconfig.app.json for the project or the library
