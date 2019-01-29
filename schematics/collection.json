@@ -1,0 +1,18 @@
+{
+  "$schema": "../node_modules/@angular-devkit/schematics/collection-schema.json",
+  "schematics": {
+    "ng-add": {
+      "description": "Installs the ui-jar package and calls the generate-uijar-project schematic to set up the initial ui-jar project.",
+      "factory": "./ng-add"
+    },
+    "generate-uijar-project": {
+      "description": "A schematic that add an ui-jar project.",
+      "factory": "./generate-uijar-project"
+    },
+    "add-uijar-doc": {
+      "description": "A schematic that adds an ui-jar configuration for a project or a library.",
+      "factory": "./add-uijar-doc",
+      "schema": "./add-uijar-doc/schema.json"
+    }
+  }
+}
