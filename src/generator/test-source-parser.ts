@@ -346,20 +346,8 @@ export class TestSourceParser {
 
                     if(docs.length > 0) {
                         docs.filter((doc) => doc.name === 'uijar').forEach((doc) => {
-                            // TestBed.configureTestingModule({ imports: [] ... }) or other function with first argument with TestModuleMetadata
-                            let testModuleDefinitionNode: ts.Node = (childNode as ts.CallExpression).arguments[0];
-
-                            if (testModuleDefinitionNode) {                            
-                                if (testModuleDefinitionNode.kind === ts.SyntaxKind.Identifier) {
-                                    const nodeSymbol = this.checker.getSymbolAtLocation(testModuleDefinitionNode);
-
-                                    if(nodeSymbol) {
-                                        testModuleDefinitionNode = nodeSymbol.valueDeclaration;
-                                    }
-                                }
-
-                                details.moduleSetup = this.getModuleDefinitionDetails(testModuleDefinitionNode);
-                            }
+                            // TestBed.configureTestingModule({ imports: [] ... }) or other function with TestModuleMetadata argument
+                            details.moduleSetup = this.getModuleDefinitionDetails(this.getTestModuleMetadataNode(childNode));
                         });
 
                         parseUIJarJsDocs(docs);
@@ -381,6 +369,40 @@ export class TestSourceParser {
         details.inlineFunctions = inlineFunctions.map((inlineFunction) => inlineFunction.func);
 
         return details;
+    }
+
+    private getTestModuleMetadataNode(childNode: ts.Node): ts.Node {
+        let metadataNode = childNode;
+
+        const getTestModuleMetadata = (currentNode: ts.Node) => {
+            if (currentNode.kind === ts.SyntaxKind.CallExpression) {
+                this.checker.getResolvedSignature((currentNode as ts.CallExpression)).getParameters().forEach((parameterSymbol, index) => {
+                    const variableType = this.checker.typeToString(this.checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration));
+
+                    if (variableType === 'TestModuleMetadata') {
+                        let testModuleDefinitionNode: ts.Node = (currentNode as ts.CallExpression).arguments[index];
+
+                        if (testModuleDefinitionNode) {
+                            if (testModuleDefinitionNode.kind === ts.SyntaxKind.Identifier) {
+                                const nodeSymbol = this.checker.getSymbolAtLocation(testModuleDefinitionNode);
+
+                                if(nodeSymbol) {
+                                    testModuleDefinitionNode = nodeSymbol.valueDeclaration;
+                                }
+                            }
+
+                            metadataNode = testModuleDefinitionNode;
+                        }
+                    }
+                });
+            }
+
+            ts.forEachChild(currentNode, getTestModuleMetadata);
+        };
+
+        getTestModuleMetadata(childNode);
+
+        return metadataNode;
     }
 
     private getVariableDeclarationsDetails(node: ts.Node): VariableDeclaration[] {
