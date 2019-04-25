@@ -68,7 +68,7 @@ export function generateRequiredFiles(options: CliArgs) {
     docs.forEach((componentDoc) => {
         generatedDocs.forEach((moduleDocs) => {
             if (moduleDocs.includeTestForComponent === componentDoc.componentRefName) {
-                componentDoc.moduleDetails = {
+                componentDoc.generatedModuleDetails = {
                     moduleRefName: moduleDocs.moduleRefName,
                     fileName: moduleDocs.fileName
                 };

@@ -8,7 +8,8 @@ import { AppData } from '../app.model';
     template: `
         <div class="top-header">
             <h2>{{title}}</h2>
-            <div class="source-ref">{{sourceFilePath}}</div>
+            <div class="source-ref">{{componentRefName}} in {{sourceFilePath}}</div>
+            <div class="source-ref" *ngIf="moduleDetails !== undefined">{{moduleDetails.moduleRefName}} in {{moduleDetails.fileName}}</div>
         </div>
         <div class="content-container">
             <div class="sub-nav">
@@ -117,7 +118,9 @@ import { AppData } from '../app.model';
 })
 export class ContainerComponent {  
     title: string;
+    componentRefName: string;
     sourceFilePath: string;
+    moduleDetails: any;
     routerSub: Subscription;
 
     constructor(private router: Router,
@@ -139,9 +142,10 @@ export class ContainerComponent {
     }
 
     private createView() {
-        const currentComponentName = this.getCurrentComponentName();
-        this.title = this.appData.components[currentComponentName].title;
-        this.sourceFilePath = this.appData.components[currentComponentName].sourceFilePath;
+        this.componentRefName = this.getCurrentComponentName();
+        this.title = this.appData.components[this.componentRefName].title;
+        this.sourceFilePath = this.appData.components[this.componentRefName].sourceFilePath;
+        this.moduleDetails = this.appData.components[this.componentRefName].moduleDetails;
     }
 
     private getCurrentComponentName(): string {

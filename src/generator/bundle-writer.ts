@@ -4,7 +4,7 @@ import * as path from 'path';
 import { ModuleDetails, SourceDocs } from './component-parser';
 
 interface UniqueModulesDetails {
-    moduleDetails: ModuleDetails;
+    generatedModuleDetails: ModuleDetails;
     bootstrapComponents: string[];
 }
 
@@ -80,7 +80,7 @@ export class BundleTemplateWriter {
         let moduleNames = [];
 
         uniqueModules.forEach((item: UniqueModulesDetails) => {
-            moduleNames.push(item.moduleDetails.moduleRefName);
+            moduleNames.push(item.generatedModuleDetails.moduleRefName);
         });
 
         let template = '';
@@ -98,11 +98,11 @@ export class BundleTemplateWriter {
         let moduleImports = this.getUniqueModules();
 
         moduleImports.forEach((item) => {
-            const componentExamplePropertiesFunction = `getComponentExampleProperties as getComponentExampleProperties_${item.moduleDetails.moduleRefName}`;
-            const moduleMetadataOverridePropertiesFunction = `getModuleMetadataOverrideProperties as getModuleMetadataOverrideProperties_${item.moduleDetails.moduleRefName}`;
-            let importPath = path.relative(path.resolve(this.outputDirectoryPath), path.resolve(item.moduleDetails.fileName));
+            const componentExamplePropertiesFunction = `getComponentExampleProperties as getComponentExampleProperties_${item.generatedModuleDetails.moduleRefName}`;
+            const moduleMetadataOverridePropertiesFunction = `getModuleMetadataOverrideProperties as getModuleMetadataOverrideProperties_${item.generatedModuleDetails.moduleRefName}`;
+            let importPath = path.relative(path.resolve(this.outputDirectoryPath), path.resolve(item.generatedModuleDetails.fileName));
             importPath = importPath.replace('.ts', '').replace(/\\/g, '/');
-            template += `import {${item.moduleDetails.moduleRefName}, ${item.bootstrapComponents}, ${componentExamplePropertiesFunction}, ${moduleMetadataOverridePropertiesFunction}} from '${importPath}';\n`;
+            template += `import {${item.generatedModuleDetails.moduleRefName}, ${item.bootstrapComponents}, ${componentExamplePropertiesFunction}, ${moduleMetadataOverridePropertiesFunction}} from '${importPath}';\n`;
         });
 
         return template;
@@ -113,7 +113,7 @@ export class BundleTemplateWriter {
 
         this.documentation.forEach((item) => {
             const isModuleUnique = uniqueModules.filter((importedModule) => {
-                return item.moduleDetails.moduleRefName === importedModule.moduleDetails.moduleRefName;
+                return item.generatedModuleDetails.moduleRefName === importedModule.generatedModuleDetails.moduleRefName;
             }).length === 0;
 
             const bootstrapComponentsInExample = item.examples.filter((example) => example.bootstrapComponent)
@@ -121,7 +121,7 @@ export class BundleTemplateWriter {
 
             if (isModuleUnique) {
                 uniqueModules.push({
-                    moduleDetails: item.moduleDetails,
+                    generatedModuleDetails: item.generatedModuleDetails,
                     bootstrapComponents: bootstrapComponentsInExample
                 });
             }
@@ -138,11 +138,12 @@ export class BundleTemplateWriter {
                 title: classDoc.componentDocName,
                 description: classDoc.description,
                 sourceFilePath: classDoc.fileName,
+                moduleDetails: classDoc.moduleDetails,
                 api: {
                     properties: classDoc.apiDetails.properties,
                     methods: classDoc.apiDetails.methods
                 },
-                moduleDependencies: [classDoc.moduleDetails.moduleRefName]
+                moduleDependencies: [classDoc.generatedModuleDetails.moduleRefName]
             };
         });
 
@@ -152,7 +153,7 @@ export class BundleTemplateWriter {
     private getComponentExampleProperties() {
         let expressions = {};
         this.documentation.forEach((classDoc: SourceDocs) => {
-            expressions[`${classDoc.moduleDetails.moduleRefName}`] = `getComponentExampleProperties_${classDoc.moduleDetails.moduleRefName}()`;
+            expressions[`${classDoc.generatedModuleDetails.moduleRefName}`] = `getComponentExampleProperties_${classDoc.generatedModuleDetails.moduleRefName}()`;
         });
 
         let template = Object.keys(expressions).reduce((result, exp, index) => {
@@ -168,7 +169,7 @@ export class BundleTemplateWriter {
     private getModuleMetadataOverrideProperties() {
         let expressions = {};
         this.documentation.forEach((classDoc: SourceDocs) => {
-            expressions[`${classDoc.moduleDetails.moduleRefName}`] = `getModuleMetadataOverrideProperties_${classDoc.moduleDetails.moduleRefName}()`;
+            expressions[`${classDoc.generatedModuleDetails.moduleRefName}`] = `getModuleMetadataOverrideProperties_${classDoc.generatedModuleDetails.moduleRefName}()`;
         });
         
         let template = Object.keys(expressions).reduce((result, exp, index) => {

@@ -17,6 +17,10 @@ export interface SourceDocs {
     selector: string;
     extendClasses: string[];
     source: string;
+    generatedModuleDetails?: {
+        moduleRefName: string;
+        fileName: string;
+    };
 }
 
 export interface ApiDetails {
@@ -101,7 +105,7 @@ export class ComponentParser {
         if(moduleDoc) {
             return {
                 moduleRefName: moduleDoc.moduleRefName,
-                fileName: moduleDoc.fileName
+                fileName: moduleDoc.fileName.replace(this.config.rootDir, '')
             };
         }
     }
