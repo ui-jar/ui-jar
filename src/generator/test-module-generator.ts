@@ -29,8 +29,8 @@ export class TestModuleGenerator {
 
         let moduleSetupTemplate = this.getModuleSetupTemplate(component);
         let template = `/**::ui-jar_source_module::${component.includeTestForComponent}*/${defaultImports}`;
-        
         template += this.getResolvedImportStatements(component);
+        template += this.getComponentExampleVariables(component.declaredVariables);
         template += this.getInlineClassSourceCode(component.inlineClasses);
         template += `${component.inlineFunctions}`;
         template += `@NgModule(${moduleSetupTemplate}) export class ${moduleName} {
@@ -62,6 +62,13 @@ export class TestModuleGenerator {
         importModulesClone.splice(routerTestingModuleIndex, 1, 'RouterModule.forRoot([{ path: "**", component: {} }])');
 
         return importModulesClone;
+    }
+
+    private getComponentExampleVariables(variables: any[]): string {
+        if(!variables.length) {
+            return;
+        }
+        return `var ${variables.join(', ')}`;
     }
 
     private getInlineClassSourceCode(inlineClasses: InlineClass[]) {
