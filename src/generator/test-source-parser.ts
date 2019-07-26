@@ -16,6 +16,7 @@ export interface InlineClass {
 
 export interface TestDocs {
     importStatements: { value: string, path: string }[];
+    declaredVariables: any;
     moduleSetup: any;
     includeTestForComponent: string;
     includesComponents?: string[];
@@ -254,9 +255,16 @@ export class TestSourceParser {
         return httpExpressions;
     }
 
+    private getTestDeclaredVariables(childNode: ts.Node): Array<string> {
+        return this.getVariableDeclarationsDetails(childNode).map( ({value: variableDeclaration})=> {
+            return variableDeclaration;
+        });
+    }
+
     private getTestSourceDetails(node: ts.Node, fileName: string, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
         let details: TestDocs = {
             importStatements: [],
+            declaredVariables: [],
             moduleSetup: {},
             includeTestForComponent: null,
             inlineClasses: [],
@@ -296,6 +304,8 @@ export class TestSourceParser {
                 details.importStatements.push(importObj);
             } else if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
+
+                details.declaredVariables.push(this.getTestDeclaredVariables(childNode));
 
                 if (nodeSymbol) {
                     const docs = nodeSymbol.getJsDocTags().filter((docs: { name: string, text?: string }) => {
@@ -427,7 +437,7 @@ export class TestSourceParser {
         };
 
         traverseChild(node);
-
+        
         return variableDeclarations;
     }
 
