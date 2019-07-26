@@ -437,8 +437,7 @@ export class TestSourceParser {
         };
 
         traverseChild(node);
-
-      //  console.log(variableDeclarations);
+        
         return variableDeclarations;
     }
 
