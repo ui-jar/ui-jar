@@ -305,7 +305,7 @@ export class TestSourceParser {
             } else if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
 
-                details.variables.push(this.getTestDeclaredVariables(childNode));
+                details.declaredVariables.push(this.getTestDeclaredVariables(childNode));
 
                 if (nodeSymbol) {
                     const docs = nodeSymbol.getJsDocTags().filter((docs: { name: string, text?: string }) => {
