@@ -258,7 +258,7 @@ export class TestSourceParser {
     private getTestDeclaredVariables(childNode: ts.Node): Array<string> {
         return this.getVariableDeclarationsDetails(childNode).map( ({value: variableDeclaration})=> {
             return variableDeclaration;
-        });
+        }).filter( variables => variables);
     }
 
     private getTestSourceDetails(node: ts.Node, fileName: string, classesWithDocs: SourceDocs[], otherClasses: SourceDocs[]) {
@@ -305,8 +305,6 @@ export class TestSourceParser {
             } else if (childNode.kind === ts.SyntaxKind.VariableDeclaration) {
                 const nodeSymbol = this.checker.getSymbolAtLocation((childNode as ts.VariableDeclaration).name);
 
-                details.declaredVariables.push(this.getTestDeclaredVariables(childNode));
-
                 if (nodeSymbol) {
                     const docs = nodeSymbol.getJsDocTags().filter((docs: { name: string, text?: string }) => {
                         return docs.name && docs.text;
@@ -327,6 +325,12 @@ export class TestSourceParser {
                 details.inlineClasses.push(this.getInlineClass((childNode as ts.ClassDeclaration), fileName));
             } else if (childNode.kind === ts.SyntaxKind.CallExpression) {
                 if (this.isExampleComment(childNode) && bootstrapComponent) {
+
+                    const declaredVariablesInExample = this.getTestDeclaredVariables(childNode);
+                    if(declaredVariablesInExample.length >= 1) {
+                        details.declaredVariables.push(declaredVariablesInExample);
+                    }
+                    
                     const example = {
                         componentProperties: null,
                         httpRequests: this.getExampleHttpRequests(childNode),

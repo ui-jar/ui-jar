@@ -65,8 +65,8 @@ export class TestModuleGenerator {
     }
 
     private getComponentExampleVariables(variables: any[]): string {
-        if(!variables.length) {
-            return;
+        if(variables.length === 0) {
+            return '';
         }
         return `var ${variables.join(', ')}`;
     }
