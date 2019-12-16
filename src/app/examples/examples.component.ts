@@ -8,7 +8,7 @@ import { ExampleProperties } from './example-item/example-item.component';
     selector: 'ui-jar-examples',
     template: `
         <ng-container *ngFor="let example of examples">
-            <ui-jar-example-item [example]="example"></ui-jar-example-item>
+            <ui-jar-example-item [example]="example" [attr.data-example-title]="example.title"></ui-jar-example-item>
         </ng-container>
     `
 })
