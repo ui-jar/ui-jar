@@ -581,15 +581,3 @@ export class CheckboxComponent {
 ```
 
 ----
-
-## Maintainer
-
-<table>
-    <tr>
-        <td align="center">
-            <img src="https://avatars3.githubusercontent.com/u/2991298?s=150&v=4" />
-            <br/>
-            <a href="https://github.com/nording">Kristoffer Nording</a>
-        </td>
-    </tr>
-</table>
