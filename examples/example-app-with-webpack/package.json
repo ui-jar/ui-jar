@@ -33,7 +33,7 @@
         "html-loader": "^0.4.3",
         "html-webpack-plugin": "^2.16.1",
         "jasmine-core": "^2.4.1",
-        "karma": "^1.2.0",
+        "karma": "^6.4.1",
         "karma-chrome-launcher": "^2.0.0",
         "karma-jasmine": "^1.0.2",
         "karma-sourcemap-loader": "^0.3.7",
