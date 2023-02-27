@@ -37,7 +37,7 @@
         "@types/sinon": "^2.3.6",
         "chokidar": "^2.0.4",
         "concurrently": "^3.5.0",
-        "mocha": "^4.0.1",
+        "mocha": "^10.2.0",
         "node-sass": "^4.6.0",
         "rxjs": "^6.3.3",
         "sinon": "^4.0.1",
